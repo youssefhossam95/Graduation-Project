@@ -1,6 +1,5 @@
 package com.example.youssefhossam.accelerometergp;
 
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -8,7 +7,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -37,13 +35,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float[] rotationMatrix;
     float[] rotationMatrixTranspose;
     GraphView graph;
+    GraphView realTimeGraph;
     long startTime;
     ArrayList<DataPoint> graphZValues;
     int samplesCounter = 0;
     Button startButton;
     EditText timeBox;
     boolean isRecording=false;
-
+    LineGraphSeries<DataPoint> realTimeSeries;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,12 +61,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gravityValues = new float[3];
         magnetValues = new float[3];
         graph = (GraphView) findViewById(R.id.graph);
+        realTimeGraph=(GraphView)findViewById(R.id.graph1);
         startTime = SystemClock.elapsedRealtime();
         graphZValues = new ArrayList<DataPoint>();
-        startButton = (Button) findViewById(R.id.button);
-        startButton.setBackgroundColor(Color.GREEN);
+//        startButton = (Button) findViewById(R.id.button);
+//        startButton.setBackgroundColor(Color.GREEN);
         timeBox=(EditText)findViewById(R.id.editText);
         timeBox.setText("10");
+        realTimeSeries=new LineGraphSeries<DataPoint>();
+        realTimeGraph.addSeries(realTimeSeries);
+        realTimeGraph.getViewport().setXAxisBoundsManual(true);
+        realTimeGraph.getViewport().setMinX(0);
+        realTimeGraph.getViewport().setMaxX(80);
     }
 
 
@@ -121,17 +126,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             graphZValues.add(new DataPoint(samplesCounter, correctedAccelValues[2]));
             if (samplesCounter == 0) //first call after button press
                 startTime = SystemClock.elapsedRealtime();
+            realTimeSeries.appendData(new DataPoint(samplesCounter,correctedAccelValues[2]),false,1000000);
 
             samplesCounter++;
             if (SystemClock.elapsedRealtime() - startTime >= Integer.parseInt(timeBox.getText().toString()) * 1000) {
                 samplesCounter = 0;
                 isRecording = false;
-                startButton.setBackgroundColor(Color.GREEN);
-                startButton.setText("Start");
+//                startButton.setBackgroundColor(Color.GREEN);
+//                startButton.setText("Start");
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
                 graph.removeAllSeries();
                 graph.addSeries(series);
                 graphZValues.clear();
+                realTimeSeries.resetData(new DataPoint[0]);
             }
         }
         catch(Exception e)
@@ -140,12 +147,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    public void startRecording(View v)
-    {
-        isRecording=true;
-        startButton.setBackgroundColor(Color.RED);
-        startButton.setText("Recording");
-    }
+//    public void startRecording(View v)
+//    {
+//        isRecording=true;
+//        startButton.setBackgroundColor(Color.RED);
+//        startButton.setText("Recording");
+//    }
     public void displayExceptionMessage(String msg)
     {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
