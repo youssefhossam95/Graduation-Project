@@ -9,6 +9,7 @@ import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
@@ -18,7 +19,6 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.util.ArrayList;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
-import static android.hardware.SensorManager.SENSOR_DELAY_NORMAL;
 import static android.hardware.SensorManager.getRotationMatrix;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.transposeM;
@@ -37,12 +37,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     GraphView graph;
     GraphView realTimeGraph;
     long startTime;
+    long lastReadingTime;
     ArrayList<DataPoint> graphZValues;
     int samplesCounter = 0;
     Button startButton;
     EditText timeBox;
+    TextView avgText;
     boolean isRecording=false;
     LineGraphSeries<DataPoint> realTimeSeries;
+    boolean isAccelStarted=false;
+    double avgSamplingPeriod=5; //hankhod datapoint kol kam reading.
+    long defaultSamplingPeriod=100000000;
+    long accelreadingsCount=0;
+    double currentTotal=0;
+    long lastAvgRefresh;
+    double difference,val;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +61,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mMagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         rotationMatrix = new float[16];
         rotationMatrixTranspose = new float[16];
         accelValues = new float[4];
@@ -71,16 +81,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         realTimeSeries=new LineGraphSeries<DataPoint>();
         realTimeGraph.addSeries(realTimeSeries);
         realTimeGraph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX(1000);
         realTimeGraph.getViewport().setMinX(0);
-        realTimeGraph.getViewport().setMaxX(80);
+        realTimeGraph.getViewport().setMaxX(1000);
+        avgText=(TextView)findViewById(R.id.textView);
+
     }
 
 
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
     }
 
     protected void onPause() {
@@ -96,6 +111,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
+                try {
+                    if (!isAccelStarted) { //first accelerometer reading after app start.
+                        isAccelStarted = true;
+                        lastReadingTime = SystemClock.elapsedRealtimeNanos();
+                        lastAvgRefresh=SystemClock.elapsedRealtime();
+                        return;
+                    } else {
+                        long currentReadingTime=SystemClock.elapsedRealtimeNanos();
+                        if(SystemClock.elapsedRealtime()-lastAvgRefresh>10000)
+                        {
+                            avgSamplingPeriod=currentTotal/(double)accelreadingsCount;
+                            currentTotal=0;
+                            accelreadingsCount=0;
+                            lastAvgRefresh=SystemClock.elapsedRealtime();
+                        }
+                        difference=currentReadingTime-lastReadingTime;
+                        val = (double)defaultSamplingPeriod / (difference);
+                        lastReadingTime=currentReadingTime;
+                        currentTotal += val;
+                        accelreadingsCount++;
+                        avgText.setText(Double.toString(avgSamplingPeriod)+"            "+Double.toString(difference)+"     "+Double.toString(val));
+
+//                        if (accelreadingsCount % Math.round(avgSamplingPeriod) != 0) //hanignore el datapoints el maben el samples el 3yzen nakhodha
+//                            return;
+                    }
+                }
+                catch(Exception e)
+                {
+                    displayExceptionMessage(e.getMessage());
+                }
                 accelValues[0] = event.values[0];
                 accelValues[1] = event.values[1];
                 accelValues[2] = event.values[2];
@@ -135,10 +180,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //                startButton.setBackgroundColor(Color.GREEN);
 //                startButton.setText("Start");
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+                realTimeGraph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
+                graph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
                 graph.removeAllSeries();
                 graph.addSeries(series);
                 graphZValues.clear();
                 realTimeSeries.resetData(new DataPoint[0]);
+                realTimeGraph.getViewport().setMaxX(150* Integer.parseInt(timeBox.getText().toString()));
+                graph.getViewport().setMaxX(150 * Integer.parseInt(timeBox.getText().toString()));
             }
         }
         catch(Exception e)
