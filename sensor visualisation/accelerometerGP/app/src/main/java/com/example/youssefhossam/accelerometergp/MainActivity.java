@@ -111,36 +111,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
-                try {
-                    if (!isAccelStarted) { //first accelerometer reading after app start.
-                        isAccelStarted = true;
-                        lastReadingTime = SystemClock.elapsedRealtimeNanos();
-                        lastAvgRefresh=SystemClock.elapsedRealtime();
-                        return;
-                    } else {
-                        long currentReadingTime=SystemClock.elapsedRealtimeNanos();
-                        if(SystemClock.elapsedRealtime()-lastAvgRefresh>10000)
-                        {
-                            avgSamplingPeriod=currentTotal/(double)accelreadingsCount;
-                            currentTotal=0;
-                            accelreadingsCount=0;
-                            lastAvgRefresh=SystemClock.elapsedRealtime();
-                        }
-                        difference=currentReadingTime-lastReadingTime;
-                        val = (double)defaultSamplingPeriod / (difference);
-                        lastReadingTime=currentReadingTime;
-                        currentTotal += val;
-                        accelreadingsCount++;
-                        avgText.setText(Double.toString(avgSamplingPeriod)+"            "+Double.toString(difference)+"     "+Double.toString(val));
-
-//                        if (accelreadingsCount % Math.round(avgSamplingPeriod) != 0) //hanignore el datapoints el maben el samples el 3yzen nakhodha
-//                            return;
-                    }
-                }
-                catch(Exception e)
-                {
-                    displayExceptionMessage(e.getMessage());
-                }
                 accelValues[0] = event.values[0];
                 accelValues[1] = event.values[1];
                 accelValues[2] = event.values[2];
