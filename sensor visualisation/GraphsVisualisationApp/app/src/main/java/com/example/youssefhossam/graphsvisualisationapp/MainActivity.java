@@ -180,10 +180,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     /**
-     * uses linear interpolation and extrapolation to sample accelerometer readings.
+     * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
      * @param samplingRate number of samples per second
-     * @param readings array representing the  timeline in nanoseconds of accelerometer readings in this session .
-     * @param time session length in seconds
+     * @param readings array representing the  timeline in nanoseconds of accelerometer readings
+     * @param time required session length in seconds
      * @return array of sampled readings
      */
     double[] getSampledReadings(int samplingRate,ArrayList<Reading>readings,int time)
@@ -204,6 +204,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             sampledReadings[j]=readings.get(i-1).value + (currentTime-readings.get(i-1).time)/(readings.get(i).time-readings.get(i-1).time) * (readings.get(i).value-readings.get(i-1).value); //linear interpolation
             j++;
+            if(j==sampledReadingsCount) //session time is over
+                break;
             currentTime+=stepSize;
         }
 
