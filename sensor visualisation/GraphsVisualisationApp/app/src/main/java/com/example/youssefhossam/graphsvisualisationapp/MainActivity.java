@@ -1,20 +1,20 @@
 package com.example.youssefhossam.graphsvisualisationapp;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
 
@@ -34,18 +34,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     float[] magnetValues;
     float[] rotationMatrix;
     float[] rotationMatrixTranspose;
-    GraphView graph;
-    GraphView realTimeGraph;
     long startTime;
     long lastReadingTime;
     ArrayList<DataPoint> graphZValues;
     int samplesCounter = 0;
-    Button startButton;
-    EditText timeBox;
-    TextView avgText;
-    boolean isRecording=false;
-    LineGraphSeries<DataPoint> realTimeSeries;
     ArrayList<Reading>readingsTimeLine;
+    double alertThreshold=1.5;
+    boolean isSpeechMode=true;
+    Button switchModeButton,matabButton,hofraButton,takserButton,ghlatButton,harakaButton;
+    boolean isMatabPressed=false,isHofraPressed=false,isTakserPressed=false,isGhlatPressed=false,isHarakaPressed=false;
+    int userVoiceReply=0; //zero means no keywords detected.
+    final int MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,24 +62,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         correctedAccelValues = new float[4];
         gravityValues = new float[3];
         magnetValues = new float[3];
-        graph = (GraphView) findViewById(R.id.graph);
-        realTimeGraph=(GraphView)findViewById(R.id.graph1);
         startTime = SystemClock.elapsedRealtime();
-        graphZValues = new ArrayList<DataPoint>();
-//        startButton = (Button) findViewById(R.id.button);
-//        startButton.setBackgroundColor(Color.GREEN);
-        timeBox=(EditText)findViewById(R.id.editText);
-        timeBox.setText("10");
-        realTimeSeries=new LineGraphSeries<DataPoint>();
-        realTimeGraph.addSeries(realTimeSeries);
-        realTimeGraph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setXAxisBoundsManual(true);
-        graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(1000);
-        realTimeGraph.getViewport().setMinX(0);
-        realTimeGraph.getViewport().setMaxX(1000);
-        avgText=(TextView)findViewById(R.id.textView);
         readingsTimeLine=new ArrayList<Reading>();
+        switchModeButton=(Button)findViewById(R.id.buttonMode);
+        matabButton=(Button)findViewById(R.id.buttonMatab);
+        hofraButton=(Button)findViewById(R.id.buttonHofra);
+        takserButton=(Button)findViewById(R.id.buttonTakser);
+        ghlatButton=(Button)findViewById(R.id.buttonGhlat);
+        harakaButton=(Button)findViewById(R.id.buttonHaraka);
 
     }
 
@@ -114,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
                     multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
                     //if(isRecording)
-                    updateGraph();
+                    processData();
                 }
                 break;
             }
@@ -131,37 +120,57 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    void updateGraph() {
+    void processData() {
         try {
-            graphZValues.add(new DataPoint(samplesCounter, correctedAccelValues[2]));
-            if (samplesCounter == 0) //first reading in recording session.
-            {
-                startTime = SystemClock.elapsedRealtime();
-                readingsTimeLine.add(new Reading((long)0,correctedAccelValues[2]));
+            boolean isNormal = true;
+            for (float val : correctedAccelValues) {
+                if (Math.abs(val) > alertThreshold)
+                    isNormal = false;
             }
-            else
-            {
-                readingsTimeLine.add(new Reading(lastReadingTime-startTime,correctedAccelValues[2]));
-            }
-            realTimeSeries.appendData(new DataPoint(samplesCounter,correctedAccelValues[2]),false,1000000);
+            if (isNormal)
+                return;
 
-            samplesCounter++;
-            if (SystemClock.elapsedRealtime() - startTime >= Integer.parseInt(timeBox.getText().toString()) * 1000) {
-                samplesCounter = 0;
-                isRecording = false;
-//                startButton.setBackgroundColor(Color.GREEN);
-//                startButton.setText("Start");
-                LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
-                realTimeGraph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
-                graph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
-                graph.removeAllSeries();
-                graph.addSeries(series);
-                graphZValues.clear();
-                realTimeSeries.resetData(new DataPoint[0]);
-                realTimeGraph.getViewport().setMaxX(150* Integer.parseInt(timeBox.getText().toString()));
-                graph.getViewport().setMaxX(150 * Integer.parseInt(timeBox.getText().toString()));
+            if (!isSpeechMode) //buttons Mode
+            {
+                MediaPlayer mp = MediaPlayer.create(this, R.raw.ring);
+                mp.start();
+                while (!(isMatabPressed || isHofraPressed || isGhlatPressed || isTakserPressed || isHarakaPressed))
+                    ;
+
+                if (isMatabPressed) {
+                    //matab functionality
+                } else if (isHofraPressed) {
+                    //hofra functionality
+                } else if (isTakserPressed) {
+                    //takser functionailty
+                } else if (isGhlatPressed) {
+                    //ghlat functionality
+                } else {
+                    //haraka functionality
+                }
+                isMatabPressed=isHarakaPressed=isTakserPressed=isGhlatPressed=isHofraPressed=false;
             }
-        }
+            else //Speech Mode
+            {
+                while(userVoiceReply==0) //if no keywords detected listen again
+                    promptSpeechInput();
+                
+                userVoiceReply=0;
+            }
+                if (samplesCounter == 0) //first reading in recording session.
+                {
+                    startTime = SystemClock.elapsedRealtime();
+                    readingsTimeLine.add(new Reading((long) 0, correctedAccelValues[2]));
+                } else {
+                    readingsTimeLine.add(new Reading(lastReadingTime - startTime, correctedAccelValues[2]));
+                }
+
+                samplesCounter++;
+                if (SystemClock.elapsedRealtime() - startTime >= 10000) {
+                    samplesCounter = 0;
+
+                }
+            }
         catch(Exception e)
         {}
 
@@ -218,4 +227,106 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return sampledReadings;
 
     }
+
+    private void promptSpeechInput(){
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        try {
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ar");
+            startActivityForResult(intent,100);
+        } catch (Exception e) {
+            displayExceptionMessage(e.getMessage());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case 100: {
+                if (resultCode == RESULT_OK && null != data) {
+
+                    ArrayList<String> result = data
+                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+
+                    for(String s:result) //search for keywords
+                    {
+                        if(s.equals("مطب"))
+                        {
+                            userVoiceReply=MATAB;
+                            break;
+                        }
+                        else if(s.equals("حفره") || s.equals("حفرة"))
+                        {
+                            userVoiceReply=HOFRA;
+                            break;
+                        }
+                        else if(s.equals("تكسير"))
+                        {
+                            userVoiceReply=TAKSER;
+                            break;
+                        }
+                        else if(s.equals("غلط"))
+                        {
+                            userVoiceReply=GHLAT;
+                            break;
+                        }
+                        else if(s.equals("حركة") || s.equals("حركه"))
+                        {
+                            userVoiceReply=HARAKA;
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+
+        }
+    }
+    public void switchModeClick(View v)
+    {
+        isSpeechMode=!isSpeechMode;
+        if(isSpeechMode)
+        {
+            matabButton.setVisibility(View.INVISIBLE);
+            hofraButton.setVisibility(View.INVISIBLE);
+            takserButton.setVisibility(View.INVISIBLE);
+            ghlatButton.setVisibility(View.INVISIBLE);
+            harakaButton.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            matabButton.setVisibility(View.VISIBLE);
+            hofraButton.setVisibility(View.VISIBLE);
+            takserButton.setVisibility(View.VISIBLE);
+            ghlatButton.setVisibility(View.VISIBLE);
+            harakaButton.setVisibility(View.VISIBLE);
+        }
+
+    }
+    public void matabClick(View v) {
+        isMatabPressed=true;
+    }
+
+
+    public void hofraClick(View v) {
+        isHofraPressed=true;
+    }
+
+    public void takserClick(View v) {
+        isTakserPressed=true;
+    }
+
+    public void ghlatClick(View v) {
+        isGhlatPressed=true;
+    }
+
+    public void harakaClick(View v) {
+        isHarakaPressed=true;
+    }
+
 }
+
+
+
+
