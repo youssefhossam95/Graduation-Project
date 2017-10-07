@@ -12,11 +12,13 @@ import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.series.DataPoint;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import static android.hardware.SensorManager.getRotationMatrix;
@@ -42,9 +44,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     double alertThreshold=1.5;
     boolean isSpeechMode=true;
     Button switchModeButton,matabButton,hofraButton,takserButton,ghlatButton,harakaButton;
-    boolean isMatabPressed=false,isHofraPressed=false,isTakserPressed=false,isGhlatPressed=false,isHarakaPressed=false;
-    int userVoiceReply=0; //zero means no keywords detected.
-    final int MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
+    Boolean isMatabPressed=false,isHofraPressed=false,isTakserPressed=false,isGhlatPressed=false,isHarakaPressed=false;
+    public final static int NOKEYWORDS=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
+    Integer userVoiceReply=NOKEYWORDS;
+    AtomicBoolean isDetectionON;
+    ArrayList<Reading> currentSessionAccelReading;
+    TextView accelValuesText;
+    long lastAnamolyTime;
+    boolean isVoiceActivityDone=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +77,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         takserButton=(Button)findViewById(R.id.buttonTakser);
         ghlatButton=(Button)findViewById(R.id.buttonGhlat);
         harakaButton=(Button)findViewById(R.id.buttonHaraka);
-
+        currentSessionAccelReading=new ArrayList<Reading>();
+        isDetectionON=new AtomicBoolean(true);
+        accelValuesText=(TextView)findViewById(R.id.textView);
     }
 
 
@@ -83,9 +92,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onPause() {
         super.onPause();
+        //mSensorManager.unregisterListener(this);
+    }
+    protected void onDestroy(){
+        super.onDestroy();
         mSensorManager.unregisterListener(this);
     }
-
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
@@ -102,8 +114,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (getRotationMatrix(rotationMatrix, null, gravityValues, magnetValues)) {
                     transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
                     multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
-                    //if(isRecording)
-                    processData();
+                    currentSessionAccelReading.add(new Reading(SystemClock.elapsedRealtimeNanos(),correctedAccelValues[2]));
+                    if(!isDetectionON.get()) {
+                        //displayExceptionMessage("Sensor Working");
+                        //break;
+                    }
+                    processReading();
                 }
                 break;
             }
@@ -120,22 +136,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    void processData() {
+    void processReading() {
         try {
-            boolean isNormal = true;
-            for (float val : correctedAccelValues) {
-                if (Math.abs(val) > alertThreshold)
-                    isNormal = false;
+
+            if (Math.abs(correctedAccelValues[2]) > alertThreshold) //anamolous reading
+            {
+                if(SystemClock.elapsedRealtime()-lastAnamolyTime <3000 || !isVoiceActivityDone) //anamoly detected during switch off after previous anamoly
+                    return;
+                lastAnamolyTime=SystemClock.elapsedRealtime();
+                isDetectionON.set(false);
             }
-            if (isNormal)
+            else
+            {
+                isDetectionON.set(true);
                 return;
+            }
 
             if (!isSpeechMode) //buttons Mode
             {
                 MediaPlayer mp = MediaPlayer.create(this, R.raw.ring);
                 mp.start();
-                while (!(isMatabPressed || isHofraPressed || isGhlatPressed || isTakserPressed || isHarakaPressed))
-                    ;
+                //while (!(isMatabPressed || isHofraPressed || isGhlatPressed || isTakserPressed || isHarakaPressed)) ;
 
                 if (isMatabPressed) {
                     //matab functionality
@@ -152,24 +173,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             else //Speech Mode
             {
-                while(userVoiceReply==0) //if no keywords detected listen again
-                    promptSpeechInput();
-                
-                userVoiceReply=0;
+                isVoiceActivityDone=false;
+                promptSpeechInput();
+
+
             }
-                if (samplesCounter == 0) //first reading in recording session.
-                {
-                    startTime = SystemClock.elapsedRealtime();
-                    readingsTimeLine.add(new Reading((long) 0, correctedAccelValues[2]));
-                } else {
-                    readingsTimeLine.add(new Reading(lastReadingTime - startTime, correctedAccelValues[2]));
-                }
-
-                samplesCounter++;
-                if (SystemClock.elapsedRealtime() - startTime >= 10000) {
-                    samplesCounter = 0;
-
-                }
             }
         catch(Exception e)
         {}
@@ -241,7 +249,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
+        userVoiceReply=NOKEYWORDS;
         switch (requestCode) {
             case 100: {
                 if (resultCode == RESULT_OK && null != data) {
@@ -282,9 +290,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
 
         }
+        isVoiceActivityDone=true;
     }
-    public void switchModeClick(View v)
-    {
+    public void switchModeClick(View v) throws InterruptedException {
         isSpeechMode=!isSpeechMode;
         if(isSpeechMode)
         {

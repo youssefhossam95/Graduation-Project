@@ -71,4 +71,13 @@
         android:layout_above="@+id/buttonGhlat"
         android:onClick="harakaClick"
         android:layout_alignEnd="@+id/buttonMode" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Small Text"
+        android:id="@+id/textView"
+        android:layout_above="@+id/buttonHofra"
+        android:layout_alignStart="@+id/buttonTakser" />
 </RelativeLayout>
