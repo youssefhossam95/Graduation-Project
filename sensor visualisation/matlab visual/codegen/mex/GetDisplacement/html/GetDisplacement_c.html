@@ -1,0 +1,51 @@
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>RTW Report - GetDisplacement.c</title>
+<script language="JavaScript" type="text/javascript" src="rtwreport_utils.js"></script>
+</head>
+<body bgcolor="#eeeeee" text="#1122aa" onload="try {if (top) { if (top.rtwFileOnLoad) top.rtwFileOnLoad(window.document); else local_onload();}} catch(err) {};">
+<p>
+<table border="0" cellspacing="0" cellpadding="6" width="100%%" height="100%%"><tr><td width="100%%" valign="top" bgcolor="#ffffff">
+<h4>File: <a href="../GetDisplacement.c" target="rtwreport_document_frame" id="linkToText_plain">GetDisplacement.c</a></h4>
+<pre id="RTWcode">
+<a name="1"><font color="#888888 "><i>    1   </i></font></a><font color="#117755"><i>/*</i></font>
+<a name="2"><font color="#888888 "><i>    2   </i></font></a><font color="#117755"><I> * GetDisplacement.c</i></font>
+<a name="3"><font color="#888888 "><i>    3   </i></font></a><font color="#117755"><I> *</i></font>
+<a name="4"><font color="#888888 "><i>    4   </i></font></a><font color="#117755"><I> * Code generation for function 'GetDisplacement'</i></font>
+<a name="5"><font color="#888888 "><i>    5   </i></font></a><font color="#117755"><I> *</i></font>
+<a name="6"><font color="#888888 "><i>    6   </i></font></a><font color="#117755"><I> */</i></font>
+<a name="7"><font color="#888888 "><i>    7   </i></font></a>
+<a name="8"><font color="#888888 "><i>    8   </i></font></a><font color="#117755"><i>/* Include files */</i></font>
+<a name="9"><font color="#888888 "><i>    9   </i></font></a><font color="#992211">#</font><font color="#992211"><b>include</b></font> <font color="#992211">&quot;rt_nonfinite.h&quot;</font>
+<a name="10"><font color="#888888 "><i>   10   </i></font></a><font color="#992211">#</font><font color="#992211"><b>include</b></font> <font color="#992211">&quot;GetDisplacement.h&quot;</font>
+<a name="11"><font color="#888888 "><i>   11   </i></font></a><font color="#992211">#</font><font color="#992211"><b>include</b></font> <font color="#992211">&quot;GetDisplacement_emxutil.h&quot;</font>
+<a name="12"><font color="#888888 "><i>   12   </i></font></a><font color="#992211">#</font><font color="#992211"><b>include</b></font> <font color="#992211">&quot;cumtrapz.h&quot;</font>
+<a name="13"><font color="#888888 "><i>   13   </i></font></a><font color="#992211">#</font><font color="#992211"><b>include</b></font> <font color="#992211">&quot;GetDisplacement_data.h&quot;</font>
+<a name="14"><font color="#888888 "><i>   14   </i></font></a>
+<a name="15"><font color="#888888 "><i>   15   </i></font></a><font color="#117755"><i>/* Variable Definitions */</i></font>
+<a name="16"><font color="#888888 "><i>   16   </i></font></a><font color="#112266"><b>static</b></font> emlrtRTEInfo <a name="var_emlrtRTEI">emlrtRTEI</a> = <b>{</b> 1, 25, <font color="#1122ff">&quot;GetDisplacement&quot;</font>,
+<a name="17"><font color="#888888 "><i>   17   </i></font></a>  <font color="#1122ff">&quot;D:\\study\\Graduation Project\\matlab visual\\GetDisplacement.m&quot;</font> <b>}</b>;
+<a name="18"><font color="#888888 "><i>   18   </i></font></a>
+<a name="19"><font color="#888888 "><i>   19   </i></font></a><font color="#117755"><i>/* Function Definitions */</i></font>
+<a name="20"><font color="#888888 "><i>   20   </i></font></a><font color="#112266"><b>void</b></font> <a name="fcn_GetDisplacement">GetDisplacement</a>(<font color="#112266"><b>const</b></font> emlrtStack *sp, <font color="#112266"><b>const</b></font> <a href="GetDisplacement_types_h.html#type_emxArray_real_T" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'type_emxArray_real_T');" target="_self"><font color="#1122aa">emxArray_real_T</font></a> *acceleration,
+<a name="21"><font color="#888888 "><i>   21   </i></font></a>                     <a href="GetDisplacement_types_h.html#type_emxArray_real_T" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'type_emxArray_real_T');" target="_self"><font color="#1122aa">emxArray_real_T</font></a> *Displacement)
+<a name="22"><font color="#888888 "><i>   22   </i></font></a><b>{</b>
+<a name="23"><font color="#888888 "><i>   23   </i></font></a>  <a href="GetDisplacement_types_h.html#type_emxArray_real_T" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'type_emxArray_real_T');" target="_self"><font color="#1122aa">emxArray_real_T</font></a> *r0;
+<a name="24"><font color="#888888 "><i>   24   </i></font></a>  emlrtHeapReferenceStackEnterFcnR2012b(sp);
+<a name="25"><font color="#888888 "><i>   25   </i></font></a>  <a href="GetDisplacement_emxutil_c.html#fcn_emxInit_real_T" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'fcn_emxInit_real_T');" target="_self"><font color="#1122aa">emxInit_real_T</font></a>(sp, &amp;r0, 2, &amp;<a href="#var_emlrtRTEI" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'var_emlrtRTEI');" target="_self"><font color="#1122aa">emlrtRTEI</font></a>, true);
+<a name="26"><font color="#888888 "><i>   26   </i></font></a>  covrtLogFcn(&amp;<a href="GetDisplacement_data_c.html#var_emlrtCoverageInstance" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'var_emlrtCoverageInstance');" target="_self"><font color="#1122aa">emlrtCoverageInstance</font></a>, 0U, 0);
+<a name="27"><font color="#888888 "><i>   27   </i></font></a>  covrtLogBasicBlock(&amp;<a href="GetDisplacement_data_c.html#var_emlrtCoverageInstance" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'var_emlrtCoverageInstance');" target="_self"><font color="#1122aa">emlrtCoverageInstance</font></a>, 0U, 0);
+<a name="28"><font color="#888888 "><i>   28   </i></font></a>  <a href="cumtrapz_c.html#fcn_cumtrapz" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'fcn_cumtrapz');" target="_self"><font color="#1122aa">cumtrapz</font></a>(sp, acceleration, r0);
+<a name="29"><font color="#888888 "><i>   29   </i></font></a>  <a href="cumtrapz_c.html#fcn_cumtrapz" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'fcn_cumtrapz');" target="_self"><font color="#1122aa">cumtrapz</font></a>(sp, r0, Displacement);
+<a name="30"><font color="#888888 "><i>   30   </i></font></a>  <a href="GetDisplacement_emxutil_c.html#fcn_emxFree_real_T" onclick="if (top) if (top.docHiliteMe) top.docHiliteMe(window, 'fcn_emxFree_real_T');" target="_self"><font color="#1122aa">emxFree_real_T</font></a>(&amp;r0);
+<a name="31"><font color="#888888 "><i>   31   </i></font></a>  emlrtHeapReferenceStackLeaveFcnR2012b(sp);
+<a name="32"><font color="#888888 "><i>   32   </i></font></a><b>}</b>
+<a name="33"><font color="#888888 "><i>   33   </i></font></a>
+<a name="34"><font color="#888888 "><i>   34   </i></font></a><font color="#117755"><i>/* End of code generation (GetDisplacement.c) */</i></font>
+<a name="35"><font color="#888888 "><i>   35   </i></font></a></pre>
+</td></tr></table>
+</p>
+</body>
+</html>
