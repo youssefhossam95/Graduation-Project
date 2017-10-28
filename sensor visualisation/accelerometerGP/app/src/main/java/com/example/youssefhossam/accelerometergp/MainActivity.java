@@ -23,6 +23,9 @@ import static android.hardware.SensorManager.getRotationMatrix;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.transposeM;
 
+import java.io.*;
+import java.net.*;
+
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -172,6 +175,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //        startButton.setBackgroundColor(Color.RED);
 //        startButton.setText("Recording");
 //    }
+public static String getHTML() throws Exception {
+    String urlToRead="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix:32bd9c8968033ee6735bcb0919ed2f85f759c8bc8a0a51c03d6cd2647eeb7e66@ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/bumpsdb/Bump";
+    StringBuilder result = new StringBuilder();
+    URL url = new URL(urlToRead);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestMethod("GET");
+    BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    String line;
+    while ((line = rd.readLine()) != null) {
+        result.append(line);
+    }
+    rd.close();
+    return result.toString();
+}
+
+
     public void displayExceptionMessage(String msg)
     {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();

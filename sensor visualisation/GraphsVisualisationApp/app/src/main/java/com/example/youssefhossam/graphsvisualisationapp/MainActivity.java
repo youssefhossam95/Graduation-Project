@@ -1,6 +1,8 @@
 package com.example.youssefhossam.graphsvisualisationapp;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,7 +11,9 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.speech.RecognizerIntent;
+import android.speech.tts.Voice;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -20,12 +24,16 @@ import com.jjoe64.graphview.series.DataPoint;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import at.markushi.ui.CircleButton;
+
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import static android.hardware.SensorManager.getRotationMatrix;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.transposeM;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    CircleButton VoiceModeButton;
+    CircleButton PressModeButton;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGravity;
@@ -70,21 +78,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gravityValues = new float[3];
         magnetValues = new float[3];
         startTime = SystemClock.elapsedRealtime();
-        readingsTimeLine=new ArrayList<Reading>();
-        switchModeButton=(Button)findViewById(R.id.buttonMode);
-        matabButton=(Button)findViewById(R.id.buttonMatab);
-        hofraButton=(Button)findViewById(R.id.buttonHofra);
-        takserButton=(Button)findViewById(R.id.buttonTakser);
-        ghlatButton=(Button)findViewById(R.id.buttonGhlat);
-        harakaButton=(Button)findViewById(R.id.buttonHaraka);
-        currentSessionAccelReading=new ArrayList<Reading>();
-        isDetectionON=new AtomicBoolean(true);
-        accelValuesText=(TextView)findViewById(R.id.textView);
+        readingsTimeLine = new ArrayList<Reading>();
+        switchModeButton = (Button) findViewById(R.id.buttonMode);
+        matabButton = (Button) findViewById(R.id.buttonMatab);
+        hofraButton = (Button) findViewById(R.id.buttonHofra);
+        takserButton = (Button) findViewById(R.id.buttonTakser);
+        ghlatButton = (Button) findViewById(R.id.buttonGhlat);
+        harakaButton = (Button) findViewById(R.id.buttonHaraka);
+        currentSessionAccelReading = new ArrayList<Reading>();
+        isDetectionON = new AtomicBoolean(true);
+        accelValuesText = (TextView) findViewById(R.id.textView);
+        VoiceModeButton=(CircleButton)findViewById(R.id.VoiceButton);
+        VoiceModeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Drawable tempImage = getResources().getDrawable(R.drawable.mic2);
+                VoiceModeButton.setImageDrawable(tempImage);
+                Toast V=Toast.makeText(MainActivity.this,"Voice Mode Button Clicked",Toast.LENGTH_SHORT);
+                V.show();
+                Intent myIntent = new Intent(getApplicationContext(), VoiceMode.class);
+                startActivity(myIntent);
+            }
+        });
+        PressModeButton=(CircleButton)findViewById(R.id.PressButton);
+        PressModeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast V=Toast.makeText(MainActivity.this,"Press Mode Button Clicked",Toast.LENGTH_SHORT);
+              V.show();
+                Intent myIntent = new Intent(getApplicationContext(), PressMode.class);
+                startActivity(myIntent);
+            }
+        });
+
     }
 
 
     protected void onResume() {
         super.onResume();
+        Drawable tempImage = getResources().getDrawable(R.drawable.mic);
+        VoiceModeButton.setImageDrawable(tempImage);
         mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
@@ -292,46 +325,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         isVoiceActivityDone=true;
     }
-    public void switchModeClick(View v) throws InterruptedException {
-        isSpeechMode=!isSpeechMode;
-        if(isSpeechMode)
-        {
-            matabButton.setVisibility(View.INVISIBLE);
-            hofraButton.setVisibility(View.INVISIBLE);
-            takserButton.setVisibility(View.INVISIBLE);
-            ghlatButton.setVisibility(View.INVISIBLE);
-            harakaButton.setVisibility(View.INVISIBLE);
-        }
-        else
-        {
-            matabButton.setVisibility(View.VISIBLE);
-            hofraButton.setVisibility(View.VISIBLE);
-            takserButton.setVisibility(View.VISIBLE);
-            ghlatButton.setVisibility(View.VISIBLE);
-            harakaButton.setVisibility(View.VISIBLE);
-        }
-
-    }
-    public void matabClick(View v) {
-        isMatabPressed=true;
-    }
 
 
-    public void hofraClick(View v) {
-        isHofraPressed=true;
-    }
-
-    public void takserClick(View v) {
-        isTakserPressed=true;
-    }
-
-    public void ghlatClick(View v) {
-        isGhlatPressed=true;
-    }
-
-    public void harakaClick(View v) {
-        isHarakaPressed=true;
-    }
 
 }
 
