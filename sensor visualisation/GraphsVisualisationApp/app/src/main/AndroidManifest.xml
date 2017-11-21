@@ -24,7 +24,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".PressMode"></activity>
+        <activity android:name=".PressMode" />
+        <activity android:name=".SimpleActivity"></activity>
     </application>
 
 </manifest>
