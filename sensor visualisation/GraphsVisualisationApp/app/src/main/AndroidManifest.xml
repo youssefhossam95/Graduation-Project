@@ -25,7 +25,13 @@
             </intent-filter>
         </activity>
         <activity android:name=".PressMode" />
-        <activity android:name=".SimpleActivity"></activity>
+        <activity android:name=".SimpleActivity">
+            <intent-filter>
+                <action android:name="com.example.youssefhossam.graphsvisualisationapp.VoiceMode" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

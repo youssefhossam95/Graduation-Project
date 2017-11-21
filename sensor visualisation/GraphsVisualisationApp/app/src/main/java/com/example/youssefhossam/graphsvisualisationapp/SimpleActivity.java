@@ -21,7 +21,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,6 +35,8 @@ import static android.hardware.SensorManager.getRotationMatrix;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.transposeM;
 import android.location.Location;
+
+import org.w3c.dom.Text;
 
 public class SimpleActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -55,8 +59,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     boolean isVoiceActivityDone=true, isRecording=false,ignoreTimeOver=true;
     String userComment;
     Location currentSessionLocation;
-
-
+    GraphView graph;
+    ArrayList<DataPoint> graphZValues;
+    TextView commentTextBox;
+    TextView typeTextBox;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +83,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         sessionStartTime=0;
         startButton=(Button) findViewById(R.id.startButton);
         currentSessionAccelReading=new ArrayList<Double>();
-
+        commentTextBox=(TextView) findViewById(R.id.textView1);
+        typeTextBox=(TextView) findViewById(R.id.textView2);
+        graphZValues=new ArrayList<DataPoint>();
+        graph = (GraphView) findViewById(R.id.graph);
     }
 
 
@@ -121,6 +130,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     else if(!ignoreTimeOver) 
                     {
                         ignoreTimeOver=true;
+                        startButton.setBackgroundColor(Color.GRAY);
+                        startButton.setText("Start Recording");
                         promptSpeechInput();
                         
                         
@@ -208,12 +219,40 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
             }
 
             saveData(currentSessionAccelReading,currentSessionAnamolyType,currentSessionLocation,userComment);
+
+            for(int i=0;i<currentSessionAccelReading.size();i++) {
+                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
+            }
+            commentTextBox.setText(userComment);
+            String s="";
+            switch(currentSessionAnamolyType) {
+                case UNKNOWN:
+                   s="UNKNOWN";
+                    break;
+                case MATAB:
+                    s="MATAB";
+                    break;
+                case HOFRA:
+                    s="HOFRA";
+                    break;
+                case TAKSER:
+                    s="TAKSER";
+                    break;
+                case GHLAT:
+                    s="GHLAT";
+                    break;
+                case HARAKA:
+                    s="HARAKA";
+                    break;
+            }
+            typeTextBox.setText(s);
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+            graph.addSeries(series);
         }
 
 
         }
-        
-    }
+
 
     Location getLocation()
     {
