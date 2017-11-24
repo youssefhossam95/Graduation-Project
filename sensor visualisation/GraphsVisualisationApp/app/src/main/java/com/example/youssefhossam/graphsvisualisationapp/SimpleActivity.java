@@ -1,6 +1,8 @@
 package com.example.youssefhossam.graphsvisualisationapp;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -21,19 +23,35 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import at.markushi.ui.CircleButton;
-
+import 	org.json.JSONArray;
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import static android.hardware.SensorManager.getRotationMatrix;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.transposeM;
 import android.location.Location;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Comment;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.OutputStreamWriter;
+import java.lang.Object;
 public class SimpleActivity extends AppCompatActivity implements SensorEventListener {
 
 
@@ -51,12 +69,17 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     Button startButton;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     Integer currentSessionAnamolyType=UNKNOWN;
-    ArrayList<Double> currentSessionAccelReading;
+    ArrayList<Float> currentSessionAccelReading;
     boolean isVoiceActivityDone=true, isRecording=false,ignoreTimeOver=true;
     String userComment;
     Location currentSessionLocation;
-
-
+    GraphView graph;
+    ArrayList<DataPoint> graphZValues;
+    TextView commentTextBox;
+    TextView typeTextBox;
+    int NumberOfDefects=0;
+    Button uploadButton;
+    private Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,8 +99,21 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         magnetValues = new float[3];
         sessionStartTime=0;
         startButton=(Button) findViewById(R.id.startButton);
-        currentSessionAccelReading=new ArrayList<Double>();
+        uploadButton=(Button)findViewById(R.id.uploadButton);
+        currentSessionAccelReading=new ArrayList<Float>();
+        commentTextBox=(TextView) findViewById(R.id.textView1);
+        typeTextBox=(TextView) findViewById(R.id.textView2);
+        graphZValues=new ArrayList<DataPoint>();
+        graph = (GraphView) findViewById(R.id.graph);
+        this.context=context;
+        uploadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view){
 
+                    uploadLocalData();
+
+            }
+        });
     }
 
 
@@ -115,7 +151,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     
                     if(SystemClock.elapsedRealtime()-sessionStartTime <10000)
                     {
-                        currentSessionAccelReading.add((double)correctedAccelValues[2]);
+                        currentSessionAccelReading.add((float)correctedAccelValues[2]);
                         ignoreTimeOver=false;
                     }
                     else if(!ignoreTimeOver) 
@@ -173,8 +209,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         currentSessionAnamolyType=UNKNOWN;
         if (resultCode == RESULT_OK && null != data) {
 
-            ArrayList<String> result = data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             
             userComment=result.get(0);
             
@@ -207,30 +242,140 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                 }
             }
 
-            saveData(currentSessionAccelReading,currentSessionAnamolyType,currentSessionLocation,userComment);
+           try {
+               saveData(currentSessionAccelReading, currentSessionAnamolyType, currentSessionLocation, userComment);
+           }
+           catch (org.json.JSONException exception)
+           {
+
+           }
+            for(int i=0;i<currentSessionAccelReading.size();i++) {
+                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
+            }
+            commentTextBox.setText(userComment);
+            String s="";
+            switch(currentSessionAnamolyType) {
+                case UNKNOWN:
+                    s="UNKNOWN";
+                    break;
+                case MATAB:
+                    s="MATAB";
+                    break;
+                case HOFRA:
+                    s="HOFRA";
+                    break;
+                case TAKSER:
+                    s="TAKSER";
+                    break;
+                case GHLAT:
+                    s="GHLAT";
+                    break;
+                case HARAKA:
+                    s="HARAKA";
+                    break;
+            }
+            typeTextBox.setText(s);
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+            graph.addSeries(series);
         }
 
 
         }
         
-    }
+
 
     Location getLocation()
     {
         return new Location("dummy"); //
     }
 
-    void saveData(ArrayList<Double> accelValues, int anamolyType,Location location,String comment)
-    {
+    void saveData(ArrayList<Float> accelValues, int anamolyType,Location location,String comment) throws JSONException {
+        Log.e("Wee","SaveData");
+        JSONArray jsArray = new JSONArray(accelValues);
+        JSONObject jsonFile= new JSONObject();
+        try
+        {
+            jsonFile.put("accelVal",jsArray);
+            jsonFile.put("anamolyType",anamolyType);
+            jsonFile.put("Location",location.toString());
+            jsonFile.put("Comment", comment);
+            jsonFile.put("_id",comment);
+        }
+        catch(Exception e){
+            Log.e("log_tag", "Error in  JsonFIle "+e.toString());
+            e.printStackTrace();
+
+        }
+        writeToFile(jsonFile.toString());
+        Log.e("Wee","Ba3dWrieFile");
+    //    File F=new File(readFromFile());
+     //   JSONObject jsonObj = new JSONObject(F.toString());
+
+        //Log.e("doola",jsonObj.getString("_id"));//
+    }
+
+    public void uploadLocalData() {
+        try
+        {
+            Log.e("Welcome","UPLOADINGGGGG");
+            String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
+            for(int i=0;i<NumberOfDefects;i++)
+            {
+                Log.e("Number of Defects",String.valueOf(NumberOfDefects));
+                File F=new File(readFromFile(i+1));
+                JSONObject jsonObj = new JSONObject(F.toString());
+                new BackgroundWorker(context,url,"POST").execute(jsonObj);
+            }
+        }
+        catch (Exception E)
+        {
+            Log.e("Error ya dola",E.toString());
+        }
+
 
     }
 
-    void uploadLocalData()
-    {
+    private void writeToFile(String data) {
+        try {
+            NumberOfDefects++;
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("Object"+NumberOfDefects+".txt", Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
 
     }
+    public String readFromFile(int Numb) {
 
+        String ret = "";
 
+        try {
+            InputStream inputStream = openFileInput("Object"+Numb+".txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
+        Log.e("JSONFILE",ret);
+        return ret;
+    }
 
 
 }
