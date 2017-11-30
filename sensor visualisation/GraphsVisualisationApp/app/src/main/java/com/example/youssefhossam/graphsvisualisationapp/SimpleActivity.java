@@ -312,9 +312,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
            {
 
            }
-            for(int i=0;i<currentSessionAccelReading.size();i++) {
-                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
-            }
+
             commentTextBox.setText("Your Comment = "+userComment);
             String s="";
             switch(currentSessionAnamolyType) {
@@ -337,8 +335,14 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     s="HARAKA";
                     break;
             }
+            
+            graphZValues.clear();
+            for(int i=0;i<currentSessionAccelReading.size();i++) {
+                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
+            }
             typeTextBox.setText("Type  = "+s);
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+            graph.removeAllSeries();
             graph.addSeries(series);
         }
 
