@@ -1,6 +1,5 @@
 package com.example.youssefhossam.graphsvisualisationapp;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
@@ -11,9 +10,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.speech.RecognizerIntent;
-import android.speech.tts.Voice;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -33,7 +30,6 @@ import static android.opengl.Matrix.transposeM;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     CircleButton VoiceModeButton;
-    CircleButton PressModeButton;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGravity;
@@ -60,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     TextView accelValuesText;
     long lastAnamolyTime;
     boolean isVoiceActivityDone=true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,31 +89,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         VoiceModeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Drawable tempImage = getResources().getDrawable(R.drawable.mic2);
-                VoiceModeButton.setImageDrawable(tempImage);
-                Toast V=Toast.makeText(MainActivity.this,"Voice Mode Button Clicked",Toast.LENGTH_SHORT);
+                Toast V=Toast.makeText(MainActivity.this,"Simple Mode Button Clicked",Toast.LENGTH_SHORT);
                 V.show();
-                Intent myIntent = new Intent(getApplicationContext(), VoiceMode.class);
+                Intent myIntent = new Intent(getApplicationContext(), SimpleActivity.class);
                 startActivity(myIntent);
             }
         });
-        PressModeButton=(CircleButton)findViewById(R.id.PressButton);
-        PressModeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast V=Toast.makeText(MainActivity.this,"Press Mode Button Clicked",Toast.LENGTH_SHORT);
-              V.show();
-                Intent myIntent = new Intent(getApplicationContext(), PressMode.class);
-                startActivity(myIntent);
-            }
-        });
+
 
     }
 
 
     protected void onResume() {
         super.onResume();
-        Drawable tempImage = getResources().getDrawable(R.drawable.mic);
+        Drawable tempImage = getResources().getDrawable(R.drawable.megaphone);
         VoiceModeButton.setImageDrawable(tempImage);
         mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
@@ -207,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             else //Speech Mode
             {
                 isVoiceActivityDone=false;
-                promptSpeechInput();
+               // promptSpeechInput();
 
 
             }
@@ -325,7 +311,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         isVoiceActivityDone=true;
     }
-
 
 
 }

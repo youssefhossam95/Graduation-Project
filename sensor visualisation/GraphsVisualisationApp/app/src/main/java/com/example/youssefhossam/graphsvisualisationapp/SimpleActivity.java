@@ -2,6 +2,8 @@ package com.example.youssefhossam.graphsvisualisationapp;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.admin.DeviceAdminInfo;
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,7 +13,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.SystemClock;
 import android.speech.RecognizerIntent;
 import android.speech.tts.Voice;
@@ -28,9 +34,13 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import at.markushi.ui.CircleButton;
@@ -66,7 +76,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     float[] rotationMatrix;
     float[] rotationMatrixTranspose;
     long sessionStartTime;
-    Button startButton;
+    CircleButton startButton;
+    CircleButton uploadButton;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     Integer currentSessionAnamolyType=UNKNOWN;
     ArrayList<Float> currentSessionAccelReading;
@@ -78,7 +89,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     TextView commentTextBox;
     TextView typeTextBox;
     int NumberOfDefects=0;
-    Button uploadButton;
     private Context context;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,14 +108,21 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         gravityValues = new float[3];
         magnetValues = new float[3];
         sessionStartTime=0;
-        startButton=(Button) findViewById(R.id.startButton);
-        uploadButton=(Button)findViewById(R.id.uploadButton);
+        startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
+        uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Float>();
         commentTextBox=(TextView) findViewById(R.id.textView1);
         typeTextBox=(TextView) findViewById(R.id.textView2);
         graphZValues=new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
-        this.context=context;
+        this.context=getApplicationContext();
+        String Result=readFromFile("Defects");
+        Log.e("Data = ",Result);
+        if(Result!="")
+        {
+            NumberOfDefects=Integer.valueOf(Result);
+        }
+
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
@@ -128,9 +145,34 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         super.onPause();
         //mSensorManager.unregisterListener(this);
     }
+    protected void onStop() {
+        Log.e("On Stop","thank you");
+        try{
+            FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
+            fileOutputStream.write(String.valueOf(NumberOfDefects).getBytes());
+            fileOutputStream.close();
+        }
+        catch(Exception e)
+        {
+
+        }
+        super.onStop();
+        //mSensorManager.unregisterListener(this);
+    }
     protected void onDestroy(){
+        Log.e("On Destroy ","thank you");
+        try{
+            FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
+            fileOutputStream.write(String.valueOf(NumberOfDefects).getBytes());
+            fileOutputStream.close();
+        }
+        catch(Exception e)
+        {
+
+        }
         super.onDestroy();
         mSensorManager.unregisterListener(this);
+
     }
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
@@ -157,7 +199,13 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     else if(!ignoreTimeOver) 
                     {
                         ignoreTimeOver=true;
-                        promptSpeechInput();
+                        Drawable tempImage = getResources().getDrawable(R.drawable.rec);
+                        startButton.setImageDrawable(tempImage);
+                        if(isNetworkAvailable())
+                        {
+                            promptSpeechInput();
+                        }
+
                         
                         
                     }
@@ -177,11 +225,26 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
 
 
     }
-
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
         public void startRecording(View v)
     {
-        startButton.setBackgroundColor(Color.GREEN);
-        startButton.setText("Recording");
+        Drawable tempImage = getResources().getDrawable(R.drawable.temprec);
+        startButton.setImageDrawable(tempImage);
+        new CountDownTimer(10000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                commentTextBox.setText("Seconds Remaining: " + millisUntilFinished / 1000);
+            }
+
+            public void onFinish() {
+                commentTextBox.setText("Done!");
+            }
+        }.start();
         sessionStartTime=SystemClock.elapsedRealtime();
         currentSessionAccelReading.clear();
         currentSessionLocation=getLocation();
@@ -249,10 +312,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
            {
 
            }
-            for(int i=0;i<currentSessionAccelReading.size();i++) {
-                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
-            }
-            commentTextBox.setText(userComment);
+
+            commentTextBox.setText("Your Comment = "+userComment);
             String s="";
             switch(currentSessionAnamolyType) {
                 case UNKNOWN:
@@ -274,8 +335,14 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     s="HARAKA";
                     break;
             }
-            typeTextBox.setText(s);
+            
+            graphZValues.clear();
+            for(int i=0;i<currentSessionAccelReading.size();i++) {
+                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
+            }
+            typeTextBox.setText("Type  = "+s);
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+            graph.removeAllSeries();
             graph.addSeries(series);
         }
 
@@ -290,7 +357,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     }
 
     void saveData(ArrayList<Float> accelValues, int anamolyType,Location location,String comment) throws JSONException {
-        Log.e("Wee","SaveData");
         JSONArray jsArray = new JSONArray(accelValues);
         JSONObject jsonFile= new JSONObject();
         try
@@ -299,32 +365,45 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
             jsonFile.put("anamolyType",anamolyType);
             jsonFile.put("Location",location.toString());
             jsonFile.put("Comment", comment);
-            jsonFile.put("_id",comment);
+            jsonFile.put("_id",String.valueOf(android.os.Build.MODEL)+DateFormat.getDateTimeInstance().format(new Date()));
+            ;
         }
         catch(Exception e){
             Log.e("log_tag", "Error in  JsonFIle "+e.toString());
             e.printStackTrace();
 
         }
-        writeToFile(jsonFile.toString());
-        Log.e("Wee","Ba3dWrieFile");
+        NumberOfDefects++;
+        writeToFile("Object"+NumberOfDefects,jsonFile.toString());
     //    File F=new File(readFromFile());
      //   JSONObject jsonObj = new JSONObject(F.toString());
-
         //Log.e("doola",jsonObj.getString("_id"));//
     }
 
     public void uploadLocalData() {
         try
         {
-            Log.e("Welcome","UPLOADINGGGGG");
+            Log.e("Welcome","Uploading  NumberOfData= "+NumberOfDefects);
             String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
-            for(int i=0;i<NumberOfDefects;i++)
+            int temp=NumberOfDefects;
+            for(int i=0;i<temp;i++)
             {
+
                 Log.e("Number of Defects",String.valueOf(NumberOfDefects));
-                File F=new File(readFromFile(i+1));
+                File F=new File(readFromFile("Object"+(i+1)));
                 JSONObject jsonObj = new JSONObject(F.toString());
-                new BackgroundWorker(context,url,"POST").execute(jsonObj);
+                BackgroundWorker BW=new BackgroundWorker(this.context,url,"POST");
+                String Result=  BW.execute(jsonObj).get(2000, TimeUnit.MILLISECONDS);
+                if(Integer.valueOf(Result)==201)
+                {
+                    Toast.makeText(this.context,"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                    deleteFile("Object"+(i+1)+".txt");
+                    NumberOfDefects--;
+                }
+                else
+                {
+                    Toast.makeText(this.context,"File "+(i+1)+" Not Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                }
             }
         }
         catch (Exception E)
@@ -335,24 +414,22 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
 
     }
 
-    private void writeToFile(String data) {
+    private void writeToFile(String FileName,String Data) {
         try {
-            NumberOfDefects++;
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("Object"+NumberOfDefects+".txt", Context.MODE_PRIVATE));
-            outputStreamWriter.write(data);
-            outputStreamWriter.close();
+            FileOutputStream fileOutputStream =  openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
+            fileOutputStream.write(Data.getBytes());
+            fileOutputStream.close();
         }
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
 
     }
-    public String readFromFile(int Numb) {
+    public String readFromFile(String FileName) {
 
         String ret = "";
-
         try {
-            InputStream inputStream = openFileInput("Object"+Numb+".txt");
+            InputStream inputStream = openFileInput(FileName+".txt");
 
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -373,7 +450,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
         }
-        Log.e("JSONFILE",ret);
         return ret;
     }
 
