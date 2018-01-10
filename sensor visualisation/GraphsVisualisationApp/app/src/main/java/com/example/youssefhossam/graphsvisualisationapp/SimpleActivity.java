@@ -233,7 +233,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     }
     public void startRecording(View v)
     {
-        MediaPlayer mp = MediaPlayer.create(this, R.raw.beginRing);
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.ring);
         mp.start();
         Drawable tempImage = getResources().getDrawable(R.drawable.temprec);
         startButton.setImageDrawable(tempImage);
