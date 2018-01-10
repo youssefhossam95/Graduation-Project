@@ -90,6 +90,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     TextView typeTextBox;
     int NumberOfDefects=0;
     private Context context;
+    public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,6 +116,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         typeTextBox=(TextView) findViewById(R.id.textView2);
         graphZValues=new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
+        graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
         String Result=readFromFile("Defects");
         Log.e("Data = ",Result);
@@ -205,8 +207,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                         {
                             promptSpeechInput();
                         }
-
-
 
                     }
 
@@ -307,7 +307,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                 }
             }
 
-            double [] tempSampledVals=getSampledReadings(1000,currentSessionAccelReading,10);
+            double [] tempSampledVals=getSampledReadings(currentSessionAccelReading,10);
             float [] currentSampledAccelVals=new float[tempSampledVals.length];
 
             for(int i=0;i<tempSampledVals.length;i++) //casting double array to float.
@@ -346,11 +346,13 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
             }
 
             graphZValues.clear();
-            for(int i=0;i<currentSessionAccelReading.size();i++) {
+            for(int i=0;i<currentSampledAccelVals.length;i++) {
                 graphZValues.add(new DataPoint(i, currentSampledAccelVals[i]));
             }
             typeTextBox.setText("Type  = "+s);
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+            graph.getViewport().setMinX(0);
+            graph.getViewport().setMaxX(currentSampledAccelVals.length);
             graph.removeAllSeries();
             graph.addSeries(series);
         }
@@ -466,45 +468,42 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
 
     /**
      * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
-     * @param samplingRate number of samples per second
      * @param readings array representing the  timeline in nanoseconds of accelerometer readings
      * @param time required session length in seconds
      * @return array of sampled readings
      */
-    double[] getSampledReadings(int samplingRate,ArrayList<Reading>readings,int time)
-    {
-        double xFirst,yFirst,xSecond,ySecond,xInter,yInter;
-        double Ts=1/samplingRate * Math.pow(10,9); //in nanoseconds
-        int sampledReadingsCount=time*samplingRate+1;
-        double[] sampledReadings=new double[sampledReadingsCount];
-        sampledReadings[0]=readings.get(0).value; //reading at t=0
-        int i=1,j=1;
-        double currentTime=Ts;
-        while(true)
-        {
-            while(i<readings.size() && currentTime>readings.get(i).time)
+    double[] getSampledReadings(ArrayList<Reading> readings, int time) {
+        double xFirst, yFirst, xSecond, ySecond, xInter, yInter;
+        double Ts = 1.0 /(double) SAMPLINGRATE* Math.pow(10, 9); //in nanoseconds
+        int sampledReadingsCount = time * SAMPLINGRATE + 1;
+        double[] sampledReadings = new double[sampledReadingsCount];
+        sampledReadings[0] = readings.get(0).value; //reading at t=0
+        int i = 1, j = 1;
+        double currentTime = Ts+readings.get(0).time;
+        while (true) {
+            while (i < readings.size() && currentTime > readings.get(i).time)
                 i++;
 
-            if(i==readings.size()) //recorded session is over
+            if (i == readings.size()) //recorded session is over
                 break;
 
-            xFirst=readings.get(i-1).time;
-            yFirst=readings.get(i-1).value;
-            xSecond=readings.get(i).time;
-            ySecond=readings.get(i).value;
-            xInter=currentTime;
+            xFirst = readings.get(i - 1).time;
+            yFirst = readings.get(i - 1).value;
+            xSecond = readings.get(i).time;
+            ySecond = readings.get(i).value;
+            xInter = currentTime;
 
-            yInter=yFirst+(xInter-xFirst)/(xSecond-xFirst)*(ySecond-yFirst); //linear Interpolation
-            sampledReadings[j]=yInter;
+            yInter = yFirst + (xInter - xFirst) / (xSecond - xFirst) * (ySecond - yFirst); //linear Interpolation
+            sampledReadings[j] = yInter;
             j++;
-            if(j==sampledReadingsCount) //sampling session  is over
+            if (j == sampledReadingsCount) //sampling session  is over
                 break;
-            currentTime+=Ts;
+            currentTime += Ts;
         }
 
-        while(j<sampledReadingsCount) //assign last recorded reading to all the remaining samples (approximate extrapolation)
+        while (j < sampledReadingsCount) //assign last recorded reading to all the remaining samples (approximate extrapolation)
         {
-            sampledReadings[j]=readings.get(i-1).value;
+            sampledReadings[j] = readings.get(i - 1).value;
             j++;
         }
 
@@ -512,7 +511,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
 
     }
 }
-
 
 
 
