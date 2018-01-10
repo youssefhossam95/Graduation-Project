@@ -79,8 +79,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     CircleButton startButton;
     CircleButton uploadButton;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
-    Integer currentSessionAnamolyType=UNKNOWN;
-    ArrayList<Float> currentSessionAccelReading;
+    int currentSessionAnamolyType=UNKNOWN;
+    ArrayList<Reading> currentSessionAccelReading;
     boolean isVoiceActivityDone=true, isRecording=false,ignoreTimeOver=true;
     String userComment;
     Location currentSessionLocation;
@@ -110,7 +110,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         sessionStartTime=0;
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
-        currentSessionAccelReading=new ArrayList<Float>();
+        currentSessionAccelReading=new ArrayList<Reading>();
         commentTextBox=(TextView) findViewById(R.id.textView1);
         typeTextBox=(TextView) findViewById(R.id.textView2);
         graphZValues=new ArrayList<DataPoint>();
@@ -127,7 +127,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
             @Override
             public void onClick(View view){
 
-                    uploadLocalData();
+                uploadLocalData();
 
             }
         });
@@ -186,17 +186,17 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                 accelValues[1] = event.values[1];
                 accelValues[2] = event.values[2];
                 accelValues[3] = 1;
-                
+
                 if (getRotationMatrix(rotationMatrix, null, gravityValues, magnetValues)) {
                     transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
                     multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
-                    
+
                     if(SystemClock.elapsedRealtime()-sessionStartTime <10000)
                     {
-                        currentSessionAccelReading.add((float)correctedAccelValues[2]);
+                        currentSessionAccelReading.add(new Reading(event.timestamp,correctedAccelValues[2]));
                         ignoreTimeOver=false;
                     }
-                    else if(!ignoreTimeOver) 
+                    else if(!ignoreTimeOver)
                     {
                         ignoreTimeOver=true;
                         Drawable tempImage = getResources().getDrawable(R.drawable.rec);
@@ -206,10 +206,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                             promptSpeechInput();
                         }
 
-                        
-                        
+
+
                     }
-                        
+
                 }
                 break;
             }
@@ -231,8 +231,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
-        public void startRecording(View v)
+    public void startRecording(View v)
     {
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.beginRing);
+        mp.start();
         Drawable tempImage = getResources().getDrawable(R.drawable.temprec);
         startButton.setImageDrawable(tempImage);
         new CountDownTimer(10000, 1000) {
@@ -273,9 +275,9 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         if (resultCode == RESULT_OK && null != data) {
 
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            
+
             userComment=result.get(0);
-            
+
             for(String s:result) //search for keywords
             {
                 if(s.contains("مطب"))
@@ -305,13 +307,20 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                 }
             }
 
-           try {
-               saveData(currentSessionAccelReading, currentSessionAnamolyType, currentSessionLocation, userComment);
-           }
-           catch (org.json.JSONException exception)
-           {
+            double [] tempSampledVals=getSampledReadings(1000,currentSessionAccelReading,10);
+            float [] currentSampledAccelVals=new float[tempSampledVals.length];
 
-           }
+            for(int i=0;i<tempSampledVals.length;i++) //casting double array to float.
+            {
+                currentSampledAccelVals[i]=(float)tempSampledVals[i];
+            }
+            try {
+                saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
+            }
+            catch (org.json.JSONException exception)
+            {
+                displayExceptionMessage(exception.getMessage());
+            }
 
             commentTextBox.setText("Your Comment = "+userComment);
             String s="";
@@ -335,10 +344,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                     s="HARAKA";
                     break;
             }
-            
+
             graphZValues.clear();
             for(int i=0;i<currentSessionAccelReading.size();i++) {
-                graphZValues.add(new DataPoint(i, currentSessionAccelReading.get(i)));
+                graphZValues.add(new DataPoint(i, currentSampledAccelVals[i]));
             }
             typeTextBox.setText("Type  = "+s);
             LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
@@ -347,8 +356,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         }
 
 
-        }
-        
+    }
+
 
 
     Location getLocation()
@@ -356,7 +365,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         return new Location("dummy"); //
     }
 
-    void saveData(ArrayList<Float> accelValues, int anamolyType,Location location,String comment) throws JSONException {
+    void saveData(float[] accelValues, int anamolyType,Location location,String comment) throws JSONException {
         JSONArray jsArray = new JSONArray(accelValues);
         JSONObject jsonFile= new JSONObject();
         try
@@ -375,8 +384,8 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         }
         NumberOfDefects++;
         writeToFile("Object"+NumberOfDefects,jsonFile.toString());
-    //    File F=new File(readFromFile());
-     //   JSONObject jsonObj = new JSONObject(F.toString());
+        //    File F=new File(readFromFile());
+        //   JSONObject jsonObj = new JSONObject(F.toString());
         //Log.e("doola",jsonObj.getString("_id"));//
     }
 
@@ -454,6 +463,54 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     }
 
 
+
+    /**
+     * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
+     * @param samplingRate number of samples per second
+     * @param readings array representing the  timeline in nanoseconds of accelerometer readings
+     * @param time required session length in seconds
+     * @return array of sampled readings
+     */
+    double[] getSampledReadings(int samplingRate,ArrayList<Reading>readings,int time)
+    {
+        double xFirst,yFirst,xSecond,ySecond,xInter,yInter;
+        double Ts=1/samplingRate * Math.pow(10,9); //in nanoseconds
+        int sampledReadingsCount=time*samplingRate+1;
+        double[] sampledReadings=new double[sampledReadingsCount];
+        sampledReadings[0]=readings.get(0).value; //reading at t=0
+        int i=1,j=1;
+        double currentTime=Ts;
+        while(true)
+        {
+            while(i<readings.size() && currentTime>readings.get(i).time)
+                i++;
+
+            if(i==readings.size()) //recorded session is over
+                break;
+
+            xFirst=readings.get(i-1).time;
+            yFirst=readings.get(i-1).value;
+            xSecond=readings.get(i).time;
+            ySecond=readings.get(i).value;
+            xInter=currentTime;
+
+            yInter=yFirst+(xInter-xFirst)/(xSecond-xFirst)*(ySecond-yFirst); //linear Interpolation
+            sampledReadings[j]=yInter;
+            j++;
+            if(j==sampledReadingsCount) //sampling session  is over
+                break;
+            currentTime+=Ts;
+        }
+
+        while(j<sampledReadingsCount) //assign last recorded reading to all the remaining samples (approximate extrapolation)
+        {
+            sampledReadings[j]=readings.get(i-1).value;
+            j++;
+        }
+
+        return sampledReadings;
+
+    }
 }
 
 
