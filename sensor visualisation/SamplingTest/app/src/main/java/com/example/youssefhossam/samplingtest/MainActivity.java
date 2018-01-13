@@ -124,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         graph.getViewport().setXAxisBoundsManual(true);
         sampledGraph.getViewport().setXAxisBoundsManual(true);
         samplingRateTextBox.setText("100");
+        graph.getViewport().setScalable(true);
+        sampledGraph.getViewport().setScalable(true);
 
     }
 
