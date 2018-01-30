@@ -62,21 +62,11 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.OutputStreamWriter;
 import java.lang.Object;
-public class SimpleActivity extends AppCompatActivity implements SensorEventListener {
+public class SimpleActivity extends AppCompatActivity  {
 
-
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private Sensor mGravity;
-    private Sensor mMagnetic;
-    float[] accelValues;
-    float[] correctedAccelValues;
-    float[] gravityValues;
-    float[] magnetValues;
-    float[] rotationMatrix;
-    float[] rotationMatrixTranspose;
     long sessionStartTime;
     CircleButton startButton;
+    FileHandler fileHandler;
     CircleButton uploadButton;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     int currentSessionAnamolyType=UNKNOWN;
@@ -95,20 +85,9 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-        mMagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
-        rotationMatrix = new float[16];
-        rotationMatrixTranspose = new float[16];
-        accelValues = new float[4];
-        correctedAccelValues = new float[4];
-        gravityValues = new float[3];
-        magnetValues = new float[3];
+        SensorHandler mySensor=new SensorHandler(this);
         sessionStartTime=0;
+        fileHandler =new FileHandler(this);
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Reading>();
@@ -118,7 +97,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
-        String Result=readFromFile("Defects");
+        String Result=fileHandler.readFromFile("Defects");
         Log.e("Data = ",Result);
         if(Result!="")
         {
@@ -129,20 +108,14 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
             @Override
             public void onClick(View view){
 
-                uploadLocalData();
+                fileHandler.uploadLocalData();
 
             }
         });
     }
-
-
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
     }
-
     protected void onPause() {
         super.onPause();
         //mSensorManager.unregisterListener(this);
@@ -173,55 +146,6 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
 
         }
         super.onDestroy();
-        mSensorManager.unregisterListener(this);
-
-    }
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
-
-
-    public void onSensorChanged(SensorEvent event) {
-
-        switch (event.sensor.getType()) {
-            case Sensor.TYPE_LINEAR_ACCELERATION: {
-                accelValues[0] = event.values[0];
-                accelValues[1] = event.values[1];
-                accelValues[2] = event.values[2];
-                accelValues[3] = 1;
-
-                if (getRotationMatrix(rotationMatrix, null, gravityValues, magnetValues)) {
-                    transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
-                    multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
-
-                    if(SystemClock.elapsedRealtime()-sessionStartTime <10000)
-                    {
-                        currentSessionAccelReading.add(new Reading(event.timestamp,correctedAccelValues[2]));
-                        ignoreTimeOver=false;
-                    }
-                    else if(!ignoreTimeOver)
-                    {
-                        ignoreTimeOver=true;
-                        Drawable tempImage = getResources().getDrawable(R.drawable.rec);
-                        startButton.setImageDrawable(tempImage);
-                        if(isNetworkAvailable())
-                        {
-                            promptSpeechInput();
-                        }
-
-                    }
-
-                }
-                break;
-            }
-            case Sensor.TYPE_GRAVITY: {
-                gravityValues = event.values.clone();
-                break;
-            }
-            case Sensor.TYPE_MAGNETIC_FIELD: {
-                magnetValues = event.values.clone();
-                break;
-            }
-        }
 
 
     }
@@ -251,23 +175,10 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         currentSessionAccelReading.clear();
         currentSessionLocation=getLocation();
     }
-
-
     public void displayExceptionMessage(String msg)
     {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
-
-    private void promptSpeechInput(){
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        try {
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ar");
-            startActivityForResult(intent,100);
-        } catch (Exception e) {
-            displayExceptionMessage(e.getMessage());
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -315,7 +226,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
                 currentSampledAccelVals[i]=(float)tempSampledVals[i];
             }
             try {
-                saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
+                fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
             }
             catch (org.json.JSONException exception)
             {
@@ -367,102 +278,7 @@ public class SimpleActivity extends AppCompatActivity implements SensorEventList
         return new Location("dummy"); //
     }
 
-    void saveData(float[] accelValues, int anamolyType,Location location,String comment) throws JSONException {
-        JSONArray jsArray = new JSONArray(accelValues);
-        JSONObject jsonFile= new JSONObject();
-        try
-        {
-            jsonFile.put("accelVal",jsArray);
-            jsonFile.put("anamolyType",anamolyType);
-            jsonFile.put("Location",location.toString());
-            jsonFile.put("Comment", comment);
-            jsonFile.put("_id",String.valueOf(android.os.Build.MODEL)+DateFormat.getDateTimeInstance().format(new Date()));
-            ;
-        }
-        catch(Exception e){
-            Log.e("log_tag", "Error in  JsonFIle "+e.toString());
-            e.printStackTrace();
 
-        }
-        NumberOfDefects++;
-        writeToFile("Object"+NumberOfDefects,jsonFile.toString());
-        //    File F=new File(readFromFile());
-        //   JSONObject jsonObj = new JSONObject(F.toString());
-        //Log.e("doola",jsonObj.getString("_id"));//
-    }
-
-    public void uploadLocalData() {
-        try
-        {
-            Log.e("Welcome","Uploading  NumberOfData= "+NumberOfDefects);
-            String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
-            int temp=NumberOfDefects;
-            for(int i=0;i<temp;i++)
-            {
-
-                Log.e("Number of Defects",String.valueOf(NumberOfDefects));
-                File F=new File(readFromFile("Object"+(i+1)));
-                JSONObject jsonObj = new JSONObject(F.toString());
-                BackgroundWorker BW=new BackgroundWorker(this.context,url,"POST");
-                String Result=  BW.execute(jsonObj).get(2000, TimeUnit.MILLISECONDS);
-                if(Integer.valueOf(Result)==201)
-                {
-                    Toast.makeText(this.context,"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
-                    deleteFile("Object"+(i+1)+".txt");
-                    NumberOfDefects--;
-                }
-                else
-                {
-                    Toast.makeText(this.context,"File "+(i+1)+" Not Uploaded Successfully",Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-        catch (Exception E)
-        {
-            Log.e("Error ya dola",E.toString());
-        }
-
-
-    }
-
-    private void writeToFile(String FileName,String Data) {
-        try {
-            FileOutputStream fileOutputStream =  openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(Data.getBytes());
-            fileOutputStream.close();
-        }
-        catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
-        }
-
-    }
-    public String readFromFile(String FileName) {
-
-        String ret = "";
-        try {
-            InputStream inputStream = openFileInput(FileName+".txt");
-
-            if ( inputStream != null ) {
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String receiveString = "";
-                StringBuilder stringBuilder = new StringBuilder();
-
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    stringBuilder.append(receiveString);
-                }
-
-                inputStream.close();
-                ret = stringBuilder.toString();
-            }
-        }
-        catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
-        } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
-        }
-        return ret;
-    }
 
 
 
