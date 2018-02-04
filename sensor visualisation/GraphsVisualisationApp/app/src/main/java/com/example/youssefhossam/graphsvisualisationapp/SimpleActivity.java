@@ -1,5 +1,6 @@
 package com.example.youssefhossam.graphsvisualisationapp;
-
+import android.content.pm.PackageManager;
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.admin.DeviceAdminInfo;
@@ -21,10 +22,16 @@ import android.os.CountDownTimer;
 import android.os.SystemClock;
 import android.speech.RecognizerIntent;
 import android.speech.tts.Voice;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +39,11 @@ import android.widget.Toast;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import android.location.Address;
+import android.location.Geocoder;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -80,12 +92,23 @@ public class SimpleActivity extends AppCompatActivity  {
     TextView typeTextBox;
     int NumberOfDefects=0;
     private Context context;
+    //NEW
+    EditText commentBoxText;
+    static final int REQUEST_LOCATION=1;
+    private double longitude;
+    private double latitude;
+    private Location myLocation;
+    private String address;
+    private FusedLocationProviderClient mFusedLocationClient;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
+    private SeekBar sensitivityThreshold;
+    private Double senstivThreshold;
+    private SensorHandler mySensor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
-        SensorHandler mySensor=new SensorHandler(this);
+        mySensor=new SensorHandler(this);
         sessionStartTime=0;
         fileHandler =new FileHandler(this);
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
@@ -97,13 +120,14 @@ public class SimpleActivity extends AppCompatActivity  {
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
+        sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
+        sensitivityThreshold.setMax(100);
         String Result=fileHandler.readFromFile("Defects");
         Log.e("Data = ",Result);
         if(Result!="")
         {
             NumberOfDefects=Integer.valueOf(Result);
         }
-
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
@@ -112,6 +136,27 @@ public class SimpleActivity extends AppCompatActivity  {
 
             }
         });
+        sensitivityThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            double progressChangedValue = 0;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                progressChangedValue =  ((float)i / 10.0);
+                senstivThreshold=progressChangedValue;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(SimpleActivity.this, "Sensitivity Threshold  :" + progressChangedValue,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        //NEW
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
     protected void onResume() {
         super.onResume();
@@ -157,22 +202,7 @@ public class SimpleActivity extends AppCompatActivity  {
     }
     public void startRecording(View v)
     {
-        MediaPlayer mp = MediaPlayer.create(this, R.raw.ring);
-        mp.start();
-        Drawable tempImage = getResources().getDrawable(R.drawable.temprec);
-        startButton.setImageDrawable(tempImage);
-        new CountDownTimer(10000, 1000) {
-
-            public void onTick(long millisUntilFinished) {
-                commentTextBox.setText("Seconds Remaining: " + millisUntilFinished / 1000);
-            }
-
-            public void onFinish() {
-                commentTextBox.setText("Done!");
-            }
-        }.start();
-        sessionStartTime=SystemClock.elapsedRealtime();
-        currentSessionAccelReading.clear();
+        mySensor=new SensorHandler(this);
         currentSessionLocation=getLocation();
     }
     public void displayExceptionMessage(String msg)
@@ -184,7 +214,7 @@ public class SimpleActivity extends AppCompatActivity  {
         super.onActivityResult(requestCode, resultCode, data);
         currentSessionAnamolyType=UNKNOWN;
         if (resultCode == RESULT_OK && null != data) {
-
+        displayExceptionMessage("Eshta Tamam");
             ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
 
             userComment=result.get(0);
@@ -227,7 +257,7 @@ public class SimpleActivity extends AppCompatActivity  {
             }
             try {
                 fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
-            }
+           }
             catch (org.json.JSONException exception)
             {
                 displayExceptionMessage(exception.getMessage());
@@ -271,15 +301,69 @@ public class SimpleActivity extends AppCompatActivity  {
 
     }
 
+    public boolean onCreateOptionsMenu(Menu menu) {
 
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.option_menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
 
+        switch (item.getItemId()) {
+            case R.id.viewFileButton:
+                //your code
+                // EX : call intent if you want to swich to other activity
+                displayExceptionMessage("View Files Counts = "+fileHandler.NumberOfDefects);
+                fileHandler.getAllFiles();
+                return true;
+            case R.id.aboutButton:
+                //your code
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     Location getLocation()
     {
-        return new Location("dummy"); //
+        Location location= new Location("");
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
+                &&ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        }
+
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+
+
+                        if (location != null) {
+
+
+                            longitude=location.getLongitude();
+                            latitude=location.getLatitude();
+                            currentSessionLocation=location;
+                            ((TextView)findViewById(R.id.longitudeText)).setText(""+longitude);
+                            ((TextView)findViewById(R.id.latitudeText)).setText(""+latitude);
+                            //((TextView)findViewById(R.id.addressText)).setText(""+getAddress(latitude,longitude));
+                        }
+                        else
+                        {
+                            ((TextView)findViewById(R.id.longitudeText)).setText("Can't find the location");
+                            ((TextView)findViewById(R.id.latitudeText)).setText("Can't find the location");
+                            //  ((TextView)findViewById(R.id.addressText)).setText("Can't find the location");
+
+                        }
+
+                    }
+                });
+
+
+        return location;
+
     }
-
-
-
 
 
     /**
@@ -293,6 +377,10 @@ public class SimpleActivity extends AppCompatActivity  {
         double Ts = 1.0 /(double) SAMPLINGRATE* Math.pow(10, 9); //in nanoseconds
         int sampledReadingsCount = time * SAMPLINGRATE + 1;
         double[] sampledReadings = new double[sampledReadingsCount];
+        if(readings.size()==0)
+        {
+            return new double[10];
+        }
         sampledReadings[0] = readings.get(0).value; //reading at t=0
         int i = 1, j = 1;
         double currentTime = Ts+readings.get(0).time;

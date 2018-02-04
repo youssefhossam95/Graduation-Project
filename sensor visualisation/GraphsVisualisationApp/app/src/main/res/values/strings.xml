@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Testing Application</string>
+    <string name="app_name">Training Application</string>
     <string name="title_activity_voice_mode">VoiceMode</string>
 </resources>

@@ -26,10 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class FileHandler {
-
-    int NumberOfDefects=0;
+   public int NumberOfDefects=0;
     AppCompatActivity activity;
-
     FileHandler(AppCompatActivity activity){
         this.activity = activity ;
     }
@@ -105,7 +103,6 @@ public class FileHandler {
         String ret = "";
         try {
             InputStream inputStream = activity.openFileInput(FileName+".txt");
-
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -121,13 +118,26 @@ public class FileHandler {
             }
         }
         catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
+            Log.e("Filer Handler Class :", "File not found: " + e.toString());
         } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
+            Log.e("Filer Handler Class :", "Can not read file: " + e.toString());
         }
         return ret;
     }
 
+public String[] getAllFiles()
+{
+    if(NumberOfDefects!=0)
+    {
+        String[] allFiles=new String[NumberOfDefects];
+        for (int i=0;i<NumberOfDefects;i++)
+        {
+            allFiles[i]=readFromFile("Object"+(i+1));
+        }
+        return allFiles;
+    }
+    else return null;
+}
 
 
 }

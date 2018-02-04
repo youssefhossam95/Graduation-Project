@@ -9,17 +9,13 @@
     <TextView
         android:id="@+id/textView2"
         android:layout_width="156dp"
-        android:layout_height="34dp"
+        android:layout_height="33dp"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/textView1"
         app:layout_constraintTop_toBottomOf="@+id/textView1"
-        app:layout_constraintVertical_bias="0.057"
         tools:layout_editor_relativeX="118dp"
         tools:layout_editor_relativeY="500dp" />
 
@@ -28,15 +24,13 @@
         android:layout_width="155dp"
         android:layout_height="43dp"
         android:layout_alignBottom="@+id/textView2"
-        android:layout_marginBottom="224dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_toEndOf="@+id/textView2"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintHorizontal_bias="0.265"
+        app:layout_constraintStart_toStartOf="@+id/sensitivityThreshold"
+        app:layout_constraintTop_toBottomOf="@+id/sensitivityThreshold" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -48,12 +42,12 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/textView1"
+        app:layout_constraintBottom_toTopOf="@+id/uploadButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.513"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.081" />
+        app:layout_constraintTop_toBottomOf="@+id/commentEditText"
+        app:layout_constraintVertical_bias="1.0" />
 
 
     <at.markushi.ui.CircleButton
@@ -62,20 +56,17 @@
         android:layout_height="75dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:onClick="startRecording"
         android:src="@drawable/rec"
         app:cb_color="?attr/colorSwitchThumbNormal"
         app:cb_pressedRingWidth="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/uploadButton"
-        app:layout_constraintHorizontal_bias="0.421"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintVertical_bias="0.836" />
+        app:layout_constraintHorizontal_bias="0.433"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <at.markushi.ui.CircleButton
         android:id="@+id/uploadButton"
@@ -83,16 +74,80 @@
         android:layout_height="75dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="80dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="92dp"
         android:onClick="startRecording"
         android:src="@drawable/upload"
         app:cb_color="?attr/colorSwitchThumbNormal"
         app:cb_pressedRingWidth="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/latitudeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:text="Latitude"
+        app:layout_constraintEnd_toStartOf="@+id/sensitivityThreshold"
+        app:layout_constraintHorizontal_bias="0.101"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/longitudeText" />
+
+    <TextView
+        android:id="@+id/longitudeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="20dp"
+        android:text="Longitude"
+        app:layout_constraintEnd_toStartOf="@+id/sensitivityThreshold"
+        app:layout_constraintHorizontal_bias="0.117"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sensitivityThreshLayout" />
+
+    <EditText
+        android:id="@+id/commentEditText"
+        android:layout_width="203dp"
+        android:layout_height="58dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:ems="10"
+        android:inputType="textMultiLine"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView2"
-        app:layout_constraintVertical_bias="0.836" />
+        app:layout_constraintHorizontal_bias="0.951"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+    <SeekBar
+        android:id="@+id/sensitivityThreshold"
+        android:layout_width="220dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="8dp"
+        android:clickable="false"
+        android:fitsSystemWindows="false"
+        android:isScrollContainer="false"
+        android:keepScreenOn="false"
+        android:labelFor="@+id/sensitivityThreshLayout"
+        android:longClickable="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/sensitivityThreshLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Sensitivity Threshold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
