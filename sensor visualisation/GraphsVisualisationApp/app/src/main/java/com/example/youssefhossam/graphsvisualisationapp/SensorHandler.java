@@ -11,6 +11,9 @@ import android.speech.RecognizerIntent;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import static android.content.Context.SENSOR_SERVICE;
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
 import static android.hardware.SensorManager.getRotationMatrix;
@@ -35,7 +38,10 @@ public class SensorHandler implements SensorEventListener {
     float[] rotationMatrixTranspose;
     AppCompatActivity activity;
     boolean check=true;
-    SensorHandler(AppCompatActivity activity)
+    Double threshold;
+    LinkedBlockingQueue<Reading> readingsQ=new LinkedBlockingQueue<Reading>();
+    Long lastAnamolyTime;
+    SensorHandler(AppCompatActivity activity,Double Threshold)
     {
         this.activity=activity;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
@@ -51,8 +57,13 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
+        this.threshold=Threshold;
+    }
+    private void extractReadings()
+    {
 
     }
+
     public void onSensorChanged(SensorEvent event) {
         if(check)
             promptSpeechInput();
@@ -67,6 +78,24 @@ public class SensorHandler implements SensorEventListener {
                 if (getRotationMatrix(rotationMatrix, null, gravityValues, magnetValues)) {
                     transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
                     multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
+                    if(readingsQ.size()<2000)
+                        readingsQ.add(new Reading(event.timestamp,correctedAccelValues[2]));
+                    else
+                    {
+                        readingsQ.poll();
+                        readingsQ.add(new Reading(event.timestamp,correctedAccelValues[2]));
+                    }
+                    if(correctedAccelValues[2]>threshold)
+                    {
+                        lastAnamolyTime=event.timestamp;
+                    }
+                    else
+                    {
+                        if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>2*Math.pow(10,9))
+                        {
+
+                        }
+                    }
 
                 }
                 break;
