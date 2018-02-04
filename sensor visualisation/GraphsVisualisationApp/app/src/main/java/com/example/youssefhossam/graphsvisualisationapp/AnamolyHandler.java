@@ -20,45 +20,6 @@ public class AnamolyHandler extends Thread{
         this.userVoiceReply=userVoiceReply;
     }
 
-    @Override
-    public void run()
-    {
-        if(isSpeechMode)
-            waitForSpeech();
-        else
-            waitForButtonPress();
 
-
-    }
-
-    void waitForSpeech()
-    {
-        while(!isVoiceActivityDone);
-        processAnamoly(userVoiceReply);
-
-    }
-
-    void waitForButtonPress()
-    {
-        while (!(isMatabPressed || isHofraPressed || isGhlatPressed || isTakserPressed || isHarakaPressed)) ;
-
-        if (isMatabPressed) {
-            processAnamoly(MainActivity.MATAB);
-        } else if (isHofraPressed) {
-            processAnamoly(MainActivity.HOFRA);
-        } else if (isTakserPressed) {
-            processAnamoly(MainActivity.TAKSER);
-        } else if (isGhlatPressed) {
-            processAnamoly(MainActivity.GHLAT);
-        } else {
-            processAnamoly(MainActivity.HARAKA);
-        }
-        isMatabPressed=isHarakaPressed=isTakserPressed=isGhlatPressed=isHofraPressed=false;
-    }
-
-    void processAnamoly(int userChoice)
-    {
-
-    }
 
 }

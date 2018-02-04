@@ -25,7 +25,6 @@ import static android.opengl.Matrix.transposeM;
  */
 
 public class SensorHandler implements SensorEventListener {
-
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGravity;
@@ -119,7 +118,6 @@ public class SensorHandler implements SensorEventListener {
 
         Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
     }
-
     private void promptSpeechInput(){
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         try {
