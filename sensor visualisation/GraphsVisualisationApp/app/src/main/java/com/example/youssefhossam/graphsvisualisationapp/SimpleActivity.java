@@ -108,7 +108,7 @@ public class SimpleActivity extends AppCompatActivity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
-        mySensor=new SensorHandler(this);
+        mySensor=new SensorHandler(this,senstivThreshold);
         sessionStartTime=0;
         fileHandler =new FileHandler(this);
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
@@ -202,7 +202,7 @@ public class SimpleActivity extends AppCompatActivity  {
     }
     public void startRecording(View v)
     {
-        mySensor=new SensorHandler(this);
+        mySensor=new SensorHandler(this,senstivThreshold);
         currentSessionLocation=getLocation();
     }
     public void displayExceptionMessage(String msg)
