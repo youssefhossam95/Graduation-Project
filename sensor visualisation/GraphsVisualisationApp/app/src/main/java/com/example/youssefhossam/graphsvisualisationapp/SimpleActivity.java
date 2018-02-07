@@ -1,4 +1,4 @@
-package com.example.youssefhossam.graphsvisualisationapp;
+package com.example.youssefhossam.graphsvisualisationapp;
 import android.content.pm.PackageManager;
 import android.Manifest;
 import android.app.Activity;
@@ -110,7 +110,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         setContentView(R.layout.activity_simple);
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
-        mySensor=new SensorHandler(this);
+        mySensor=new SensorHandler(this,senstivThreshold);
         sessionStartTime=0;
         fileHandler =new FileHandler();
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
@@ -208,7 +208,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
     public void startRecording(View v)
     {
-        mySensor=new SensorHandler(this);
+        mySensor=new SensorHandler(this,senstivThreshold);
         currentSessionLocation=getLocation();
     }
     public void displayExceptionMessage(String msg)
