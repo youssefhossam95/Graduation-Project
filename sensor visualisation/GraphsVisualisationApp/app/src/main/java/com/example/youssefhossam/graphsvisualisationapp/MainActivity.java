@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ContextHolder contextHolder=new ContextHolder();
+        contextHolder.setContext(getApplicationContext());
         VoiceModeButton=(CircleButton)findViewById(R.id.VoiceButton);
         VoiceModeButton.setOnClickListener(new View.OnClickListener() {
             @Override

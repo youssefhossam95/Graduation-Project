@@ -47,6 +47,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
@@ -74,7 +75,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.OutputStreamWriter;
 import java.lang.Object;
-public class SimpleActivity extends AppCompatActivity  {
+public class SimpleActivity extends AppCompatActivity implements Serializable {
 
     long sessionStartTime;
     CircleButton startButton;
@@ -90,7 +91,6 @@ public class SimpleActivity extends AppCompatActivity  {
     ArrayList<DataPoint> graphZValues;
     TextView commentTextBox;
     TextView typeTextBox;
-    int NumberOfDefects=0;
     private Context context;
     //NEW
     EditText commentBoxText;
@@ -108,9 +108,11 @@ public class SimpleActivity extends AppCompatActivity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
+        ContextHolder contextHolder=new ContextHolder();
+        contextHolder.setContext(getApplicationContext());
         mySensor=new SensorHandler(this);
         sessionStartTime=0;
-        fileHandler =new FileHandler(this);
+        fileHandler =new FileHandler();
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Reading>();
@@ -126,13 +128,16 @@ public class SimpleActivity extends AppCompatActivity  {
         Log.e("Data = ",Result);
         if(Result!="")
         {
-            NumberOfDefects=Integer.valueOf(Result);
+            fileHandler.NumberOfDefects=Integer.valueOf(Result);
         }
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
 
-                fileHandler.uploadLocalData();
+                if(!fileHandler.uploadLocalData())
+                {
+                    displayExceptionMessage("No Files To Be Uploaded ");
+                }
 
             }
         });
@@ -160,16 +165,17 @@ public class SimpleActivity extends AppCompatActivity  {
     }
     protected void onResume() {
         super.onResume();
+        Log.e("Simple Activity of Def",String.valueOf(fileHandler.getNumberOfDefects()));
     }
     protected void onPause() {
         super.onPause();
-        //mSensorManager.unregisterListener(this);
+
     }
     protected void onStop() {
         Log.e("On Stop","thank you");
         try{
             FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(NumberOfDefects).getBytes());
+            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
             fileOutputStream.close();
         }
         catch(Exception e)
@@ -183,7 +189,7 @@ public class SimpleActivity extends AppCompatActivity  {
         Log.e("On Destroy ","thank you");
         try{
             FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(NumberOfDefects).getBytes());
+            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
             fileOutputStream.close();
         }
         catch(Exception e)
@@ -212,90 +218,97 @@ public class SimpleActivity extends AppCompatActivity  {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        currentSessionAnamolyType=UNKNOWN;
-        if (resultCode == RESULT_OK && null != data) {
-        displayExceptionMessage("Eshta Tamam");
-            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+        if(requestCode==2)
+        {
+            if(resultCode == RESULT_OK) {
+             fileHandler=data.getExtras().getParcelable("fileHandler");
+            }
+        }
+        else
+        {
+            currentSessionAnamolyType=UNKNOWN;
+            if (resultCode == RESULT_OK && null != data) {
+                ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                userComment=result.get(0);
+                for(String s:result) //search for keywords
+                {
+                    if(s.contains("مطب"))
+                    {
+                        currentSessionAnamolyType=MATAB;
+                        break;
+                    }
+                    else if(s.contains("حفره") || s.contains("حفرة"))
+                    {
+                        currentSessionAnamolyType=HOFRA;
+                        break;
+                    }
+                    else if(s.contains("تكسير"))
+                    {
+                        currentSessionAnamolyType=TAKSER;
+                        break;
+                    }
+                    else if(s.contains("غلط"))
+                    {
+                        currentSessionAnamolyType=GHLAT;
+                        break;
+                    }
+                    else if(s.contains("حركة") || s.contains("حركه"))
+                    {
+                        currentSessionAnamolyType=HARAKA;
+                        break;
+                    }
+                }
 
-            userComment=result.get(0);
+                double [] tempSampledVals=getSampledReadings(currentSessionAccelReading,10);
+                float [] currentSampledAccelVals=new float[tempSampledVals.length];
 
-            for(String s:result) //search for keywords
-            {
-                if(s.contains("مطب"))
+                for(int i=0;i<tempSampledVals.length;i++) //casting double array to float.
                 {
-                    currentSessionAnamolyType=MATAB;
-                    break;
+                    currentSampledAccelVals[i]=(float)tempSampledVals[i];
                 }
-                else if(s.contains("حفره") || s.contains("حفرة"))
+                try {
+                    fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
+                }
+                catch (org.json.JSONException exception)
                 {
-                    currentSessionAnamolyType=HOFRA;
-                    break;
+                    displayExceptionMessage(exception.getMessage());
                 }
-                else if(s.contains("تكسير"))
-                {
-                    currentSessionAnamolyType=TAKSER;
-                    break;
+
+                commentTextBox.setText("Your Comment = "+userComment);
+                String s="";
+                switch(currentSessionAnamolyType) {
+                    case UNKNOWN:
+                        s="UNKNOWN";
+                        break;
+                    case MATAB:
+                        s="MATAB";
+                        break;
+                    case HOFRA:
+                        s="HOFRA";
+                        break;
+                    case TAKSER:
+                        s="TAKSER";
+                        break;
+                    case GHLAT:
+                        s="GHLAT";
+                        break;
+                    case HARAKA:
+                        s="HARAKA";
+                        break;
                 }
-                else if(s.contains("غلط"))
-                {
-                    currentSessionAnamolyType=GHLAT;
-                    break;
+
+                graphZValues.clear();
+                for(int i=0;i<currentSampledAccelVals.length;i++) {
+                    graphZValues.add(new DataPoint(i, currentSampledAccelVals[i]));
                 }
-                else if(s.contains("حركة") || s.contains("حركه"))
-                {
-                    currentSessionAnamolyType=HARAKA;
-                    break;
-                }
+                typeTextBox.setText("Type  = "+s);
+                LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+                graph.getViewport().setMinX(0);
+                graph.getViewport().setMaxX(currentSampledAccelVals.length);
+                graph.removeAllSeries();
+                graph.addSeries(series);
             }
 
-            double [] tempSampledVals=getSampledReadings(currentSessionAccelReading,10);
-            float [] currentSampledAccelVals=new float[tempSampledVals.length];
-
-            for(int i=0;i<tempSampledVals.length;i++) //casting double array to float.
-            {
-                currentSampledAccelVals[i]=(float)tempSampledVals[i];
-            }
-            try {
-                fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
-           }
-            catch (org.json.JSONException exception)
-            {
-                displayExceptionMessage(exception.getMessage());
-            }
-
-            commentTextBox.setText("Your Comment = "+userComment);
-            String s="";
-            switch(currentSessionAnamolyType) {
-                case UNKNOWN:
-                    s="UNKNOWN";
-                    break;
-                case MATAB:
-                    s="MATAB";
-                    break;
-                case HOFRA:
-                    s="HOFRA";
-                    break;
-                case TAKSER:
-                    s="TAKSER";
-                    break;
-                case GHLAT:
-                    s="GHLAT";
-                    break;
-                case HARAKA:
-                    s="HARAKA";
-                    break;
-            }
-
-            graphZValues.clear();
-            for(int i=0;i<currentSampledAccelVals.length;i++) {
-                graphZValues.add(new DataPoint(i, currentSampledAccelVals[i]));
-            }
-            typeTextBox.setText("Type  = "+s);
-            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
-            graph.getViewport().setMinX(0);
-            graph.getViewport().setMaxX(currentSampledAccelVals.length);
-            graph.removeAllSeries();
-            graph.addSeries(series);
         }
 
 
@@ -315,10 +328,12 @@ public class SimpleActivity extends AppCompatActivity  {
                 //your code
                 // EX : call intent if you want to swich to other activity
                 displayExceptionMessage("View Files Counts = "+fileHandler.NumberOfDefects);
-                fileHandler.getAllFiles();
+
                 return true;
             case R.id.aboutButton:
-                //your code
+                Intent myIntent = new Intent(getApplicationContext(), viewFiles.class);
+                myIntent.putExtra("myFile",fileHandler);
+                startActivityForResult(myIntent,2);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

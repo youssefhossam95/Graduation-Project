@@ -26,9 +26,8 @@ public class BackgroundWorker extends AsyncTask<JSONObject,Void,String>
     String urlSite;
     String methodType;
     BackgroundWorker(Context ctx,String url,String Method)
-    {        if(android.os.Debug.isDebuggerConnected())
+    {   if(android.os.Debug.isDebuggerConnected())
         android.os.Debug.waitForDebugger();
-
         urlSite=url;
         this.context=ctx;
         methodType=Method;

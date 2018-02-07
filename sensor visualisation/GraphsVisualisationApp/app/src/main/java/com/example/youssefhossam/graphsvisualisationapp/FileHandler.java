@@ -2,6 +2,8 @@ package com.example.youssefhossam.graphsvisualisationapp;
 
 import android.content.Context;
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -17,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -25,11 +28,15 @@ import java.util.concurrent.TimeUnit;
  * Created by Youssef Hossam on 30/01/2018.
  */
 
-public class FileHandler {
-   public int NumberOfDefects=0;
-    AppCompatActivity activity;
-    FileHandler(AppCompatActivity activity){
-        this.activity = activity ;
+public class FileHandler implements Parcelable {
+    public  int NumberOfDefects=0;
+    ContextHolder contextHolder;
+    FileHandler(){
+        ContextHolder contextHolder=new ContextHolder();
+    }
+    public int getNumberOfDefects()
+    {
+        return NumberOfDefects;
     }
     void saveData(float[] accelValues, int anamolyType, Location location, String comment) throws JSONException {
         JSONArray jsArray = new JSONArray(accelValues);
@@ -54,7 +61,7 @@ public class FileHandler {
         //   JSONObject jsonObj = new JSONObject(F.toString());
         //Log.e("doola",jsonObj.getString("_id"));//
     }
-    public void uploadLocalData() {
+    public boolean uploadLocalData() {
         try
         {
             Log.e("Welcome","Uploading  NumberOfData= "+NumberOfDefects);
@@ -66,30 +73,34 @@ public class FileHandler {
                 Log.e("Number of Defects",String.valueOf(NumberOfDefects));
                 File F=new File(readFromFile("Object"+(i+1)));
                 JSONObject jsonObj = new JSONObject(F.toString());
-                BackgroundWorker BW=new BackgroundWorker(activity.getApplicationContext(),url,"POST");
+                BackgroundWorker BW=new BackgroundWorker(contextHolder.getContext(),url,"POST");
                 String Result=  BW.execute(jsonObj).get(2000, TimeUnit.MILLISECONDS);
                 if(Integer.valueOf(Result)==201)
                 {
-                    Toast.makeText(activity.getApplicationContext(),"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
-                    activity.deleteFile("Object"+(i+1)+".txt");
+                    Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                    Log.e("App Context",String.valueOf(contextHolder.getContext()));
+                    contextHolder.getContext().deleteFile("Object"+(i+1)+".txt");
                     NumberOfDefects--;
+                    return true;
                 }
                 else
                 {
-                    Toast.makeText(activity.getApplicationContext(),"File "+(i+1)+" Not Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Not Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                    return false;
                 }
             }
         }
         catch (Exception E)
         {
-            Log.e("Error ya dola",E.toString());
+            Toast.makeText(contextHolder.getContext(),"Error in files Exception",Toast.LENGTH_SHORT).show();
+            return false;
         }
 
-
+        return false;
     }
     private void writeToFile(String FileName,String Data) {
         try {
-            FileOutputStream fileOutputStream =  activity.openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
+            FileOutputStream fileOutputStream =  contextHolder.getContext().openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
             fileOutputStream.write(Data.getBytes());
             fileOutputStream.close();
         }
@@ -102,7 +113,7 @@ public class FileHandler {
 
         String ret = "";
         try {
-            InputStream inputStream = activity.openFileInput(FileName+".txt");
+            InputStream inputStream = contextHolder.getContext().openFileInput(FileName+".txt");
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -124,20 +135,70 @@ public class FileHandler {
         }
         return ret;
     }
-
-public String[] getAllFiles()
-{
-    if(NumberOfDefects!=0)
+    public String[] getAllFiles()
     {
-        String[] allFiles=new String[NumberOfDefects];
-        for (int i=0;i<NumberOfDefects;i++)
+        if(NumberOfDefects!=0)
         {
-            allFiles[i]=readFromFile("Object"+(i+1));
+            String[] allFiles=new String[NumberOfDefects];
+            for (int i=0;i<NumberOfDefects;i++)
+            {
+                allFiles[i]="Object"+(i+1)+"\n"+readFromFile("Object"+(i+1));
+            }
+            return allFiles;
         }
-        return allFiles;
+        else return null;
     }
-    else return null;
-}
+    public boolean deleteFile(String fileName)
+    {
+        if(NumberOfDefects!=0)
+        {
+            Log.e("Delete Func App Context",String.valueOf(contextHolder.getContext()));
+            boolean fs=contextHolder.getContext().deleteFile(fileName);
+           if(fs)
+           {
+               NumberOfDefects--;
+               Log.e("DOLA",String.valueOf(NumberOfDefects));
+               return  true;
+           }
+           else
+           {
+               return false;
+           }
 
+        }
+        else
+        {
+            return false;
+        }
 
+    }
+
+    protected FileHandler(Parcel in) {
+        NumberOfDefects = in.readInt();
+        contextHolder = (ContextHolder) in.readValue(ContextHolder.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(NumberOfDefects);
+        dest.writeValue(contextHolder);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<FileHandler> CREATOR = new Parcelable.Creator<FileHandler>() {
+        @Override
+        public FileHandler createFromParcel(Parcel in) {
+            return new FileHandler(in);
+        }
+
+        @Override
+        public FileHandler[] newArray(int size) {
+            return new FileHandler[size];
+        }
+    };
 }
