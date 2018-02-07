@@ -81,17 +81,20 @@ public class SensorHandler implements SensorEventListener {
                     else
                     {
                         readingsQ.poll();
+                        promptSpeechInput();
                         readingsQ.add(new Reading(event.timestamp,correctedAccelValues[2]));
                     }
                     if(correctedAccelValues[2]>threshold)
                     {
                         lastAnamolyTime=event.timestamp;
+
                     }
                     else
                     {
                         if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>2*Math.pow(10,9))
                         {
                             extractReadings(event.timestamp);
+
                             lastAnamolyTime=null;
                         }
                     }

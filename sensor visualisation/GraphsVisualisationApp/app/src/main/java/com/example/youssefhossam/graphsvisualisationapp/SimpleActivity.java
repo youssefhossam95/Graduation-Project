@@ -1,4 +1,4 @@
-package com.example.youssefhossam.graphsvisualisationapp;
+package com.example.youssefhossam.graphsvisualisationapp;
 import android.content.pm.PackageManager;
 import android.Manifest;
 import android.app.Activity;
@@ -76,7 +76,6 @@ import java.io.FileNotFoundException;
 import java.io.OutputStreamWriter;
 import java.lang.Object;
 public class SimpleActivity extends AppCompatActivity implements Serializable {
-
     long sessionStartTime;
     CircleButton startButton;
     FileHandler fileHandler;
@@ -97,8 +96,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     static final int REQUEST_LOCATION=1;
     private double longitude;
     private double latitude;
-    private Location myLocation;
-    private String address;
     private FusedLocationProviderClient mFusedLocationClient;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
@@ -108,6 +105,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
+        senstivThreshold=1.2;
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
         mySensor=new SensorHandler(this,senstivThreshold);
@@ -206,13 +204,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
-    public void startRecording(View v)
-    {
+    public void startRecording(View v) {
         mySensor=new SensorHandler(this,senstivThreshold);
         currentSessionLocation=getLocation();
     }
-    public void displayExceptionMessage(String msg)
-    {
+    public void displayExceptionMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
     @Override
@@ -313,7 +309,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
 
     }
-
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
@@ -325,12 +320,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
         switch (item.getItemId()) {
             case R.id.viewFileButton:
-                //your code
-                // EX : call intent if you want to swich to other activity
                 displayExceptionMessage("View Files Counts = "+fileHandler.NumberOfDefects);
-
-                return true;
-            case R.id.aboutButton:
                 Intent myIntent = new Intent(getApplicationContext(), viewFiles.class);
                 myIntent.putExtra("myFile",fileHandler);
                 startActivityForResult(myIntent,2);
@@ -339,8 +329,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 return super.onOptionsItemSelected(item);
         }
     }
-    Location getLocation()
-    {
+    public Location getLocation() {
         Location location= new Location("");
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
                 &&ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
@@ -379,7 +368,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         return location;
 
     }
-
 
     /**
      * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.

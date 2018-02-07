@@ -5,7 +5,4 @@
     <item
         android:id="@+id/viewFileButton"
         android:title="View Files" />
-    <item
-        android:id="@+id/aboutButton"
-        android:title="About" />
 </menu>
