@@ -41,6 +41,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -82,6 +83,8 @@ public class MainActivity extends AppCompatActivity  {
     ArrayList<DataPoint> graphZValues, anamolyZValues;
     SensorHandler sensor;
     Double threshold=2.0;
+    LinkedBlockingQueue<Anamoly> buttonAnaomliesQ=new LinkedBlockingQueue<Anamoly>();
+    Anamoly voiceAnamoly;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

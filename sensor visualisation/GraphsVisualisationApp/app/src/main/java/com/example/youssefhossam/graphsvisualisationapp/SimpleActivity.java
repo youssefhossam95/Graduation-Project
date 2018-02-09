@@ -53,6 +53,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -85,7 +86,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     ArrayList<Reading> currentSessionAccelReading;
     boolean isVoiceActivityDone=true, isRecording=false,ignoreTimeOver=true;
     String userComment;
-    Location currentSessionLocation;
     GraphView graph;
     ArrayList<DataPoint> graphZValues;
     TextView commentTextBox;
@@ -93,22 +93,19 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     private Context context;
     //NEW
     EditText commentBoxText;
-    static final int REQUEST_LOCATION=1;
-    private double longitude;
-    private double latitude;
-    private FusedLocationProviderClient mFusedLocationClient;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
-    private Double senstivThreshold;
+    private Double senstivThreshold=2.0;
     private SensorHandler mySensor;
+    Anamoly lastAnamoly;
+    Boolean isVoiceMode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
-        senstivThreshold=1.2;
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
-        mySensor=new SensorHandler(this,senstivThreshold);
+        mySensor=new SensorHandler(this,senstivThreshold,lastAnamoly,isVoiceMode);
         sessionStartTime=0;
         fileHandler =new FileHandler();
         startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
@@ -158,8 +155,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
-        //NEW
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
     }
     protected void onResume() {
         super.onResume();
@@ -204,10 +200,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
-    public void startRecording(View v) {
-        mySensor=new SensorHandler(this,senstivThreshold);
-        currentSessionLocation=getLocation();
-    }
+
     public void displayExceptionMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
@@ -255,15 +248,9 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     }
                 }
 
-                double [] tempSampledVals=getSampledReadings(currentSessionAccelReading,10);
-                float [] currentSampledAccelVals=new float[tempSampledVals.length];
 
-                for(int i=0;i<tempSampledVals.length;i++) //casting double array to float.
-                {
-                    currentSampledAccelVals[i]=(float)tempSampledVals[i];
-                }
                 try {
-                    fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment);
+                    fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment); //dola ezbot el ada2(khod object mn anamoly)
                 }
                 catch (org.json.JSONException exception)
                 {
@@ -294,15 +281,18 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 }
 
                 graphZValues.clear();
-                for(int i=0;i<currentSampledAccelVals.length;i++) {
-                    graphZValues.add(new DataPoint(i, currentSampledAccelVals[i]));
+                long relativeTime=10;
+                for(Reading reading:lastAnamoly.readings) {
+                    relativeTime=(reading.time-lastAnamoly.readings[0].time)/(long)Math.pow(10,9);
+                    graphZValues.add(new DataPoint(relativeTime, reading.value));
                 }
                 typeTextBox.setText("Type  = "+s);
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
                 graph.getViewport().setMinX(0);
-                graph.getViewport().setMaxX(currentSampledAccelVals.length);
+                graph.getViewport().setMaxX((int)relativeTime);
                 graph.removeAllSeries();
                 graph.addSeries(series);
+                lastAnamoly=null;
             }
 
         }
@@ -329,45 +319,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 return super.onOptionsItemSelected(item);
         }
     }
-    public Location getLocation() {
-        Location location= new Location("");
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
-                &&ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
-        {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-        }
 
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-
-
-                        if (location != null) {
-
-
-                            longitude=location.getLongitude();
-                            latitude=location.getLatitude();
-                            currentSessionLocation=location;
-                            ((TextView)findViewById(R.id.longitudeText)).setText(""+longitude);
-                            ((TextView)findViewById(R.id.latitudeText)).setText(""+latitude);
-                            //((TextView)findViewById(R.id.addressText)).setText(""+getAddress(latitude,longitude));
-                        }
-                        else
-                        {
-                            ((TextView)findViewById(R.id.longitudeText)).setText("Can't find the location");
-                            ((TextView)findViewById(R.id.latitudeText)).setText("Can't find the location");
-                            //  ((TextView)findViewById(R.id.addressText)).setText("Can't find the location");
-
-                        }
-
-                    }
-                });
-
-
-        return location;
-
-    }
 
     /**
      * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
