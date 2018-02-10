@@ -287,10 +287,15 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 }
 
                 graphZValues.clear();
-                long relativeTime=10;
+                double relativeTime=10;
+                int counter=-1;
                 for(Reading reading:mySensor.lastAnamoly.readings) {
-                    relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/(long)Math.pow(10,9);
+                    counter++;
+                    if(counter%2==1)
+                        continue;
+                    relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/Math.pow(10,9);
                     graphZValues.add(new DataPoint(relativeTime, reading.value));
+
                 }
                 typeTextBox.setText("Type  = "+s);
                 LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
