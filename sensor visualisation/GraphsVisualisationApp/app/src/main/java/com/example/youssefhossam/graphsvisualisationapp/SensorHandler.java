@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.hitomi.cmlibrary.CircleMenu;
 
 import java.util.Queue;
 import java.util.Timer;
@@ -59,14 +60,13 @@ public class SensorHandler implements SensorEventListener {
     static final int REQUEST_LOCATION=1;
     private double longitude;
     private double latitude;
+    CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     Boolean isVoiceMode;
-
-
-
-    SensorHandler(AppCompatActivity activity,Double Threshold,Anamoly lastAnamoly,Boolean isVoiceMode)
+    SensorHandler(AppCompatActivity activity,Double Threshold,Anamoly lastAnamoly,Boolean isVoiceMode,CircleMenu circMenu)
     {
         this.activity=activity;
+        circleMenu=circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -147,6 +147,10 @@ public class SensorHandler implements SensorEventListener {
 
                             if(isVoiceMode)
                                 promptSpeechInput();
+                            else
+                                circleMenu.openMenu();
+
+
 
                         }
                     }

@@ -1,84 +1,39 @@
 package com.example.youssefhossam.graphsvisualisationapp;
-import android.content.pm.PackageManager;
-import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.admin.DeviceAdminInfo;
-import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.SystemClock;
 import android.speech.RecognizerIntent;
-import android.speech.tts.Voice;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
+import com.hitomi.cmlibrary.CircleMenu;
+import com.hitomi.cmlibrary.OnMenuSelectedListener;
+import com.hitomi.cmlibrary.OnMenuStatusChangeListener;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import android.location.Address;
-import android.location.Geocoder;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import at.markushi.ui.CircleButton;
-import 	org.json.JSONArray;
-import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
-import static android.hardware.SensorManager.getRotationMatrix;
-import static android.opengl.Matrix.multiplyMV;
-import static android.opengl.Matrix.transposeM;
-import android.location.Location;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.w3c.dom.Comment;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.OutputStreamWriter;
-import java.lang.Object;
 public class SimpleActivity extends AppCompatActivity implements Serializable {
     long sessionStartTime;
-    CircleButton startButton;
     FileHandler fileHandler;
     CircleButton uploadButton;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
@@ -92,33 +47,47 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     TextView typeTextBox;
     private Context context;
     //NEW
+    CircleMenu circleMenu;
     EditText commentBoxText;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
     private Double senstivThreshold=2.0;
     private SensorHandler mySensor;
     Anamoly lastAnamoly;
-    Boolean isVoiceMode;
+    static Boolean isVoiceMode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
-        mySensor=new SensorHandler(this,senstivThreshold,lastAnamoly,isVoiceMode);
+        final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
+        toggleButton.setChecked(true);
+        isVoiceMode=true;
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked)
+                {
+                    isVoiceMode=true;
+                    toggleButton.setTextOn("Voice Mode");
+                } else {
+                    isVoiceMode=false;
+                    toggleButton.setTextOff("Buttons Mode");
+                }
+            }
+        });
         sessionStartTime=0;
         fileHandler =new FileHandler();
-        startButton=(CircleButton) findViewById(R.id.StartRecordingButton);
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Reading>();
-        commentTextBox=(TextView) findViewById(R.id.textView1);
-        typeTextBox=(TextView) findViewById(R.id.textView2);
+        commentTextBox=(TextView) findViewById(R.id.commentTextBox);
+        typeTextBox=(TextView) findViewById(R.id.typeTextBox);
         graphZValues=new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
         sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
-        sensitivityThreshold.setMax(100);
+        sensitivityThreshold.setMax(30);
         String Result=fileHandler.readFromFile("Defects");
         Log.e("Data = ",Result);
         if(Result!="")
@@ -137,10 +106,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             }
         });
         sensitivityThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            double progressChangedValue = 0;
+            double progressChangedValue = 2.00;
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                progressChangedValue =  ((float)i / 10.0);
+                progressChangedValue =  ((double)i / 10.0);
                 senstivThreshold=progressChangedValue;
             }
 
@@ -155,7 +124,50 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
+        circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
+        circleMenu.setMainMenu(Color.parseColor("#03986f"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
+                .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
+                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
+                .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
+                .addSubMenu(Color.parseColor("#000000"), R.mipmap.icon_vibration)
+                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_cracks)
+                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
 
+                    @Override
+                    public void onMenuSelected(int index) {
+                        switch (index)
+                        {
+                            case 0 :
+                                displayExceptionMessage("You have chosen مطب");
+                                return;
+                            case 1 :
+                                displayExceptionMessage("You have chosen نقرة");
+                                return;
+                            case 2 :
+                                displayExceptionMessage("You have chosen غلط ");
+                                return;
+                            case 3 :
+                                displayExceptionMessage("You have chosen حركة");
+                                return;
+                            case 4 :
+                                displayExceptionMessage("You have chosen تكسير ");
+                                return;
+                        }
+
+
+
+                    }
+
+                }).setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
+
+            @Override
+            public void onMenuOpened() {}
+
+            @Override
+            public void onMenuClosed() {}
+
+        });
+        mySensor=new SensorHandler(this,senstivThreshold,lastAnamoly,isVoiceMode,circleMenu);
     }
     protected void onResume() {
         super.onResume();
@@ -200,7 +212,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
-
     public void displayExceptionMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
@@ -216,7 +227,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         else
         {
             currentSessionAnamolyType=UNKNOWN;
-            if (resultCode == RESULT_OK && null != data) {
+            if (resultCode == RESULT_OK && requestCode==100&& null != data) {
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 userComment=result.get(0);
                 for(String s:result) //search for keywords
@@ -249,13 +260,13 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 }
 
 
-                try {
-                    fileHandler.saveData(currentSampledAccelVals, currentSessionAnamolyType, currentSessionLocation, userComment); //dola ezbot el ada2(khod object mn anamoly)
-                }
-                catch (org.json.JSONException exception)
+       /*        try {
+                    fileHandler.saveData(lastAnamoly); //dola ezbot el ada2(khod object mn anamoly)
+               }
+               catch (org.json.JSONException exception)
                 {
                     displayExceptionMessage(exception.getMessage());
-                }
+                }*/
 
                 commentTextBox.setText("Your Comment = "+userComment);
                 String s="";
@@ -319,8 +330,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 return super.onOptionsItemSelected(item);
         }
     }
-
-
     /**
      * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
      * @param readings array representing the  timeline in nanoseconds of accelerometer readings

@@ -38,7 +38,11 @@ public class FileHandler implements Parcelable {
     {
         return NumberOfDefects;
     }
-    void saveData(float[] accelValues, int anamolyType, Location location, String comment) throws JSONException {
+    void saveData(Anamoly lastAnamoly) throws JSONException {
+        Reading[] accelValues=lastAnamoly.readings;
+        int anamolyType=lastAnamoly.type;
+        Location location=lastAnamoly.loc;
+        String comment=lastAnamoly.comment;
         JSONArray jsArray = new JSONArray(accelValues);
         JSONObject jsonFile= new JSONObject();
         try
@@ -135,8 +139,7 @@ public class FileHandler implements Parcelable {
         }
         return ret;
     }
-    public String[] getAllFiles()
-    {
+    public String[] getAllFiles() {
         if(NumberOfDefects!=0)
         {
             String[] allFiles=new String[NumberOfDefects];
@@ -148,8 +151,7 @@ public class FileHandler implements Parcelable {
         }
         else return null;
     }
-    public boolean deleteFile(String fileName)
-    {
+    public boolean deleteFile(String fileName) {
         if(NumberOfDefects!=0)
         {
             Log.e("Delete Func App Context",String.valueOf(contextHolder.getContext()));
@@ -172,23 +174,19 @@ public class FileHandler implements Parcelable {
         }
 
     }
-
     protected FileHandler(Parcel in) {
         NumberOfDefects = in.readInt();
         contextHolder = (ContextHolder) in.readValue(ContextHolder.class.getClassLoader());
     }
-
     @Override
     public int describeContents() {
         return 0;
     }
-
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(NumberOfDefects);
         dest.writeValue(contextHolder);
     }
-
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<FileHandler> CREATOR = new Parcelable.Creator<FileHandler>() {
         @Override
