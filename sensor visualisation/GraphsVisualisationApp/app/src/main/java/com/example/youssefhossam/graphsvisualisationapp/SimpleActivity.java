@@ -39,7 +39,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     int currentSessionAnamolyType=UNKNOWN;
     ArrayList<Reading> currentSessionAccelReading;
-    boolean isVoiceActivityDone=true, isRecording=false,ignoreTimeOver=true;
     String userComment;
     GraphView graph;
     ArrayList<DataPoint> graphZValues;
@@ -48,13 +47,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     private Context context;
     //NEW
     CircleMenu circleMenu;
-    EditText commentBoxText;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
-    private Double senstivThreshold=2.0;
     private SensorHandler mySensor;
     Anamoly lastAnamoly;
-    static Boolean isVoiceMode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,15 +59,15 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         contextHolder.setContext(getApplicationContext());
         final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
         toggleButton.setChecked(true);
-        isVoiceMode=true;
+        mySensor=new SensorHandler(this,lastAnamoly,circleMenu);
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mySensor.toggleVoiceMode();
                 if (isChecked)
                 {
-                    isVoiceMode=true;
                     toggleButton.setTextOn("Voice Mode");
                 } else {
-                    isVoiceMode=false;
+
                     toggleButton.setTextOff("Buttons Mode");
                 }
             }
@@ -110,7 +106,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 progressChangedValue =  ((double)i / 10.0);
-                senstivThreshold=progressChangedValue;
+                mySensor.threshold=progressChangedValue;
             }
 
             @Override
@@ -167,7 +163,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             public void onMenuClosed() {}
 
         });
-        mySensor=new SensorHandler(this,senstivThreshold,lastAnamoly,isVoiceMode,circleMenu);
+
     }
     protected void onResume() {
         super.onResume();

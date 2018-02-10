@@ -52,7 +52,7 @@ public class SensorHandler implements SensorEventListener {
     float[] rotationMatrixTranspose;
     AppCompatActivity activity;
     boolean check=true;
-    Double threshold;
+    public double threshold=2.0;
     LinkedBlockingQueue<Reading> readingsQ=new LinkedBlockingQueue<Reading>();
     Long lastAnamolyTime;
     SensorHandler me=this;
@@ -62,8 +62,8 @@ public class SensorHandler implements SensorEventListener {
     private double latitude;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
-    Boolean isVoiceMode;
-    SensorHandler(AppCompatActivity activity,Double Threshold,Anamoly lastAnamoly,Boolean isVoiceMode,CircleMenu circMenu)
+    boolean isVoiceMode=true;
+    SensorHandler(AppCompatActivity activity,Anamoly lastAnamoly,CircleMenu circMenu)
     {
         this.activity=activity;
         circleMenu=circMenu;
@@ -80,9 +80,7 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
-        this.threshold=Threshold;
         this.lastAnamoly=lastAnamoly;
-        this.isVoiceMode=isVoiceMode;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
     }
     private void extractReadings(long endTime)
@@ -218,5 +216,11 @@ public class SensorHandler implements SensorEventListener {
         return location;
 
     }
+
+    public void toggleVoiceMode()
+    {
+        isVoiceMode=!isVoiceMode;
+    }
+
 
 }
