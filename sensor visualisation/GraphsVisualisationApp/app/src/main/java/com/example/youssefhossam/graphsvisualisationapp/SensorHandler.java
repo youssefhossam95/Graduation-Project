@@ -56,14 +56,14 @@ public class SensorHandler implements SensorEventListener {
     LinkedBlockingQueue<Reading> readingsQ=new LinkedBlockingQueue<Reading>();
     Long lastAnamolyTime;
     SensorHandler me=this;
-    Anamoly lastAnamoly;
+    public Anamoly lastAnamoly;
     static final int REQUEST_LOCATION=1;
     private double longitude;
     private double latitude;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     boolean isVoiceMode=true;
-    SensorHandler(AppCompatActivity activity,Anamoly lastAnamoly,CircleMenu circMenu)
+    SensorHandler(AppCompatActivity activity,CircleMenu circMenu)
     {
         this.activity=activity;
         circleMenu=circMenu;
@@ -80,7 +80,6 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
-        this.lastAnamoly=lastAnamoly;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
     }
     private void extractReadings(long endTime)

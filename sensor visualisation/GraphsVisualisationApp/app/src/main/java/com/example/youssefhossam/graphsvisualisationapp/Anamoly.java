@@ -19,4 +19,5 @@ public class Anamoly {
         this.speeds=speeds;
         this.loc=loc;
     }
+
 }

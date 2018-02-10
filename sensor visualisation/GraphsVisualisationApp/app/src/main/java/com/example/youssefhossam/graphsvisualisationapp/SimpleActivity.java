@@ -50,7 +50,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
     private SensorHandler mySensor;
-    Anamoly lastAnamoly;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +58,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         contextHolder.setContext(getApplicationContext());
         final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
         toggleButton.setChecked(true);
-        mySensor=new SensorHandler(this,lastAnamoly,circleMenu);
+        mySensor=new SensorHandler(this,circleMenu);
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mySensor.toggleVoiceMode();
@@ -289,8 +288,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                 graphZValues.clear();
                 long relativeTime=10;
-                for(Reading reading:lastAnamoly.readings) {
-                    relativeTime=(reading.time-lastAnamoly.readings[0].time)/(long)Math.pow(10,9);
+                for(Reading reading:mySensor.lastAnamoly.readings) {
+                    relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/(long)Math.pow(10,9);
                     graphZValues.add(new DataPoint(relativeTime, reading.value));
                 }
                 typeTextBox.setText("Type  = "+s);
@@ -299,7 +298,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 graph.getViewport().setMaxX((int)relativeTime);
                 graph.removeAllSeries();
                 graph.addSeries(series);
-                lastAnamoly=null;
+                mySensor.lastAnamoly=null;
             }
 
         }
