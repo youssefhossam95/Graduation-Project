@@ -9,11 +9,11 @@ import android.location.Location;
 public class Anamoly {
 
     public Reading[] readings;
-    public float[] speeds;
+    public Reading[] speeds;
     public Location loc;
     public int type;
     public String comment;
-    Anamoly(Reading[]readings,float[] speeds,Location loc)
+    Anamoly(Reading[]readings,Reading[] speeds,Location loc)
     {
         this.readings=readings;
         this.speeds=speeds;

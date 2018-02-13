@@ -9,7 +9,10 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
@@ -63,6 +66,9 @@ public class SensorHandler implements SensorEventListener {
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     boolean isVoiceMode=true;
+    LocationManager locationManager;
+    LocationListener locationListener;
+    LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
     SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
         this.activity=activity;
         circleMenu=circMenu;
@@ -80,17 +86,62 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+// Define a listener that responds to location updates
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                if(speedsQ.size()<3000)
+                    speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
+                else
+                {
+                    speedsQ.poll();
+                    speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
+                }
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            public void onProviderEnabled(String provider) {}
+
+            public void onProviderDisabled(String provider) {}
+        };
+
+// Register the listener with the Location Manager to receive location updates
+        if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
+                &&ActivityCompat.checkSelfPermission(activity,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
     }
+
+
+
+
+
     private void extractReadings(long endTime) {
         Log.e("Extracted Readings","E7na Hena");
+
         while(endTime-readingsQ.peek().time>10*Math.pow(10,9))
             readingsQ.poll();
-        Reading[]tempArray=new Reading[readingsQ.size()];
-        for(int i=0;i<tempArray.length;i++)
+
+        Reading[]tempAccelArray=new Reading[readingsQ.size()];
+        Reading[] tempSpeedsArray=new Reading[speedsQ.size()];
+        LinkedBlockingQueue<Reading> tempSpeedsQ=new LinkedBlockingQueue<Reading>(speedsQ);
+
+        for(int i=0;i<tempSpeedsArray.length;i++)
         {
-            tempArray[i]=readingsQ.poll();
+            tempSpeedsArray[i]=tempSpeedsQ.poll();
         }
-        lastAnamoly=new Anamoly(tempArray,null,getLocation()); //han7ot el array of speeds hena
+
+        for(int i=0;i<tempAccelArray.length;i++)
+        {
+            tempAccelArray[i]=readingsQ.poll();
+        }
+
+        lastAnamoly=new Anamoly(tempAccelArray,tempSpeedsArray,getLocation()); //han7ot el array of speeds hena
     }
     public void onSensorChanged(SensorEvent event) {
         switch (event.sensor.getType()) {
