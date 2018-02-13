@@ -46,15 +46,15 @@ public class viewFiles extends  ListActivity {
             myStringArray = new String[1];
             myStringArray[0] = "No Files at local device";
         }
+
         ArrayList<String> lst = new ArrayList<String>(Arrays.asList(myStringArray));
+
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, lst);
         setListAdapter(adapter);
     }
-
     protected void onResume() {
         super.onResume();
     }
-
     @Override
     public void onBackPressed() {
         Intent intent = new Intent();
@@ -63,7 +63,6 @@ public class viewFiles extends  ListActivity {
         finish();
         super.onBackPressed();
     }
-
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         // Do something when a list item is clicked

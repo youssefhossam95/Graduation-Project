@@ -36,6 +36,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     long sessionStartTime;
     FileHandler fileHandler;
     CircleButton uploadButton;
+    TextView longitudeText;
+    TextView latitudeText;
     public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
     int currentSessionAnamolyType=UNKNOWN;
     ArrayList<Reading> currentSessionAccelReading;
@@ -56,6 +58,92 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         setContentView(R.layout.activity_simple);
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
+        circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
+        circleMenu.setMainMenu(Color.parseColor("#03986f"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
+                .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
+                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
+                .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
+                .addSubMenu(Color.parseColor("#000000"), R.mipmap.icon_vibration)
+                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_cracks)
+                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
+
+                    @Override
+                    public void onMenuSelected(int index) {
+                        if(mySensor.lastAnamoly!=null)
+                        {
+                            if(mySensor.lastAnamoly.readings!=null) {
+                                switch (index) {
+                                    case 0:
+                                    {
+                                        displayExceptionMessage("You have chosen مطب");
+                                        mySensor.lastAnamoly.type=0;
+                                        mySensor.lastAnamoly.comment="مطب";
+
+                                        break;
+                                    }
+                                    case 1 :
+                                    {
+                                        displayExceptionMessage("You have chosen نقرة");
+                                        mySensor.lastAnamoly.type=1;
+                                        mySensor.lastAnamoly.comment="نقرة";
+                                        break;
+                                    }
+                                    case 2 : {
+                                        displayExceptionMessage("You have chosen غلط ");
+                                        mySensor.lastAnamoly.type=2;
+                                        mySensor.lastAnamoly.comment="غلط";
+                                        break;
+                                    }
+                                    case 3 : {
+                                        displayExceptionMessage("You have chosen حركة");
+                                        mySensor.lastAnamoly.type=3;
+                                        mySensor.lastAnamoly.comment="حركة";
+                                        break;
+                                    }
+
+                                    case 4 :
+                                    {
+                                        displayExceptionMessage("You have chosen تكسير ");
+                                        mySensor.lastAnamoly.type=4;
+                                        mySensor.lastAnamoly.comment="تكسير";
+                                        break;
+                                    }
+                                }
+                                try
+                                {
+                                    mySensor.lastAnamoly.loc=mySensor.mLocation;
+                                    drawGraphData(mySensor.lastAnamoly.comment);
+                                    if(mySensor!=null)
+                                    {
+                                        longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
+                                        latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
+                                    }
+                                    fileHandler.saveData(mySensor.lastAnamoly);
+                                    saveDefectsValues();
+                                }
+                                catch (Exception e)
+                                {
+                                    displayExceptionMessage(e.toString());
+                                }
+                            }
+                        }
+                        else {
+                            displayExceptionMessage("Sorry No Data To Classify You Missed It");
+                        }
+
+
+                    }
+
+                }).setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
+
+            @Override
+            public void onMenuOpened() {}
+
+            @Override
+            public void onMenuClosed() {}
+
+        });
+
         final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
         toggleButton.setChecked(true);
         mySensor=new SensorHandler(this,circleMenu);
@@ -77,21 +165,18 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         currentSessionAccelReading=new ArrayList<Reading>();
         commentTextBox=(TextView) findViewById(R.id.commentTextBox);
         typeTextBox=(TextView) findViewById(R.id.typeTextBox);
+        longitudeText=(TextView)findViewById(R.id.longitudeText);
+        latitudeText=(TextView)findViewById(R.id.latitudeText);
         graphZValues=new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
         sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
         sensitivityThreshold.setMax(30);
-        String Result=fileHandler.readFromFile("Defects");
-        Log.e("Data = ",Result);
-        if(Result!="")
-        {
-            fileHandler.NumberOfDefects=Integer.valueOf(Result);
-        }
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
+
 
                 if(!fileHandler.uploadLocalData())
                 {
@@ -119,84 +204,24 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
-        circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
-        circleMenu.setMainMenu(Color.parseColor("#03986f"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
-                .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
-                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
-                .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
-                .addSubMenu(Color.parseColor("#000000"), R.mipmap.icon_vibration)
-                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_cracks)
-                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
-
-                    @Override
-                    public void onMenuSelected(int index) {
-                        switch (index)
-                        {
-                            case 0 :
-                                displayExceptionMessage("You have chosen مطب");
-                                return;
-                            case 1 :
-                                displayExceptionMessage("You have chosen نقرة");
-                                return;
-                            case 2 :
-                                displayExceptionMessage("You have chosen غلط ");
-                                return;
-                            case 3 :
-                                displayExceptionMessage("You have chosen حركة");
-                                return;
-                            case 4 :
-                                displayExceptionMessage("You have chosen تكسير ");
-                                return;
-                        }
-
-
-
-                    }
-
-                }).setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
-
-            @Override
-            public void onMenuOpened() {}
-
-            @Override
-            public void onMenuClosed() {}
-
-        });
 
     }
     protected void onResume() {
         super.onResume();
-        Log.e("Simple Activity of Def",String.valueOf(fileHandler.getNumberOfDefects()));
     }
     protected void onPause() {
         super.onPause();
 
     }
     protected void onStop() {
-        Log.e("On Stop","thank you");
-        try{
-            FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
-            fileOutputStream.close();
-        }
-        catch(Exception e)
-        {
+        Log.e("On Stop","Simple Activity Stopped");
+        saveDefectsValues();
 
-        }
         super.onStop();
-        //mSensorManager.unregisterListener(this);
     }
     protected void onDestroy(){
-        Log.e("On Destroy ","thank you");
-        try{
-            FileOutputStream fileOutputStream =  openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
-            fileOutputStream.close();
-        }
-        catch(Exception e)
-        {
-
-        }
+        Log.e("On Destroy ","Simple Activity Destory");
+        saveDefectsValues();
         super.onDestroy();
 
 
@@ -253,17 +278,13 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         break;
                     }
                 }
-
-
-       /*        try {
-                    fileHandler.saveData(lastAnamoly); //dola ezbot el ada2(khod object mn anamoly)
-               }
-               catch (org.json.JSONException exception)
-                {
-                    displayExceptionMessage(exception.getMessage());
-                }*/
-
                 commentTextBox.setText("Your Comment = "+userComment);
+                if(mySensor!=null)
+                {
+                    longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
+                    latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
+                }
+
                 String s="";
                 switch(currentSessionAnamolyType) {
                     case UNKNOWN:
@@ -286,24 +307,17 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         break;
                 }
 
-                graphZValues.clear();
-                double relativeTime=10;
-                int counter=-1;
-                for(Reading reading:mySensor.lastAnamoly.readings) {
-                    counter++;
-                    if(counter%2==1)
-                        continue;
-                    relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/Math.pow(10,9);
-                    graphZValues.add(new DataPoint(relativeTime, reading.value));
-
+                try {
+                    mySensor.lastAnamoly.comment=userComment;
+                    mySensor.lastAnamoly.loc=mySensor.mLocation;
+                    fileHandler.saveData(mySensor.lastAnamoly); //dola ezbot el ada2(khod object mn anamoly)
+                    saveDefectsValues();
                 }
-                typeTextBox.setText("Type  = "+s);
-                LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
-                graph.getViewport().setMinX(0);
-                graph.getViewport().setMaxX((int)relativeTime);
-                graph.removeAllSeries();
-                graph.addSeries(series);
-                mySensor.lastAnamoly=null;
+                catch (org.json.JSONException exception)
+                {
+                    displayExceptionMessage(exception.getMessage());
+                }
+                drawGraphData(s);
             }
 
         }
@@ -324,6 +338,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 displayExceptionMessage("View Files Counts = "+fileHandler.NumberOfDefects);
                 Intent myIntent = new Intent(getApplicationContext(), viewFiles.class);
                 myIntent.putExtra("myFile",fileHandler);
+                myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivityForResult(myIntent,2);
                 return true;
             default:
@@ -378,6 +393,52 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         return sampledReadings;
 
     }
+    public void saveDefectsValues()
+    {
+        try {
+            FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
+            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
+            fileOutputStream.write(String.valueOf("\n").getBytes());
+            if(fileHandler.NumberOfDefects!=0)
+            {
+                boolean[] temp=fileHandler.getAvailableFiles();
+                for(int i=0;i<101;i++)
+                {
+                    if(temp[i]==true)
+                    {
+                        fileOutputStream.write(String.valueOf(i).getBytes());
+                        fileOutputStream.write(String.valueOf("\n").getBytes());
+                    }
+                }
+            }
+            fileOutputStream.close();
+        }
+        catch(Exception e)
+        {
+            Log.e("Saving Objects",e.toString());
+        }
+    }
+    public void drawGraphData(String s)
+    {
+        graphZValues.clear();
+        double relativeTime=10;
+        int counter=-1;
+        for(Reading reading:mySensor.lastAnamoly.readings) {
+            counter++;
+            if(counter%2==1)
+                continue;
+            relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/Math.pow(10,9);
+            graphZValues.add(new DataPoint(relativeTime, reading.value));
+
+        }
+        typeTextBox.setText("Type  = "+s);
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
+        graph.getViewport().setMinX(0);
+        graph.getViewport().setMaxX((int)relativeTime);
+        graph.removeAllSeries();
+        graph.addSeries(series);
+    }
+
 }
 
 

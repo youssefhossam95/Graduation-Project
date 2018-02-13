@@ -14,6 +14,7 @@ import android.os.SystemClock;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,13 +59,11 @@ public class SensorHandler implements SensorEventListener {
     SensorHandler me=this;
     public Anamoly lastAnamoly;
     static final int REQUEST_LOCATION=1;
-    private double longitude;
-    private double latitude;
+    public Location mLocation;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     boolean isVoiceMode=true;
-    SensorHandler(AppCompatActivity activity,CircleMenu circMenu)
-    {
+    SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
         this.activity=activity;
         circleMenu=circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
@@ -82,8 +81,8 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
     }
-    private void extractReadings(long endTime)
-    {
+    private void extractReadings(long endTime) {
+        Log.e("Extracted Readings","E7na Hena");
         while(endTime-readingsQ.peek().time>10*Math.pow(10,9))
             readingsQ.poll();
         Reading[]tempArray=new Reading[readingsQ.size()];
@@ -93,7 +92,6 @@ public class SensorHandler implements SensorEventListener {
         }
         lastAnamoly=new Anamoly(tempArray,null,getLocation()); //han7ot el array of speeds hena
     }
-
     public void onSensorChanged(SensorEvent event) {
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
@@ -141,7 +139,6 @@ public class SensorHandler implements SensorEventListener {
 
                             extractReadings(event.timestamp);
                             lastAnamolyTime=null;
-
                             if(isVoiceMode)
                                 promptSpeechInput();
                             else
@@ -169,8 +166,7 @@ public class SensorHandler implements SensorEventListener {
     }
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
-    public void displayExceptionMessage(String msg)
-    {
+    public void displayExceptionMessage(String msg) {
 
         Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
     }
@@ -183,7 +179,6 @@ public class SensorHandler implements SensorEventListener {
             displayExceptionMessage(e.getMessage());
         }
     }
-
     public Location getLocation() {
         Location location= new Location("");
         if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
@@ -192,16 +187,12 @@ public class SensorHandler implements SensorEventListener {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
 
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(activity, new OnSuccessListener<Location>() {
+        mFusedLocationClient.getLastLocation().addOnSuccessListener(activity, new OnSuccessListener<Location>() {
                     @Override
-                    public void onSuccess(Location location) {
-
-
+                    public void onSuccess(Location location)
+                    {
                         if (location != null) {
-
-                            longitude=location.getLongitude();
-                            latitude=location.getLatitude();
+                            mLocation=location;
                         }
                         else
                         {
@@ -210,12 +201,9 @@ public class SensorHandler implements SensorEventListener {
 
                     }
                 });
-
-
         return location;
 
     }
-
     public void toggleVoiceMode()
     {
         isVoiceMode=!isVoiceMode;
