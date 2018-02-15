@@ -119,7 +119,16 @@ public class SensorHandler implements SensorEventListener {
 
 
 
-
+    public void stopListening () {
+        mSensorManager.unregisterListener(this, mAccelerometer);
+        mSensorManager.unregisterListener(this, mGravity);
+        mSensorManager.unregisterListener(this, mMagnetic);
+    }
+    public void startListening() {
+        mSensorManager.registerListener(me, mAccelerometer, SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(me, mGravity, SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(me, mMagnetic, SENSOR_DELAY_FASTEST);
+    }
 
     private void extractReadings(long endTime) {
         Log.e("Extracted Readings","E7na Hena");
@@ -176,14 +185,10 @@ public class SensorHandler implements SensorEventListener {
                     {
                         if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>2*Math.pow(10,9))
                         {
-                            mSensorManager.unregisterListener(this, mAccelerometer);
-                            mSensorManager.unregisterListener(this, mGravity);
-                            mSensorManager.unregisterListener(this, mMagnetic);
+                            stopListening() ;
                             new Timer().schedule(new TimerTask() {
                                 @Override public void run() {
-                                    mSensorManager.registerListener(me, mAccelerometer, SENSOR_DELAY_FASTEST);
-                                    mSensorManager.registerListener(me, mGravity, SENSOR_DELAY_FASTEST);
-                                    mSensorManager.registerListener(me, mMagnetic, SENSOR_DELAY_FASTEST);
+                                   startListening();
                                     if(!isVoiceMode)
                                         lastAnamoly=null;
                                 } } , 5000);
