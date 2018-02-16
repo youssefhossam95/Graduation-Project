@@ -124,11 +124,15 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.unregisterListener(this, mGravity);
         mSensorManager.unregisterListener(this, mMagnetic);
     }
+
+
     public void startListening() {
         mSensorManager.registerListener(me, mAccelerometer, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(me, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(me, mMagnetic, SENSOR_DELAY_FASTEST);
     }
+
+
     private void extractReadings(long endTime) {
         Log.e("Extracted Readings","E7na Hena");
 
@@ -151,7 +155,28 @@ public class SensorHandler implements SensorEventListener {
 
         lastAnamoly=new Anamoly(tempAccelArray,tempSpeedsArray,lastAnamolyLoc); //han7ot el array of speeds hena
     }
+
+
     public void onSensorChanged(SensorEvent event) {
+
+        if(mGravity==null)
+        {
+            displayExceptionMessage("Your device doesn't have a gyroscope, the application will be closed now!");
+            new Timer().schedule(new TimerTask() {
+                @Override public void run() {
+                    activity.finish();
+                } } , 2000);
+
+        }
+        else if(mMagnetic==null)
+        {
+            displayExceptionMessage("Your device doesn't have a magnetometer, the application will be closed now!");
+            new Timer().schedule(new TimerTask() {
+                @Override public void run() {
+                    activity.finish();
+                } } , 2000);
+        }
+        
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
                 accelValues[0] = event.values[0];
