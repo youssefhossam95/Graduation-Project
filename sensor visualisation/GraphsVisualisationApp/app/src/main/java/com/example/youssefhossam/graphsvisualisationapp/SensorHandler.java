@@ -73,7 +73,6 @@ public class SensorHandler implements SensorEventListener {
     LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
     SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
         threshold=INITIAL_THRESHOLD;
-        initializeLocation();
         this.activity=activity;
         circleMenu=circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
@@ -118,7 +117,7 @@ public class SensorHandler implements SensorEventListener {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
+        initializeLocation();
     }
     public void stopListening () {
         mSensorManager.unregisterListener(this, mAccelerometer);
