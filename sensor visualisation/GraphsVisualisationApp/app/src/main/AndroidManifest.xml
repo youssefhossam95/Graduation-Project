@@ -14,24 +14,25 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SimpleActivity">
+        <activity android:name=".SimpleActivity"  android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="com.example.youssefhossam.graphsvisualisationapp.Simple" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"  android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".viewFiles">
+        <activity android:name=".viewFiles"  android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="com.example.youssefhossam.graphsvisualisationapp.View" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

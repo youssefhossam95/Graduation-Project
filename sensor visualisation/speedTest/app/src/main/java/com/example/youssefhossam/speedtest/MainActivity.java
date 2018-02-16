@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
-               output.setText(String.valueOf(location.getSpeed()));
+               output.setText(String.valueOf(location.getSpeed()*3.6));
                          }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {}
