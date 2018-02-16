@@ -193,8 +193,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graph.getViewport().setXAxisBoundsManual(true);
         this.context=getApplicationContext();
         sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
-        sensitivityThreshold.setMax(30);
-      //  sensitivityThreshold.setMin(20);
+
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
@@ -214,12 +213,12 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
             }
         });
+        sensitivityThreshold.setProgress(100);
         sensitivityThreshold.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            double progressChangedValue = 2.00;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                progressChangedValue =  ((double)i / 10.0);
-                mySensor.threshold=progressChangedValue;
+                mySensor.threshold=(100.0-(double)i)/50.0+mySensor.INITIAL_THRESHOLD;
             }
 
             @Override
@@ -229,7 +228,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(SimpleActivity.this, "Sensitivity Threshold  :" + progressChangedValue,
+                Toast.makeText(SimpleActivity.this, "Sensitivity:" + sensitivityThreshold.getProgress(),
                         Toast.LENGTH_SHORT).show();
             }
         });

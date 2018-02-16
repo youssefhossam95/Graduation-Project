@@ -56,7 +56,8 @@ public class SensorHandler implements SensorEventListener {
     float[] rotationMatrixTranspose;
     AppCompatActivity activity;
     boolean check=true;
-    public double threshold=2.0;
+    static final double INITIAL_THRESHOLD=3.0;
+    public double threshold;
     LinkedBlockingQueue<Reading> readingsQ=new LinkedBlockingQueue<Reading>();
     Long lastAnamolyTime;
     SensorHandler me=this;
@@ -70,6 +71,7 @@ public class SensorHandler implements SensorEventListener {
     LocationListener locationListener;
     LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
     SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
+        threshold=INITIAL_THRESHOLD;
         this.activity=activity;
         circleMenu=circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
@@ -91,6 +93,7 @@ public class SensorHandler implements SensorEventListener {
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
+                mLocation=location;
                 if(speedsQ.size()<3000)
                     speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
                 else
