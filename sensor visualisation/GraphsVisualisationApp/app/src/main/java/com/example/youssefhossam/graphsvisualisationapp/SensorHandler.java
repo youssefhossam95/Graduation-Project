@@ -64,6 +64,7 @@ public class SensorHandler implements SensorEventListener {
     public Anamoly lastAnamoly;
     static final int REQUEST_LOCATION=1;
     public Location mLocation;
+    Location lastAnamolyLoc;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     boolean isVoiceMode=true;
@@ -72,6 +73,7 @@ public class SensorHandler implements SensorEventListener {
     LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
     SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
         threshold=INITIAL_THRESHOLD;
+        initializeLocation();
         this.activity=activity;
         circleMenu=circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
@@ -93,7 +95,6 @@ public class SensorHandler implements SensorEventListener {
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
-                mLocation=location;
                 if(speedsQ.size()<3000)
                     speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
                 else
@@ -149,7 +150,7 @@ public class SensorHandler implements SensorEventListener {
             tempAccelArray[i]=readingsQ.poll();
         }
 
-        lastAnamoly=new Anamoly(tempAccelArray,tempSpeedsArray,getLocation()); //han7ot el array of speeds hena
+        lastAnamoly=new Anamoly(tempAccelArray,tempSpeedsArray,lastAnamolyLoc); //han7ot el array of speeds hena
     }
     public void onSensorChanged(SensorEvent event) {
         switch (event.sensor.getType()) {
@@ -174,6 +175,7 @@ public class SensorHandler implements SensorEventListener {
                         if(lastAnamolyTime==null)
                         {
                             MediaPlayer ring= MediaPlayer.create(activity,R.raw.ring);
+                            lastAnamolyLoc=mLocation;
                             ring.start();
                         }
                         lastAnamolyTime=event.timestamp;
@@ -241,8 +243,7 @@ public class SensorHandler implements SensorEventListener {
             displayExceptionMessage(e.getMessage());
         }
     }
-    public Location getLocation() {
-        Location location= new Location("");
+    private void initializeLocation() {
         if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
                 &&ActivityCompat.checkSelfPermission(activity,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
         {
@@ -258,10 +259,9 @@ public class SensorHandler implements SensorEventListener {
                             displayExceptionMessage("Please Turn ON GPS");
                         }
                         mLocation=location;
-
                     }
                 });
-        return location;
+
 
     }
     public void toggleVoiceMode()
