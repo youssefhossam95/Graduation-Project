@@ -116,9 +116,6 @@ public class SensorHandler implements SensorEventListener {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
     }
-
-
-
     public void stopListening () {
         mSensorManager.unregisterListener(this, mAccelerometer);
         mSensorManager.unregisterListener(this, mGravity);
@@ -129,7 +126,6 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(me, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(me, mMagnetic, SENSOR_DELAY_FASTEST);
     }
-
     private void extractReadings(long endTime) {
         Log.e("Extracted Readings","E7na Hena");
 
@@ -195,12 +191,19 @@ public class SensorHandler implements SensorEventListener {
 
                             extractReadings(event.timestamp);
                             lastAnamolyTime=null;
-                            if(isVoiceMode)
-                                promptSpeechInput();
+
+                            if(mLocation!=null )
+                            {
+                                if(isVoiceMode)
+                                    promptSpeechInput();
+                                else
+                                    circleMenu.openMenu();
+                            }
                             else
-                                circleMenu.openMenu();
-
-
+                            {
+                                displayExceptionMessage("Location is not available yet ");
+                                lastAnamoly=null;
+                            }
 
                         }
                     }
@@ -247,13 +250,11 @@ public class SensorHandler implements SensorEventListener {
                     @Override
                     public void onSuccess(Location location)
                     {
-                        if (location != null) {
-                            mLocation=location;
-                        }
-                        else
+                        if(location==null)
                         {
                             displayExceptionMessage("Please Turn ON GPS");
                         }
+                        mLocation=location;
 
                     }
                 });

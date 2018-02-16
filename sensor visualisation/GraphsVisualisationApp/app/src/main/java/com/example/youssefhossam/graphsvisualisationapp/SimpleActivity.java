@@ -1,7 +1,10 @@
 package com.example.youssefhossam.graphsvisualisationapp;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -56,10 +59,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
+        statusGPSCheck();
         ContextHolder contextHolder=new ContextHolder();
         contextHolder.setContext(getApplicationContext());
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
-        circleMenu.setMainMenu(Color.parseColor("#03986f"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
+        circleMenu.setMainMenu(Color.parseColor("#53aaa8"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
                 .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
                 .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
                 .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
@@ -145,14 +149,31 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         });
 
         final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
-        toggleButton.setChecked(true);
         mySensor=new SensorHandler(this,circleMenu);
+        if(!isNetworkAvailable())
+        {
+            toggleButton.setChecked(false);
+            mySensor.isVoiceMode=false;
+
+        }
+        else {
+            toggleButton.setChecked(true);
+            mySensor.isVoiceMode=true;
+        }
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mySensor.toggleVoiceMode();
                 if (isChecked)
                 {
-                    toggleButton.setTextOn("Voice Mode");
+                    if(isNetworkAvailable())
+                    {
+                        toggleButton.setTextOn("Voice Mode");
+                    }
+                    else {
+                        displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
+                        toggleButton.setChecked(false);
+                    }
+
                 } else {
 
                     toggleButton.setTextOff("Buttons Mode");
@@ -173,15 +194,23 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         this.context=getApplicationContext();
         sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
         sensitivityThreshold.setMax(30);
+      //  sensitivityThreshold.setMin(20);
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
 
-
-                if(!fileHandler.uploadLocalData())
+                if(isNetworkAvailable())
                 {
-                    displayExceptionMessage("No Files To Be Uploaded ");
+                    if(!fileHandler.uploadLocalData())
+                    {
+                        displayExceptionMessage("No Files To Be Uploaded ");
+                    }
                 }
+                else
+                {
+                    displayExceptionMessage("Check Internet Connection");
+                }
+
 
             }
         });
@@ -207,6 +236,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
     }
     protected void onResume() {
+        mySensor.startListening();
         super.onResume();
     }
     protected void onPause() {
@@ -215,8 +245,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
     protected void onStop() {
         Log.e("On Stop","Simple Activity Stopped");
+        mySensor.stopListening();
         saveDefectsValues();
-
         super.onStop();
     }
     protected void onDestroy(){
@@ -279,7 +309,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     }
                 }
                 commentTextBox.setText("Your Comment = "+userComment);
-                if(mySensor!=null)
+                if(mySensor.mLocation!=null)
                 {
                     longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
                     latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
@@ -310,8 +340,15 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 try {
                     mySensor.lastAnamoly.comment=userComment;
                     mySensor.lastAnamoly.loc=mySensor.mLocation;
-                    fileHandler.saveData(mySensor.lastAnamoly); //dola ezbot el ada2(khod object mn anamoly)
-                    saveDefectsValues();
+                    if(mySensor.mLocation==null)
+                    {
+                        displayExceptionMessage("Data are not saved , Please Enabled Your GPS");
+                    }
+                    else
+                    {
+                        fileHandler.saveData(mySensor.lastAnamoly);
+                        saveDefectsValues();
+                    }
                 }
                 catch (org.json.JSONException exception)
                 {
@@ -438,7 +475,25 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graph.removeAllSeries();
         graph.addSeries(series);
     }
+    public void statusGPSCheck() {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            buildAlertMessageNoGps();
+        }
+    }
 
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, Enable it ")
+                .setCancelable(false)
+                .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
 }
 
 
