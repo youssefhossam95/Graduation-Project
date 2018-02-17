@@ -49,6 +49,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     ArrayList<DataPoint> graphZValues;
     TextView commentTextBox;
     TextView typeTextBox;
+    TextView fileNumbersText;
     private Context context;
     //NEW
     CircleMenu circleMenu;
@@ -75,7 +76,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     public void onMenuSelected(int index) {
                         if(mySensor.lastAnamoly!=null)
                         {
-                            if(mySensor.lastAnamoly.readings!=null) {
+                            if(mySensor.lastAnamoly.readings!=null && mySensor.isVoiceMode==false)
+                            {
                                 switch (index) {
                                     case 0:
                                     {
@@ -124,6 +126,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                     }
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
+                                    updateFileNumber();
                                 }
                                 catch (Exception e)
                                 {
@@ -181,6 +184,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             }
         });
         sessionStartTime=0;
+        fileNumbersText=(TextView)findViewById(R.id.fileNumbersText);;
         fileHandler =new FileHandler();
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Reading>();
@@ -204,6 +208,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     {
                         displayExceptionMessage("No Files To Be Uploaded ");
                     }
+                    updateFileNumber();
                 }
                 else
                 {
@@ -232,10 +237,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
-
+        updateFileNumber();
     }
     protected void onResume() {
         mySensor.startListening();
+        updateFileNumber();
         super.onResume();
     }
     protected void onPause() {
@@ -341,7 +347,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     mySensor.lastAnamoly.loc=mySensor.mLocation;
                     if(mySensor.mLocation==null)
                     {
-                        displayExceptionMessage("Data are not saved , Please Enabled Your GPS");
+                        displayExceptionMessage("Data are not saved , Please Enable Your GPS");
                     }
                     else
                     {
@@ -433,12 +439,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     {
         try {
             FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
-            fileOutputStream.write(String.valueOf("\n").getBytes());
-            if(fileHandler.NumberOfDefects!=0)
+            if(fileHandler.getNumberOfDefects()!=0)
             {
                 boolean[] temp=fileHandler.getAvailableFiles();
-                for(int i=0;i<101;i++)
+                for(int i=0;i<100;i++)
                 {
                     if(temp[i]==true)
                     {
@@ -456,6 +460,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
     public void drawGraphData(String s)
     {
+
         graphZValues.clear();
         double relativeTime=10;
         int counter=-1;
@@ -473,6 +478,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graph.getViewport().setMaxX((int)relativeTime);
         graph.removeAllSeries();
         graph.addSeries(series);
+        updateFileNumber();
     }
     public void statusGPSCheck() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -493,6 +499,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         final AlertDialog alert = builder.create();
         alert.show();
     }
+    void updateFileNumber()
+    {
+        fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
+    }
+
 }
 
 

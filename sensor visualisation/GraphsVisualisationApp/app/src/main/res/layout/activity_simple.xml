@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -10,34 +11,21 @@
         android:id="@+id/circle_menu"
         android:layout_width="123dp"
         android:layout_height="95dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="true"
-        android:layout_margin="10dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:longClickable="true"
-        android:scaleX="3"
-        android:scaleY="3"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/graph"
-        app:layout_constraintVertical_bias="0.671" />
+        android:layout_alignBottom="@+id/uploadButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="false"
+        android:layout_marginEnd="13dp"
+        android:layout_toStartOf="@+id/commentTextBox"
+        android:longClickable="false"
+        android:scaleX="2.4"
+        android:scaleY="2.4" />
 
     <TextView
         android:id="@+id/typeTextBox"
         android:layout_width="156dp"
         android:layout_height="33dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/commentTextBox"
-        app:layout_constraintTop_toBottomOf="@+id/commentTextBox"
+        android:layout_above="@+id/commentTextBox"
+        android:layout_alignEnd="@+id/commentTextBox"
         tools:layout_editor_relativeX="118dp"
         tools:layout_editor_relativeY="500dp" />
 
@@ -45,123 +33,98 @@
         android:id="@+id/commentTextBox"
         android:layout_width="155dp"
         android:layout_height="43dp"
-        android:layout_alignBottom="@+id/typeTextBox"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_toEndOf="@+id/typeTextBox"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.533"
-        app:layout_constraintStart_toEndOf="@+id/longitudeText"
-        app:layout_constraintTop_toBottomOf="@+id/sensitivityThreshold" />
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/latitudeText"
+        android:layout_marginEnd="36dp" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
-        android:layout_width="331dp"
-        android:layout_height="180dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/sensitivityThreshold"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/typeTextBox"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/sensitivityThreshold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.379"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginBottom="16dp" />
 
 
     <at.markushi.ui.CircleButton
         android:id="@+id/uploadButton"
         android:layout_width="60dp"
         android:layout_height="71dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="76dp"
-        android:layout_marginEnd="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:onClick="startRecording"
+        android:layout_above="@+id/toggleButton"
+        android:layout_alignEnd="@+id/commentTextBox"
+        android:layout_marginBottom="31dp"
+        android:layout_marginEnd="14dp"
         android:src="@drawable/upload"
         app:cb_color="?attr/colorSwitchThumbNormal"
-        app:cb_pressedRingWidth="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.93"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.926" />
+        app:cb_pressedRingWidth="16dp" />
 
     <TextView
         android:id="@+id/latitudeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
+        android:layout_alignEnd="@+id/longitudeText"
+        android:layout_alignStart="@+id/longitudeText"
+        android:layout_below="@+id/longitudeText"
+        android:layout_marginTop="11dp"
         android:text="Latitude"
-        app:layout_constraintEnd_toStartOf="@+id/sensitivityThreshold"
-        app:layout_constraintHorizontal_bias="0.082"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/longitudeText" />
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/longitudeText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="32dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         android:text="Longitude"
-        app:layout_constraintEnd_toStartOf="@+id/sensitivityThreshold"
-        app:layout_constraintHorizontal_bias="0.093"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sensitivityThreshLayout" />
+        android:textStyle="bold" />
 
     <SeekBar
         android:id="@+id/sensitivityThreshold"
-        android:layout_width="211dp"
+        android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="200dp"
+        android:layout_above="@+id/longitudeText"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/longitudeText"
         android:clickable="false"
         android:fitsSystemWindows="false"
         android:isScrollContainer="false"
         android:keepScreenOn="false"
         android:labelFor="@+id/sensitivityThreshLayout"
-        android:longClickable="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toEndOf="@+id/sensitivityThreshLayout"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:longClickable="false" />
 
     <TextView
         android:id="@+id/sensitivityThreshLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="212dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/sensitivityThreshold"
         android:text="Sensitivity"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.033"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textStyle="bold" />
 
     <ToggleButton
         android:id="@+id/toggleButton"
         android:layout_width="103dp"
         android:layout_height="39dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:textOff="Buttons Mode"
-        android:textOn="Voice Mode"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/circle_menu"
-        app:layout_constraintVertical_bias="1.0" />
+        android:textOn="Voice Mode" />
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/defectsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/latitudeText"
+        android:layout_below="@+id/latitudeText"
+        android:layout_marginTop="13dp"
+        android:text="Number Of Files"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/fileNumbersText"
+        android:layout_width="wrap_content"
+        android:layout_height="17dp"
+        android:layout_alignBottom="@+id/defectsLayout"
+        android:layout_toStartOf="@+id/toggleButton" />
+
+</RelativeLayout>

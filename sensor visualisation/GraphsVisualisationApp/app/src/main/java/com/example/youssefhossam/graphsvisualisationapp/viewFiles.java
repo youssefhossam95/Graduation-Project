@@ -42,13 +42,13 @@ public class viewFiles extends  ListActivity {
         super.onCreate(savedInstanceState);
         fileHandler = getIntent().getExtras().getParcelable("myFile");
         String[] myStringArray = fileHandler.getAllFiles();
-        if (myStringArray == null) {
+        if (myStringArray == null)
+        {
             myStringArray = new String[1];
             myStringArray[0] = "No Files at local device";
         }
 
         ArrayList<String> lst = new ArrayList<String>(Arrays.asList(myStringArray));
-
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, lst);
         setListAdapter(adapter);
     }
@@ -68,9 +68,11 @@ public class viewFiles extends  ListActivity {
         // Do something when a list item is clicked
         String selectedFromList = (l.getItemAtPosition(position).toString());
         final String[] selectedObject = selectedFromList.split("\n");
-        if(selectedObject[0]=="No files at local device")
+        String [] temp=selectedObject[0].split("File");
+        final int fileNumber=Integer.valueOf(temp[1])-1;
+        if(selectedObject[0]=="No Files at local device")
         {
-
+            return;
         }
         else
         {
@@ -80,7 +82,7 @@ public class viewFiles extends  ListActivity {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 
                 public void onClick(DialogInterface dialog, int which) {
-                    if (fileHandler.deleteFile(selectedObject[0] + ".txt"))
+                    if (fileHandler.deleteFile("File"+String.valueOf(fileNumber)+ ".txt"))
                     {
                         Toast.makeText(viewFiles.this, "Deleted Successfully", Toast.LENGTH_SHORT).show();
                         myStringArray=fileHandler.getAllFiles();
