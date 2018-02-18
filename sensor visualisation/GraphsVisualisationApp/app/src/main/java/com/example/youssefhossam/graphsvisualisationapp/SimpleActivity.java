@@ -16,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -313,7 +312,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         break;
                     }
                 }
-                commentTextBox.setText("Your Comment = "+userComment);
+                commentTextBox.setText(userComment);
                 if(mySensor.mLocation!=null)
                 {
                     longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
@@ -472,7 +471,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             graphZValues.add(new DataPoint(relativeTime, reading.value));
 
         }
-        typeTextBox.setText("Type  = "+s);
+        typeTextBox.setText(s);
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX((int)relativeTime);

@@ -24,8 +24,8 @@
         android:id="@+id/typeTextBox"
         android:layout_width="156dp"
         android:layout_height="33dp"
-        android:layout_above="@+id/commentTextBox"
-        android:layout_alignEnd="@+id/commentTextBox"
+        android:layout_above="@+id/CommentLayOut"
+        android:layout_alignParentEnd="true"
         tools:layout_editor_relativeX="118dp"
         tools:layout_editor_relativeY="500dp" />
 
@@ -33,9 +33,8 @@
         android:id="@+id/commentTextBox"
         android:layout_width="155dp"
         android:layout_height="43dp"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/latitudeText"
-        android:layout_marginEnd="36dp" />
+        android:layout_alignEnd="@+id/sensitivityThreshold"
+        android:layout_below="@+id/latitudeText" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -59,18 +58,18 @@
         app:cb_pressedRingWidth="16dp" />
 
     <TextView
-        android:id="@+id/latitudeText"
+        android:id="@+id/latitudeTextLayOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/longitudeText"
-        android:layout_alignStart="@+id/longitudeText"
-        android:layout_below="@+id/longitudeText"
+        android:layout_alignEnd="@+id/longitudeTextLayOut"
+        android:layout_alignStart="@+id/longitudeTextLayOut"
+        android:layout_below="@+id/longitudeTextLayOut"
         android:layout_marginTop="11dp"
         android:text="Latitude"
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/longitudeText"
+        android:id="@+id/longitudeTextLayOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -82,9 +81,9 @@
         android:id="@+id/sensitivityThreshold"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_above="@+id/longitudeText"
+        android:layout_above="@+id/longitudeTextLayOut"
         android:layout_alignParentEnd="true"
-        android:layout_toEndOf="@+id/longitudeText"
+        android:layout_toEndOf="@+id/longitudeTextLayOut"
         android:clickable="false"
         android:fitsSystemWindows="false"
         android:isScrollContainer="false"
@@ -114,8 +113,8 @@
         android:id="@+id/defectsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/latitudeText"
-        android:layout_below="@+id/latitudeText"
+        android:layout_alignStart="@+id/latitudeTextLayOut"
+        android:layout_below="@+id/latitudeTextLayOut"
         android:layout_marginTop="13dp"
         android:text="Number Of Files"
         android:textStyle="bold" />
@@ -126,5 +125,38 @@
         android:layout_height="17dp"
         android:layout_alignBottom="@+id/defectsLayout"
         android:layout_toStartOf="@+id/toggleButton" />
+
+    <TextView
+        android:id="@+id/longitudeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sensitivityThreshold"
+        android:layout_marginStart="15dp"
+        android:layout_toEndOf="@+id/sensitivityThreshLayout" />
+
+    <TextView
+        android:id="@+id/latitudeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/defectsLayout"
+        android:layout_alignStart="@+id/longitudeText" />
+
+    <TextView
+        android:id="@+id/typeBoxLayOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/latitudeText"
+        android:layout_alignEnd="@+id/circle_menu"
+        android:text="Type"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/CommentLayOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/fileNumbersText"
+        android:layout_toStartOf="@+id/commentTextBox"
+        android:text="Comment"
+        android:textStyle="bold" />
 
 </RelativeLayout>
