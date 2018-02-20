@@ -71,6 +71,7 @@ public class SensorHandler implements SensorEventListener {
     LocationManager locationManager;
     LocationListener locationListener;
     LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
+    boolean isStillProcessing=false;
     SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
         threshold=INITIAL_THRESHOLD;
         this.activity=activity;
@@ -89,6 +90,8 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        initializeLocation();
+        lastAnamolyLoc=mLocation;
         locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
 // Define a listener that responds to location updates
         locationListener = new LocationListener() {
@@ -117,7 +120,7 @@ public class SensorHandler implements SensorEventListener {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        initializeLocation();
+
     }
     public void stopListening () {
         mSensorManager.unregisterListener(this, mAccelerometer);
@@ -159,6 +162,7 @@ public class SensorHandler implements SensorEventListener {
 
     public void onSensorChanged(SensorEvent event) {
 
+
         if(mGravity==null)
         {
             displayExceptionMessage("Your device doesn't have a gyroscope, the application will be closed now!");
@@ -176,7 +180,7 @@ public class SensorHandler implements SensorEventListener {
                     activity.finish();
                 } } , 2000);
         }
-        
+
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
                 accelValues[0] = event.values[0];
@@ -199,28 +203,7 @@ public class SensorHandler implements SensorEventListener {
                         if(lastAnamolyTime==null)
                         {
                             MediaPlayer ring= MediaPlayer.create(activity,R.raw.ring);
-                            lastAnamolyLoc=mLocation;
                             ring.start();
-                        }
-                        lastAnamolyTime=event.timestamp;
-
-
-                    }
-                    else
-                    {
-                        if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>2*Math.pow(10,9))
-                        {
-                            stopListening() ;
-                            new Timer().schedule(new TimerTask() {
-                                @Override public void run() {
-                                   startListening();
-                                    if(!isVoiceMode)
-                                        lastAnamoly=null;
-                                } } , 5000);
-
-                            extractReadings(event.timestamp);
-                            lastAnamolyTime=null;
-
                             if(mLocation!=null )
                             {
                                 if(isVoiceMode)
@@ -233,9 +216,31 @@ public class SensorHandler implements SensorEventListener {
                                 displayExceptionMessage("Location is not available yet ");
                                 lastAnamoly=null;
                             }
-
+                            initializeLocation();
+                            lastAnamolyLoc=mLocation;
+                            lastAnamolyTime=event.timestamp;
+                            isStillProcessing=true;
                         }
+
+
+
                     }
+
+                    if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>5*Math.pow(10,9))
+                    {
+                        stopListening() ;
+                        new Timer().schedule(new TimerTask() {
+                            @Override public void run() {
+                               startListening();
+                                if(!isVoiceMode)
+                                    lastAnamoly=null;
+                            } } , 3000);
+
+                        extractReadings(event.timestamp);
+                        lastAnamolyTime=null;
+                        isStillProcessing=false;
+                    }
+
 
                 }
                 break;
@@ -278,11 +283,13 @@ public class SensorHandler implements SensorEventListener {
                     @Override
                     public void onSuccess(Location location)
                     {
+                        displayExceptionMessage("la2at");
                         if(location==null)
                         {
                             displayExceptionMessage("Please Turn ON GPS");
                         }
                         mLocation=location;
+
                     }
                 });
 

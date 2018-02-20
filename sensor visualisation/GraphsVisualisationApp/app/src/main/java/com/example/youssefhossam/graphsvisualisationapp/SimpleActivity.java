@@ -50,6 +50,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     TextView commentTextBox;
     TextView typeTextBox;
     private Context context;
+    int type=0;
+    String comment="";
     //NEW
     CircleMenu circleMenu;
     public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
@@ -73,67 +75,79 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                     @Override
                     public void onMenuSelected(int index) {
-                        if(mySensor.lastAnamoly!=null)
-                        {
-                            if(mySensor.lastAnamoly.readings!=null) {
+                        if(mySensor.lastAnamoly==null && !mySensor.isStillProcessing) {
+                            displayExceptionMessage("Sorry No Data To Classify You Missed It");
+                            return;
+                        }
+
                                 switch (index) {
                                     case 0:
                                     {
                                         displayExceptionMessage("You have chosen مطب");
-                                        mySensor.lastAnamoly.type=0;
-                                        mySensor.lastAnamoly.comment="مطب";
+                                        type=0;
+                                        comment="مطب";
 
                                         break;
                                     }
                                     case 1 :
                                     {
                                         displayExceptionMessage("You have chosen نقرة");
-                                        mySensor.lastAnamoly.type=1;
-                                        mySensor.lastAnamoly.comment="نقرة";
+                                        type=1;
+                                        comment="نقرة";
                                         break;
                                     }
                                     case 2 : {
                                         displayExceptionMessage("You have chosen غلط ");
-                                        mySensor.lastAnamoly.type=2;
-                                        mySensor.lastAnamoly.comment="غلط";
+                                        type=2;
+                                        comment="غلط";
                                         break;
                                     }
                                     case 3 : {
                                         displayExceptionMessage("You have chosen حركة");
-                                        mySensor.lastAnamoly.type=3;
-                                        mySensor.lastAnamoly.comment="حركة";
+                                        type=3;
+                                        comment="حركة";
                                         break;
                                     }
 
                                     case 4 :
                                     {
                                         displayExceptionMessage("You have chosen تكسير ");
-                                        mySensor.lastAnamoly.type=4;
-                                        mySensor.lastAnamoly.comment="تكسير";
+                                        type=4;
+                                        comment="تكسير";
                                         break;
                                     }
                                 }
+
+                        typeTextBox.setText("Type  = "+comment);
+
+                        if(mySensor!=null)
+                        {
+                            longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
+                            latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
+                        }
+
+                        Thread t=new Thread(){
+                            public void run()
+                            {
+                              while(mySensor.isStillProcessing);
                                 try
                                 {
                                     mySensor.lastAnamoly.loc=mySensor.mLocation;
-                                    drawGraphData(mySensor.lastAnamoly.comment);
-                                    if(mySensor!=null)
-                                    {
-                                        longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
-                                        latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
-                                    }
+                                    mySensor.lastAnamoly.type=type;
+                                    mySensor.lastAnamoly.comment=comment;
+                                    drawGraphData();
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
                                 }
                                 catch (Exception e)
                                 {
-                                    displayExceptionMessage(e.toString());
+
                                 }
                             }
-                        }
-                        else {
-                            displayExceptionMessage("Sorry No Data To Classify You Missed It");
-                        }
+                        };
+                        t.start();
+
+                        
 
 
                     }
@@ -335,25 +349,39 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         s="HARAKA";
                         break;
                 }
+                typeTextBox.setText("Type  = "+s);
 
-                try {
-                    mySensor.lastAnamoly.comment=userComment;
-                    mySensor.lastAnamoly.loc=mySensor.mLocation;
-                    if(mySensor.mLocation==null)
+                Thread t=new Thread(){
+                    public void run()
                     {
-                        displayExceptionMessage("Data are not saved , Please Enabled Your GPS");
+                        while(mySensor.isStillProcessing);
+                        try {
+                            mySensor.lastAnamoly.comment=userComment;
+                            mySensor.lastAnamoly.type=currentSessionAnamolyType;
+                            mySensor.lastAnamoly.loc=mySensor.mLocation;
+                            if(mySensor.mLocation==null)
+                            {
+
+                            }
+                            else
+                            {
+                                fileHandler.saveData(mySensor.lastAnamoly);
+                                saveDefectsValues();
+                            }
+                        }
+                        catch (org.json.JSONException exception)
+                        {
+
+                        }
+                        drawGraphData();
+
                     }
-                    else
-                    {
-                        fileHandler.saveData(mySensor.lastAnamoly);
-                        saveDefectsValues();
-                    }
-                }
-                catch (org.json.JSONException exception)
-                {
-                    displayExceptionMessage(exception.getMessage());
-                }
-                drawGraphData(s);
+                };
+                t.start();
+
+
+
+
             }
 
         }
@@ -454,7 +482,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             Log.e("Saving Objects",e.toString());
         }
     }
-    public void drawGraphData(String s)
+    public void drawGraphData()
     {
         graphZValues.clear();
         double relativeTime=10;
@@ -467,7 +495,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             graphZValues.add(new DataPoint(relativeTime, reading.value));
 
         }
-        typeTextBox.setText("Type  = "+s);
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX((int)relativeTime);
