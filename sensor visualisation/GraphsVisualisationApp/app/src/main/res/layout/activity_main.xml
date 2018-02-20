@@ -26,9 +26,9 @@
             android:layout_marginTop="8dp"
             android:elevation="0dp"
             android:fontFamily="casual"
+            android:textAppearance="?android:textAppearanceLarge"
             android:text="Training Application"
             android:textColor="@android:color/background_dark"
-            android:textSize="24sp"
             android:textStyle="bold"
             android:typeface="normal"
             app:layout_constraintBottom_toTopOf="@+id/VoiceButton"
@@ -49,7 +49,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/bumpicon" />
+            app:srcCompat="@drawable/bumpicon"
+            android:contentDescription="@string/bumpImage"/>
 
         <at.markushi.ui.CircleButton
             android:id="@+id/VoiceButton"

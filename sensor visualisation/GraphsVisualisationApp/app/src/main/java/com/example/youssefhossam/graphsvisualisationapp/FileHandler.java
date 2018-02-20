@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 public class FileHandler implements Parcelable {
     public  int NumberOfDefects=0;
-    private static boolean []AvailableFiles=new boolean[101];
+    private static boolean []AvailableFiles=new boolean[100];
     ContextHolder contextHolder;
     FileHandler(){
-        for(int i=0;i<101;i++)
+        for(int i=0;i<100;i++)
         {
             AvailableFiles[i]=false;
         }
@@ -41,15 +41,11 @@ public class FileHandler implements Parcelable {
         String[] Result=readFromFile("Defects");
         if(Result[0]!=null)
         {
-            Log.e("Data = ",Result[0]);
-            if(Result[0]!="")
-            {
-                NumberOfDefects=Integer.valueOf(Result[0]);
-            }
-            int i=1;
+            int i=0;
                 while(Result[i]!=null)
                 {
                     AvailableFiles[Integer.valueOf(Result[i])]=true;
+                    NumberOfDefects++;
                     i++;
                 }
         }
@@ -57,9 +53,29 @@ public class FileHandler implements Parcelable {
     }
     public int getNumberOfDefects()
     {
+        int temp=0;
+        for (int i=0;i<100;i++)
+        {
+                String temp1=readSingleFile("File"+(i));
+                if(temp1!=null)
+                {
+                    AvailableFiles[i]=true;
+                    temp++;
+                }
+                else
+                {
+                    AvailableFiles[i]=false;
+                }
+        }
+        NumberOfDefects=temp;
         return NumberOfDefects;
     }
     void saveData(Anamoly lastAnamoly) throws JSONException {
+        if(getNumberOfDefects()==100)
+        {
+            Toast.makeText(contextHolder.getContext(),"Maximum Number Of Defects Reached Please Upload Data",Toast.LENGTH_LONG).show();
+            return;
+        }
         Reading[] accelValues=lastAnamoly.readings;
         float[] value=new float[accelValues.length];
         long [] time=new long[accelValues.length];
@@ -89,12 +105,9 @@ public class FileHandler implements Parcelable {
             e.printStackTrace();
 
         }
-        NumberOfDefects++;
         AvailableFiles[NumberOfDefects]=true;
-        writeToFile("Object"+NumberOfDefects,jsonFile.toString());
-        //    File F=new File(readFromFile());
-        //   JSONObject jsonObj = new JSONObject(F.toString());
-        //Log.e("doola",jsonObj.getString("_id"));//
+        writeToFile("File"+NumberOfDefects,jsonFile.toString());
+        NumberOfDefects++;
     }
     public boolean uploadLocalData() {
         try
@@ -107,37 +120,43 @@ public class FileHandler implements Parcelable {
             String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
             int temp=NumberOfDefects;
             boolean result=false;
-            for(int i=1;i<101;i++)
+            for(int i=0;i<100;i++)
             {
                 if(AvailableFiles[i]==true)
                 {
                     Log.e("Number of Defects",String.valueOf(NumberOfDefects));
-                    File F=new File(readSingleFile("Object"+(i)));
+                    File F=new File(readSingleFile("File"+(i)));
                     JSONObject jsonObj = new JSONObject(F.toString());
-                    BackgroundWorker BW=new BackgroundWorker(contextHolder.getContext(),url,"POST");
-                    String Result=  BW.execute(jsonObj).get(2000, TimeUnit.MILLISECONDS);
+                    BackgroundWorker BW=new BackgroundWorker(contextHolder.getContext(),url,"POST",this);
+                    String Result=  BW.execute(jsonObj).get(5, TimeUnit.SECONDS);
                     if(Integer.valueOf(Result)==201)
                     {
-                        Toast.makeText(contextHolder.getContext(),"File "+(i)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
+                       Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
                         Log.e("App Context",String.valueOf(contextHolder.getContext()));
-                        contextHolder.getContext().deleteFile("Object"+(i)+".txt");
+                        deleteFile("File"+(i)+".txt");
                         NumberOfDefects--;
                         result=true;
-                       // return true;
+                    }
+                    else if(Integer.valueOf(Result)==409)
+                    {
+                        Log.e("Dola","i = "+String.valueOf(i));
+                        deleteFile("File"+(i)+".txt");
+                        Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Already uploaded to the server",Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
-                        Toast.makeText(contextHolder.getContext(),"File "+(i)+" Not Uploaded Successfully",Toast.LENGTH_SHORT).show();
-                   //     return false;
+                       Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Not Uploaded",Toast.LENGTH_SHORT).show();
                     }
                 }
 
             }
+            getNumberOfDefects();
             return result;
         }
         catch (Exception E)
         {
-            Toast.makeText(contextHolder.getContext(),"Error in files Exception",Toast.LENGTH_SHORT).show();
+            Toast.makeText(contextHolder.getContext(),"Server is Busy or Uploading the File please try again after 1 minute or close and open the application",Toast.LENGTH_SHORT).show();
+            getNumberOfDefects();
             return false;
         }
 
@@ -211,21 +230,22 @@ public class FileHandler implements Parcelable {
         return ret;
     }
     public String[] getAllFiles() {
+        getNumberOfDefects();
         if(NumberOfDefects!=0)
         {
             String[] allFiles=new String[NumberOfDefects];
             int j=0;
             JSONObject obj;
-            for (int i=1;i<101;i++)
+            for (int i=0;i<100;i++)
             {
                 if(AvailableFiles[i]==true )
                 {
-                    String temp=readSingleFile("Object"+(i));
+                    String temp=readSingleFile("File"+(i));
                     if(temp!=null)
                     {
                     try
-                    {obj = new JSONObject(temp);
-                        allFiles[j]="Object"+(i)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+"\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment");
+                    {   obj = new JSONObject(temp);
+                        allFiles[j]="File"+(i+1)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+"\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment");
                         j++;
                     }
                     catch (Throwable t) {
@@ -258,11 +278,11 @@ public class FileHandler implements Parcelable {
             boolean fs=contextHolder.getContext().deleteFile(fileName);
            if(fs)
            {
-               String []temp=fileName.split("Object");
+               String []temp=fileName.split("File");
                String []val=temp[1].split(".txt");
                AvailableFiles[Integer.valueOf(val[0])]=false;
                NumberOfDefects--;
-               Log.e("DOLA",String.valueOf(NumberOfDefects));
+               Log.e("filerHandler Context","after Deleting File Defects="+String.valueOf(NumberOfDefects));
                return  true;
            }
            else

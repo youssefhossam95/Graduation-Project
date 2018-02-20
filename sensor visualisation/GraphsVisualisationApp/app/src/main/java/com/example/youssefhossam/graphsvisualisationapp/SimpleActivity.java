@@ -16,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +48,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     ArrayList<DataPoint> graphZValues;
     TextView commentTextBox;
     TextView typeTextBox;
+    TextView fileNumbersText;
     private Context context;
     int type=0;
     String comment="";
@@ -75,11 +75,18 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                     @Override
                     public void onMenuSelected(int index) {
+<<<<<<< HEAD
                         if(mySensor.lastAnamoly==null && !mySensor.isStillProcessing) {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
 
+=======
+                        if(mySensor.lastAnamoly!=null)
+                        {
+                            if(mySensor.lastAnamoly.readings!=null && mySensor.isVoiceMode==false)
+                            {
+>>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
                                 switch (index) {
                                     case 0:
                                     {
@@ -138,6 +145,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                     drawGraphData();
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
+                                    updateFileNumber();
                                 }
                                 catch (Exception e)
                                 {
@@ -195,6 +203,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             }
         });
         sessionStartTime=0;
+        fileNumbersText=(TextView)findViewById(R.id.fileNumbersText);;
         fileHandler =new FileHandler();
         uploadButton=(CircleButton)findViewById(R.id.uploadButton);
         currentSessionAccelReading=new ArrayList<Reading>();
@@ -218,6 +227,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     {
                         displayExceptionMessage("No Files To Be Uploaded ");
                     }
+                    updateFileNumber();
                 }
                 else
                 {
@@ -246,10 +256,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
-
+        updateFileNumber();
     }
     protected void onResume() {
         mySensor.startListening();
+        updateFileNumber();
         super.onResume();
     }
     protected void onPause() {
@@ -321,7 +332,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         break;
                     }
                 }
-                commentTextBox.setText("Your Comment = "+userComment);
+                commentTextBox.setText(userComment);
                 if(mySensor.mLocation!=null)
                 {
                     longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
@@ -354,6 +365,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 Thread t=new Thread(){
                     public void run()
                     {
+<<<<<<< HEAD
                         while(mySensor.isStillProcessing);
                         try {
                             mySensor.lastAnamoly.comment=userComment;
@@ -375,6 +387,14 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         }
                         drawGraphData();
 
+=======
+                        displayExceptionMessage("Data are not saved , Please Enable Your GPS");
+                    }
+                    else
+                    {
+                        fileHandler.saveData(mySensor.lastAnamoly);
+                        saveDefectsValues();
+>>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
                     }
                 };
                 t.start();
@@ -461,12 +481,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     {
         try {
             FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(String.valueOf(fileHandler.NumberOfDefects).getBytes());
-            fileOutputStream.write(String.valueOf("\n").getBytes());
-            if(fileHandler.NumberOfDefects!=0)
+            if(fileHandler.getNumberOfDefects()!=0)
             {
                 boolean[] temp=fileHandler.getAvailableFiles();
-                for(int i=0;i<101;i++)
+                for(int i=0;i<100;i++)
                 {
                     if(temp[i]==true)
                     {
@@ -484,6 +502,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
     public void drawGraphData()
     {
+
         graphZValues.clear();
         double relativeTime=10;
         int counter=-1;
@@ -495,11 +514,16 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             graphZValues.add(new DataPoint(relativeTime, reading.value));
 
         }
+<<<<<<< HEAD
+=======
+        typeTextBox.setText(s);
+>>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
         graph.getViewport().setMinX(0);
         graph.getViewport().setMaxX((int)relativeTime);
         graph.removeAllSeries();
         graph.addSeries(series);
+        updateFileNumber();
     }
     public void statusGPSCheck() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -520,6 +544,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         final AlertDialog alert = builder.create();
         alert.show();
     }
+    void updateFileNumber()
+    {
+        fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
+    }
+
 }
 
 
