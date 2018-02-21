@@ -124,7 +124,7 @@ public class SensorHandler implements SensorEventListener {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
+        checkForSensors();
     }
 
     public void stopListening() {
@@ -166,24 +166,7 @@ public class SensorHandler implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
 
 
-        if (mGravity == null) {
-            displayExceptionMessage("Your device doesn't have a gyroscope, the application will be closed now!");
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    activity.finish();
-                }
-            }, 2000);
 
-        } else if (mMagnetic == null) {
-            displayExceptionMessage("Your device doesn't have a magnetometer, the application will be closed now!");
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    activity.finish();
-                }
-            }, 2000);
-        }
 
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
@@ -299,5 +282,26 @@ public class SensorHandler implements SensorEventListener {
         isVoiceMode = !isVoiceMode;
     }
 
+    private void checkForSensors()
+    {
+        if (mGravity == null) {
+            displayExceptionMessage("Your device doesn't have a gyroscope, the application will be closed now!");
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    activity.finish();
+                }
+            }, 2000);
+
+        } else if (mMagnetic == null) {
+            displayExceptionMessage("Your device doesn't have a magnetometer, the application will be closed now!");
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    activity.finish();
+                }
+            }, 2000);
+        }
+    }
 
 }
