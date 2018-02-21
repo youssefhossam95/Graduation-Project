@@ -1,4 +1,5 @@
 package com.example.youssefhossam.graphsvisualisationapp;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,21 +41,22 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     CircleButton uploadButton;
     TextView longitudeText;
     TextView latitudeText;
-    public final static int UNKNOWN=0,MATAB=1,HOFRA=2,TAKSER=3,GHLAT=4,HARAKA=5;
-    int currentSessionAnamolyType=UNKNOWN;
+    public final static int MATAB = 0, HOFRA = 1,GHLAT = 2, HARAKA = 3, TAKSER = 4, UNKNOWN=5;
+    int currentSessionAnamolyType = UNKNOWN;
     ArrayList<Reading> currentSessionAccelReading;
     String userComment;
     GraphView graph;
     ArrayList<DataPoint> graphZValues;
     TextView commentTextBox;
+    TextView commentTextView;
     TextView typeTextBox;
     TextView fileNumbersText;
     private Context context;
-    int type=0;
-    String comment="";
+    int type = 0;
+    String comment = "";
     //NEW
     CircleMenu circleMenu;
-    public final static int SAMPLINGRATE=120; // number of samples per second (Fs)
+    public final static int SAMPLINGRATE = 120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
     private SensorHandler mySensor;
     @Override
@@ -62,7 +64,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
         statusGPSCheck();
-        ContextHolder contextHolder=new ContextHolder();
+        ContextHolder contextHolder = new ContextHolder();
         contextHolder.setContext(getApplicationContext());
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
         circleMenu.setMainMenu(Color.parseColor("#53aaa8"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
@@ -75,123 +77,112 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                     @Override
                     public void onMenuSelected(int index) {
-<<<<<<< HEAD
-                        if(mySensor.lastAnamoly==null && !mySensor.isStillProcessing) {
+
+                        if (mySensor.isVoiceMode)
+                            return;
+
+                        if (mySensor.lastAnamoly == null && !mySensor.isStillProcessing) {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
 
-=======
-                        if(mySensor.lastAnamoly!=null)
-                        {
-                            if(mySensor.lastAnamoly.readings!=null && mySensor.isVoiceMode==false)
-                            {
->>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
-                                switch (index) {
-                                    case 0:
-                                    {
-                                        displayExceptionMessage("You have chosen مطب");
-                                        type=0;
-                                        comment="مطب";
+                        type=index;
 
-                                        break;
-                                    }
-                                    case 1 :
-                                    {
-                                        displayExceptionMessage("You have chosen نقرة");
-                                        type=1;
-                                        comment="نقرة";
-                                        break;
-                                    }
-                                    case 2 : {
-                                        displayExceptionMessage("You have chosen غلط ");
-                                        type=2;
-                                        comment="غلط";
-                                        break;
-                                    }
-                                    case 3 : {
-                                        displayExceptionMessage("You have chosen حركة");
-                                        type=3;
-                                        comment="حركة";
-                                        break;
-                                    }
+                        switch (index) {
+                            case MATAB: {
+                                displayExceptionMessage("You have chosen مطب");
+                                comment = "مطب";
+                                break;
+                            }
+                            case HOFRA: {
+                                displayExceptionMessage("You have chosen نقرة");
+                                comment = "نقرة";
+                                break;
+                            }
+                            case GHLAT: {
+                                displayExceptionMessage("You have chosen غلط ");
+                                comment = "غلط";
+                                break;
+                            }
+                            case HARAKA: {
+                                displayExceptionMessage("You have chosen حركة");
+                                comment = "حركة";
+                                break;
+                            }
 
-                                    case 4 :
-                                    {
-                                        displayExceptionMessage("You have chosen تكسير ");
-                                        type=4;
-                                        comment="تكسير";
-                                        break;
-                                    }
-                                }
-
-                        typeTextBox.setText("Type  = "+comment);
-
-                        if(mySensor!=null)
-                        {
-                            longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
-                            latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
+                            case TAKSER: {
+                                displayExceptionMessage("You have chosen تكسير ");
+                                comment = "تكسير";
+                                break;
+                            }
                         }
 
-                        Thread t=new Thread(){
-                            public void run()
-                            {
-                              while(mySensor.isStillProcessing);
-                                try
-                                {
-                                    mySensor.lastAnamoly.loc=mySensor.mLocation;
-                                    mySensor.lastAnamoly.type=type;
-                                    mySensor.lastAnamoly.comment=comment;
-                                    drawGraphData();
+                        typeTextBox.setText("Type  = " + comment);
+                        if (mySensor.lastAnamolyLoc != null) {
+                            longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
+                            latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
+                        }
+                        else
+                        {
+                            displayExceptionMessage("Location not available! file not saved");
+                            return;
+                        }
+
+                        Thread t = new Thread() {
+                            public void run() {
+                                while (mySensor.isStillProcessing) ;
+                                try {
+                                    mySensor.lastAnamoly.type = type;
+                                    mySensor.lastAnamoly.comment = comment;
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
-                                    updateFileNumber();
-                                }
-                                catch (Exception e)
-                                {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            drawGraphData();
+                                        }
+                                    });
 
+                                } catch (Exception e) {
+                                   displayExceptionMessage(e.getMessage());
                                 }
                             }
                         };
                         t.start();
-
-                        
-
 
                     }
 
                 }).setOnMenuStatusChangeListener(new OnMenuStatusChangeListener() {
 
             @Override
-            public void onMenuOpened() {}
+            public void onMenuOpened() {
+            }
 
             @Override
-            public void onMenuClosed() {}
+            public void onMenuClosed() {
+            }
 
         });
 
-        final ToggleButton toggleButton=(ToggleButton) findViewById(R.id.toggleButton);
-        mySensor=new SensorHandler(this,circleMenu);
-        if(!isNetworkAvailable())
-        {
+        final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton);
+        mySensor = new SensorHandler(this, circleMenu);
+        if (!isNetworkAvailable()) {
             toggleButton.setChecked(false);
-            mySensor.isVoiceMode=false;
+            mySensor.isVoiceMode = false;
 
-        }
-        else {
+        } else {
             toggleButton.setChecked(true);
-            mySensor.isVoiceMode=true;
+            mySensor.isVoiceMode = true;
         }
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mySensor.toggleVoiceMode();
-                if (isChecked)
-                {
-                    if(isNetworkAvailable())
-                    {
+                if (isChecked) {
+                    if (isNetworkAvailable()) {
                         toggleButton.setTextOn("Voice Mode");
-                    }
-                    else {
+                        commentTextBox.setVisibility(View.VISIBLE);
+                        commentTextView.setVisibility(View.VISIBLE);
+                    } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
                     }
@@ -199,38 +190,38 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 } else {
 
                     toggleButton.setTextOff("Buttons Mode");
+                    commentTextBox.setVisibility(View.INVISIBLE);
+                    commentTextView.setVisibility(View.INVISIBLE);
+
                 }
             }
         });
-        sessionStartTime=0;
-        fileNumbersText=(TextView)findViewById(R.id.fileNumbersText);;
-        fileHandler =new FileHandler();
-        uploadButton=(CircleButton)findViewById(R.id.uploadButton);
-        currentSessionAccelReading=new ArrayList<Reading>();
-        commentTextBox=(TextView) findViewById(R.id.commentTextBox);
-        typeTextBox=(TextView) findViewById(R.id.typeTextBox);
-        longitudeText=(TextView)findViewById(R.id.longitudeText);
-        latitudeText=(TextView)findViewById(R.id.latitudeText);
-        graphZValues=new ArrayList<DataPoint>();
+        sessionStartTime = 0;
+        fileNumbersText = (TextView) findViewById(R.id.fileNumbersText);
+        ;
+        fileHandler = new FileHandler();
+        uploadButton = (CircleButton) findViewById(R.id.uploadButton);
+        currentSessionAccelReading = new ArrayList<Reading>();
+        commentTextBox = (TextView) findViewById(R.id.commentTextBox);
+        typeTextBox = (TextView) findViewById(R.id.typeTextBox);
+        longitudeText = (TextView) findViewById(R.id.longitudeText);
+        latitudeText = (TextView) findViewById(R.id.latitudeText);
+        graphZValues = new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
-        this.context=getApplicationContext();
-        sensitivityThreshold=findViewById(R.id.sensitivityThreshold);
-
+        this.context = getApplicationContext();
+        sensitivityThreshold = findViewById(R.id.sensitivityThreshold);
+        commentTextView=findViewById(R.id.CommentLayOut);
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view){
+            public void onClick(View view) {
 
-                if(isNetworkAvailable())
-                {
-                    if(!fileHandler.uploadLocalData())
-                    {
+                if (isNetworkAvailable()) {
+                    if (!fileHandler.uploadLocalData()) {
                         displayExceptionMessage("No Files To Be Uploaded ");
                     }
                     updateFileNumber();
-                }
-                else
-                {
+                } else {
                     displayExceptionMessage("Check Internet Connection");
                 }
 
@@ -242,7 +233,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                mySensor.threshold=(100.0-(double)i)/50.0+mySensor.INITIAL_THRESHOLD;
+                mySensor.threshold = (100.0 - (double) i) / 50.0 + mySensor.INITIAL_THRESHOLD;
             }
 
             @Override
@@ -258,195 +249,192 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         });
         updateFileNumber();
     }
+
     protected void onResume() {
         mySensor.startListening();
         updateFileNumber();
+        mySensor.isActivityAwake=true;
         super.onResume();
     }
+
     protected void onPause() {
         super.onPause();
 
     }
+
     protected void onStop() {
-        Log.e("On Stop","Simple Activity Stopped");
+        Log.e("On Stop", "Simple Activity Stopped");
         mySensor.stopListening();
+        mySensor.isActivityAwake=false;
+        mySensor.lastAnamoly=null;
         saveDefectsValues();
         super.onStop();
     }
-    protected void onDestroy(){
-        Log.e("On Destroy ","Simple Activity Destory");
+
+    protected void onDestroy() {
+        Log.e("On Destroy ", "Simple Activity Destory");
         saveDefectsValues();
         super.onDestroy();
 
 
     }
+
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
+
     public void displayExceptionMessage(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        final String text=msg;
+        final AppCompatActivity me=this;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(me, text, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==2)
-        {
-            if(resultCode == RESULT_OK) {
-             fileHandler=data.getExtras().getParcelable("fileHandler");
+        if (requestCode == 2) {
+            if (resultCode == RESULT_OK) {
+                fileHandler = data.getExtras().getParcelable("fileHandler");
             }
-        }
-        else
-        {
-            currentSessionAnamolyType=UNKNOWN;
-            if (resultCode == RESULT_OK && requestCode==100&& null != data) {
+        } else {
+            currentSessionAnamolyType = UNKNOWN;
+            if (resultCode == RESULT_OK && requestCode == 100 && null != data) {
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                userComment=result.get(0);
-                for(String s:result) //search for keywords
+                userComment = result.get(0);
+                for (String s : result) //search for keywords
                 {
-                    if(s.contains("مطب"))
-                    {
-                        currentSessionAnamolyType=MATAB;
+                    if (s.contains("مطب")) {
+                        currentSessionAnamolyType = MATAB;
                         break;
-                    }
-                    else if(s.contains("حفره") || s.contains("حفرة"))
-                    {
-                        currentSessionAnamolyType=HOFRA;
+                    } else if (s.contains("حفره") || s.contains("حفرة")) {
+                        currentSessionAnamolyType = HOFRA;
                         break;
-                    }
-                    else if(s.contains("تكسير"))
-                    {
-                        currentSessionAnamolyType=TAKSER;
+                    } else if (s.contains("تكسير")) {
+                        currentSessionAnamolyType = TAKSER;
                         break;
-                    }
-                    else if(s.contains("غلط"))
-                    {
-                        currentSessionAnamolyType=GHLAT;
+                    } else if (s.contains("غلط")) {
+                        currentSessionAnamolyType = GHLAT;
                         break;
-                    }
-                    else if(s.contains("حركة") || s.contains("حركه"))
-                    {
-                        currentSessionAnamolyType=HARAKA;
+                    } else if (s.contains("حركة") || s.contains("حركه")) {
+                        currentSessionAnamolyType = HARAKA;
                         break;
                     }
                 }
                 commentTextBox.setText(userComment);
-                if(mySensor.mLocation!=null)
+                if (mySensor.lastAnamolyLoc!=null) {
+                    longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
+                    latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
+                }
+                else
                 {
-                    longitudeText.setText(String.valueOf(mySensor.mLocation.getLongitude()));
-                    latitudeText.setText(String.valueOf(mySensor.mLocation.getLatitude()));
+                    displayExceptionMessage("Location not available! file not saved");
+                    return;
                 }
 
-                String s="";
-                switch(currentSessionAnamolyType) {
+                String s = "";
+                switch (currentSessionAnamolyType) {
                     case UNKNOWN:
-                        s="UNKNOWN";
+                        s = "UNKNOWN";
                         break;
                     case MATAB:
-                        s="MATAB";
+                        s = "MATAB";
                         break;
                     case HOFRA:
-                        s="HOFRA";
+                        s = "HOFRA";
                         break;
                     case TAKSER:
-                        s="TAKSER";
+                        s = "TAKSER";
                         break;
                     case GHLAT:
-                        s="GHLAT";
+                        s = "GHLAT";
                         break;
                     case HARAKA:
-                        s="HARAKA";
+                        s = "HARAKA";
                         break;
                 }
-                typeTextBox.setText("Type  = "+s);
+                typeTextBox.setText("Type  = " + s);
 
-                Thread t=new Thread(){
-                    public void run()
-                    {
-<<<<<<< HEAD
-                        while(mySensor.isStillProcessing);
+                Thread t = new Thread() {
+                    public void run() {
+                        while (mySensor.isStillProcessing) ;
                         try {
-                            mySensor.lastAnamoly.comment=userComment;
-                            mySensor.lastAnamoly.type=currentSessionAnamolyType;
-                            mySensor.lastAnamoly.loc=mySensor.mLocation;
-                            if(mySensor.mLocation==null)
-                            {
-
-                            }
-                            else
-                            {
-                                fileHandler.saveData(mySensor.lastAnamoly);
-                                saveDefectsValues();
-                            }
+                            mySensor.lastAnamoly.comment = userComment;
+                            mySensor.lastAnamoly.type = currentSessionAnamolyType;
+                            fileHandler.saveData(mySensor.lastAnamoly);
+                            saveDefectsValues();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drawGraphData();
+                                }
+                            });
+                            
+                        } catch (Exception e) {
+                            displayExceptionMessage(e.getMessage());
                         }
-                        catch (org.json.JSONException exception)
-                        {
-
-                        }
-                        drawGraphData();
-
-=======
-                        displayExceptionMessage("Data are not saved , Please Enable Your GPS");
-                    }
-                    else
-                    {
-                        fileHandler.saveData(mySensor.lastAnamoly);
-                        saveDefectsValues();
->>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
                     }
                 };
                 t.start();
 
 
-
-
             }
 
         }
 
 
     }
+
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
 
         switch (item.getItemId()) {
             case R.id.viewFileButton:
-                displayExceptionMessage("View Files Counts = "+fileHandler.NumberOfDefects);
+                displayExceptionMessage("View Files Counts = " + fileHandler.NumberOfDefects);
                 Intent myIntent = new Intent(getApplicationContext(), viewFiles.class);
-                myIntent.putExtra("myFile",fileHandler);
+                myIntent.putExtra("myFile", fileHandler);
                 myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-                startActivityForResult(myIntent,2);
+                startActivityForResult(myIntent, 2);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
     /**
      * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
+     *
      * @param readings array representing the  timeline in nanoseconds of accelerometer readings
-     * @param time required session length in seconds
+     * @param time     required session length in seconds
      * @return array of sampled readings
      */
     double[] getSampledReadings(ArrayList<Reading> readings, int time) {
         double xFirst, yFirst, xSecond, ySecond, xInter, yInter;
-        double Ts = 1.0 /(double) SAMPLINGRATE* Math.pow(10, 9); //in nanoseconds
+        double Ts = 1.0 / (double) SAMPLINGRATE * Math.pow(10, 9); //in nanoseconds
         int sampledReadingsCount = time * SAMPLINGRATE + 1;
         double[] sampledReadings = new double[sampledReadingsCount];
-        if(readings.size()==0)
-        {
+        if (readings.size() == 0) {
             return new double[10];
         }
         sampledReadings[0] = readings.get(0).value; //reading at t=0
         int i = 1, j = 1;
-        double currentTime = Ts+readings.get(0).time;
+        double currentTime = Ts + readings.get(0).time;
         while (true) {
             while (i < readings.size() && currentTime > readings.get(i).time)
                 i++;
@@ -477,54 +465,46 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         return sampledReadings;
 
     }
-    public void saveDefectsValues()
-    {
+
+    public void saveDefectsValues() {
         try {
             FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
-            if(fileHandler.getNumberOfDefects()!=0)
-            {
-                boolean[] temp=fileHandler.getAvailableFiles();
-                for(int i=0;i<100;i++)
-                {
-                    if(temp[i]==true)
-                    {
+            if (fileHandler.getNumberOfDefects() != 0) {
+                boolean[] temp = fileHandler.getAvailableFiles();
+                for (int i = 0; i < 100; i++) {
+                    if (temp[i] == true) {
                         fileOutputStream.write(String.valueOf(i).getBytes());
                         fileOutputStream.write(String.valueOf("\n").getBytes());
                     }
                 }
             }
             fileOutputStream.close();
-        }
-        catch(Exception e)
-        {
-            Log.e("Saving Objects",e.toString());
+        } catch (Exception e) {
+            Log.e("Saving Objects", e.toString());
         }
     }
-    public void drawGraphData()
-    {
+
+    public void drawGraphData() {
 
         graphZValues.clear();
-        double relativeTime=10;
-        int counter=-1;
-        for(Reading reading:mySensor.lastAnamoly.readings) {
+        double relativeTime = 10;
+        int counter = -1;
+        for (Reading reading : mySensor.lastAnamoly.readings) {
             counter++;
-            if(counter%2==1)
+            if (counter % 2 == 1)
                 continue;
-            relativeTime=(reading.time-mySensor.lastAnamoly.readings[0].time)/Math.pow(10,9);
+            relativeTime = (reading.time - mySensor.lastAnamoly.readings[0].time) / Math.pow(10, 9);
             graphZValues.add(new DataPoint(relativeTime, reading.value));
 
         }
-<<<<<<< HEAD
-=======
-        typeTextBox.setText(s);
->>>>>>> 81b00f74fe41fae016e3cf64bee1d8080c46dd99
         LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(graphZValues.toArray(new DataPoint[0]));
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX((int)relativeTime);
+        graph.getViewport().setMaxX((int) relativeTime);
         graph.removeAllSeries();
         graph.addSeries(series);
         updateFileNumber();
     }
+
     public void statusGPSCheck() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -544,8 +524,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         final AlertDialog alert = builder.create();
         alert.show();
     }
-    void updateFileNumber()
-    {
+
+    void updateFileNumber() {
         fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
     }
 

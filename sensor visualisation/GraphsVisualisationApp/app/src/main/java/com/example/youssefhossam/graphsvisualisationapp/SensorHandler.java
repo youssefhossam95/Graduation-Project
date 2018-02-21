@@ -1,4 +1,5 @@
 package com.example.youssefhossam.graphsvisualisationapp;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -55,27 +56,29 @@ public class SensorHandler implements SensorEventListener {
     float[] rotationMatrix;
     float[] rotationMatrixTranspose;
     AppCompatActivity activity;
-    boolean check=true;
-    static final double INITIAL_THRESHOLD=3.0;
+    boolean check = true;
+    static final double INITIAL_THRESHOLD = 3.0;
     public double threshold;
-    LinkedBlockingQueue<Reading> readingsQ=new LinkedBlockingQueue<Reading>();
+    LinkedBlockingQueue<Reading> readingsQ = new LinkedBlockingQueue<Reading>();
     Long lastAnamolyTime;
-    SensorHandler me=this;
+    SensorHandler me = this;
     public Anamoly lastAnamoly;
-    static final int REQUEST_LOCATION=1;
+    static final int REQUEST_LOCATION = 1;
     public Location mLocation;
     Location lastAnamolyLoc;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
-    boolean isVoiceMode=true;
+    boolean isVoiceMode = true;
     LocationManager locationManager;
     LocationListener locationListener;
-    LinkedBlockingQueue<Reading> speedsQ=new LinkedBlockingQueue<Reading>();
-    boolean isStillProcessing=false;
-    SensorHandler(AppCompatActivity activity,CircleMenu circMenu) {
-        threshold=INITIAL_THRESHOLD;
-        this.activity=activity;
-        circleMenu=circMenu;
+    LinkedBlockingQueue<Reading> speedsQ = new LinkedBlockingQueue<Reading>();
+    boolean isStillProcessing = false;
+    boolean isActivityAwake = true;
+
+    SensorHandler(AppCompatActivity activity, CircleMenu circMenu) {
+        threshold = INITIAL_THRESHOLD;
+        this.activity = activity;
+        circleMenu = circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -91,38 +94,40 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
         initializeLocation();
-        lastAnamolyLoc=mLocation;
+        lastAnamolyLoc = mLocation;
         locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
 // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
-                if(speedsQ.size()<3000)
-                    speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
-                else
-                {
+                if (speedsQ.size() < 3000)
+                    speedsQ.add(new Reading(location.getTime(), location.getSpeed()));
+                else {
                     speedsQ.poll();
-                    speedsQ.add(new Reading(location.getTime(),location.getSpeed()));
+                    speedsQ.add(new Reading(location.getTime(), location.getSpeed()));
                 }
             }
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
 
-            public void onProviderEnabled(String provider) {}
+            public void onProviderEnabled(String provider) {
+            }
 
-            public void onProviderDisabled(String provider) {}
+            public void onProviderDisabled(String provider) {
+            }
         };
 
 // Register the listener with the Location Manager to receive location updates
-        if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
-                &&ActivityCompat.checkSelfPermission(activity,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
-        {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 
     }
-    public void stopListening () {
+
+    public void stopListening() {
         mSensorManager.unregisterListener(this, mAccelerometer);
         mSensorManager.unregisterListener(this, mGravity);
         mSensorManager.unregisterListener(this, mMagnetic);
@@ -137,48 +142,47 @@ public class SensorHandler implements SensorEventListener {
 
 
     private void extractReadings(long endTime) {
-        Log.e("Extracted Readings","E7na Hena");
+        Log.e("Extracted Readings", "E7na Hena");
 
-        while(endTime-readingsQ.peek().time>10*Math.pow(10,9))
+        while (endTime - readingsQ.peek().time > 10 * Math.pow(10, 9))
             readingsQ.poll();
 
-        Reading[]tempAccelArray=new Reading[readingsQ.size()];
-        Reading[] tempSpeedsArray=new Reading[speedsQ.size()];
-        LinkedBlockingQueue<Reading> tempSpeedsQ=new LinkedBlockingQueue<Reading>(speedsQ);
+        Reading[] tempAccelArray = new Reading[readingsQ.size()];
+        Reading[] tempSpeedsArray = new Reading[speedsQ.size()];
+        LinkedBlockingQueue<Reading> tempSpeedsQ = new LinkedBlockingQueue<Reading>(speedsQ);
 
-        for(int i=0;i<tempSpeedsArray.length;i++)
-        {
-            tempSpeedsArray[i]=tempSpeedsQ.poll();
+        for (int i = 0; i < tempSpeedsArray.length; i++) {
+            tempSpeedsArray[i] = tempSpeedsQ.poll();
         }
 
-        for(int i=0;i<tempAccelArray.length;i++)
-        {
-            tempAccelArray[i]=readingsQ.poll();
+        for (int i = 0; i < tempAccelArray.length; i++) {
+            tempAccelArray[i] = readingsQ.poll();
         }
 
-        lastAnamoly=new Anamoly(tempAccelArray,tempSpeedsArray,lastAnamolyLoc); //han7ot el array of speeds hena
+        lastAnamoly = new Anamoly(tempAccelArray, tempSpeedsArray, lastAnamolyLoc); //han7ot el array of speeds hena
     }
 
 
     public void onSensorChanged(SensorEvent event) {
 
 
-        if(mGravity==null)
-        {
+        if (mGravity == null) {
             displayExceptionMessage("Your device doesn't have a gyroscope, the application will be closed now!");
             new Timer().schedule(new TimerTask() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     activity.finish();
-                } } , 2000);
+                }
+            }, 2000);
 
-        }
-        else if(mMagnetic==null)
-        {
+        } else if (mMagnetic == null) {
             displayExceptionMessage("Your device doesn't have a magnetometer, the application will be closed now!");
             new Timer().schedule(new TimerTask() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     activity.finish();
-                } } , 2000);
+                }
+            }, 2000);
         }
 
         switch (event.sensor.getType()) {
@@ -191,54 +195,49 @@ public class SensorHandler implements SensorEventListener {
                 if (getRotationMatrix(rotationMatrix, null, gravityValues, magnetValues)) {
                     transposeM(rotationMatrixTranspose, 0, rotationMatrix, 0);
                     multiplyMV(correctedAccelValues, 0, rotationMatrixTranspose, 0, accelValues, 0);
-                    if(readingsQ.size()<2000)
-                        readingsQ.add(new Reading(event.timestamp,correctedAccelValues[2]));
-                    else
-                    {
+                    if (readingsQ.size() < 2000)
+                        readingsQ.add(new Reading(event.timestamp, correctedAccelValues[2]));
+                    else {
                         readingsQ.poll();
-                        readingsQ.add(new Reading(event.timestamp,correctedAccelValues[2]));
+                        readingsQ.add(new Reading(event.timestamp, correctedAccelValues[2]));
                     }
-                    if(correctedAccelValues[2]>threshold)
-                    {
-                        if(lastAnamolyTime==null)
-                        {
-                            MediaPlayer ring= MediaPlayer.create(activity,R.raw.ring);
+                    if (correctedAccelValues[2] > threshold) {
+                        if (lastAnamolyTime == null) {
+                            MediaPlayer ring = MediaPlayer.create(activity, R.raw.ring);
                             ring.start();
-                            if(mLocation!=null )
-                            {
-                                if(isVoiceMode)
+                            if (mLocation != null) {
+                                if (isVoiceMode)
                                     promptSpeechInput();
                                 else
                                     circleMenu.openMenu();
-                            }
-                            else
-                            {
+                            } else {
                                 displayExceptionMessage("Location is not available yet ");
-                                lastAnamoly=null;
+                                lastAnamoly = null;
                             }
                             initializeLocation();
-                            lastAnamolyLoc=mLocation;
-                            lastAnamolyTime=event.timestamp;
-                            isStillProcessing=true;
+                            lastAnamolyLoc = mLocation;
+                            lastAnamolyTime = event.timestamp;
+                            isStillProcessing = true;
                         }
-
 
 
                     }
 
-                    if(lastAnamolyTime!=null && event.timestamp-lastAnamolyTime>5*Math.pow(10,9))
-                    {
-                        stopListening() ;
+                    if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 5 * Math.pow(10, 9)) {
+                        stopListening();
                         new Timer().schedule(new TimerTask() {
-                            @Override public void run() {
-                               startListening();
-                                if(!isVoiceMode)
-                                    lastAnamoly=null;
-                            } } , 3000);
+                            @Override
+                            public void run() {
+                                if(isActivityAwake)
+                                    startListening();
+                                if (!isVoiceMode)
+                                    lastAnamoly = null;
+                            }
+                        }, 3000);
 
                         extractReadings(event.timestamp);
-                        lastAnamolyTime=null;
-                        isStillProcessing=false;
+                        lastAnamolyTime = null;
+                        isStillProcessing = false;
                     }
 
 
@@ -257,47 +256,47 @@ public class SensorHandler implements SensorEventListener {
 
 
     }
+
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
+
     public void displayExceptionMessage(String msg) {
 
         Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
     }
-    private void promptSpeechInput(){
+
+    private void promptSpeechInput() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         try {
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ar");
-            activity.startActivityForResult(intent,100);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ar");
+            activity.startActivityForResult(intent, 100);
         } catch (Exception e) {
             displayExceptionMessage(e.getMessage());
         }
     }
+
     private void initializeLocation() {
-        if(ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED
-                &&ActivityCompat.checkSelfPermission(activity,Manifest.permission.ACCESS_COARSE_LOCATION )!= PackageManager.PERMISSION_GRANTED)
-        {
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
 
         mFusedLocationClient.getLastLocation().addOnSuccessListener(activity, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location)
-                    {
-                        displayExceptionMessage("la2at");
-                        if(location==null)
-                        {
-                            displayExceptionMessage("Please Turn ON GPS");
-                        }
-                        mLocation=location;
+            @Override
+            public void onSuccess(Location location) {
+                if (location == null) {
+                    displayExceptionMessage("Please Turn ON GPS");
+                }
+                mLocation = location;
 
-                    }
-                });
+            }
+        });
 
 
     }
-    public void toggleVoiceMode()
-    {
-        isVoiceMode=!isVoiceMode;
+
+    public void toggleVoiceMode() {
+        isVoiceMode = !isVoiceMode;
     }
 
 
