@@ -176,15 +176,16 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         }
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mySensor.toggleVoiceMode();
                 if (isChecked) {
                     if (isNetworkAvailable()) {
                         toggleButton.setTextOn("Voice Mode");
+                        mySensor.isVoiceMode=true;
                         commentTextBox.setVisibility(View.VISIBLE);
                         commentTextView.setVisibility(View.VISIBLE);
                     } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
+                        mySensor.isVoiceMode=false;
                     }
 
                 } else {
@@ -362,7 +363,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         s = "HARAKA";
                         break;
                 }
-                typeTextBox.setText("Type  = " + s);
+                typeTextBox.setText(s);
 
                 Thread t = new Thread() {
                     public void run() {
