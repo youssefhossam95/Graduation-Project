@@ -185,7 +185,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
-                        mySensor.isVoiceMode=false;
                     }
 
                 } else {
@@ -193,7 +192,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     toggleButton.setTextOff("Buttons Mode");
                     commentTextBox.setVisibility(View.INVISIBLE);
                     commentTextView.setVisibility(View.INVISIBLE);
-
+                    mySensor.isVoiceMode=false;
                 }
             }
         });
