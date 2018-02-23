@@ -81,7 +81,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         if (mySensor.isVoiceMode)
                             return;
 
-                        if (mySensor.lastAnamoly == null && !mySensor.isStillProcessing) {
+                        if (mySensor.lastAnamoly == null && !mySensor.isStillProcessing.get()) {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
@@ -121,6 +121,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         if (mySensor.lastAnamolyLoc != null) {
                             longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
                             latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
+                            displayExceptionMessage("bdan 1");
                         }
                         else
                         {
@@ -130,16 +131,22 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                         Thread t = new Thread() {
                             public void run() {
-                                while (mySensor.isStillProcessing) ;
+                                displayExceptionMessage("zeeby 2");
+                                while (mySensor.isStillProcessing.get()) ;
                                 try {
+                                    displayExceptionMessage("zeeby 3");
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
+                                    displayExceptionMessage("khwal 4");
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
+                                    displayExceptionMessage("3rs 5");
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            displayExceptionMessage("mtnak 6");
                                             drawGraphData();
+                                            displayExceptionMessage("shrmot 7");
                                         }
                                     });
 
@@ -366,7 +373,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                 Thread t = new Thread() {
                     public void run() {
-                        while (mySensor.isStillProcessing) ;
+                        while (mySensor.isStillProcessing.get()) ;
                         try {
                             mySensor.lastAnamoly.comment = userComment;
                             mySensor.lastAnamoly.type = currentSessionAnamolyType;
