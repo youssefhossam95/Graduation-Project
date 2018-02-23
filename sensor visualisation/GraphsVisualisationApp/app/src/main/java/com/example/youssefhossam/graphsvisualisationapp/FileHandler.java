@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class FileHandler implements Parcelable {
     public  int NumberOfDefects=0;
+
     private static boolean []AvailableFiles=new boolean[100];
     ContextHolder contextHolder;
     FileHandler(){
@@ -105,9 +106,20 @@ public class FileHandler implements Parcelable {
             e.printStackTrace();
 
         }
-        AvailableFiles[NumberOfDefects]=true;
-        writeToFile("File"+NumberOfDefects,jsonFile.toString());
-        NumberOfDefects++;
+        int temp=0;
+        for (int i=0;i<100;i++)
+        {
+            String temp1=readSingleFile("File"+(i));
+            if(temp1==null)
+            {
+                AvailableFiles[NumberOfDefects]=true;
+                writeToFile("File"+String.valueOf(i),jsonFile.toString());
+                NumberOfDefects++;
+                Log.e("file is Here",String.valueOf(i));
+                return;
+            }
+        }
+
     }
     public boolean uploadLocalData() {
         try
@@ -195,9 +207,9 @@ public class FileHandler implements Parcelable {
             }
         }
         catch (FileNotFoundException e) {
-            Log.e("Filer Handler Class :", "File not found: " + e.toString());
+          //  Log.e("File Handler Class :", "File not found Error: " + e.toString());
         } catch (IOException e) {
-            Log.e("Filer Handler Class :", "Can not read file: " + e.toString());
+            Log.e("File Handler Class :", "Can not read file: " + e.toString());
         }
         return ret;
     }
@@ -222,7 +234,7 @@ public class FileHandler implements Parcelable {
             }
         }
         catch (FileNotFoundException e) {
-            Log.e("Filer Handler Class :", "File not found: " + e.toString());
+          //  Log.e("Filer Handler Class :", "File not found: " + e.toString());
             return null;
         } catch (IOException e) {
             Log.e("Filer Handler Class :", "Can not read file: " + e.toString());

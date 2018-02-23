@@ -176,10 +176,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         }
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mySensor.toggleVoiceMode();
                 if (isChecked) {
                     if (isNetworkAvailable()) {
                         toggleButton.setTextOn("Voice Mode");
+                        mySensor.isVoiceMode=true;
                         commentTextBox.setVisibility(View.VISIBLE);
                         commentTextView.setVisibility(View.VISIBLE);
                     } else {
@@ -192,7 +192,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     toggleButton.setTextOff("Buttons Mode");
                     commentTextBox.setVisibility(View.INVISIBLE);
                     commentTextView.setVisibility(View.INVISIBLE);
-
+                    mySensor.isVoiceMode=false;
                 }
             }
         });
@@ -362,7 +362,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         s = "HARAKA";
                         break;
                 }
-                typeTextBox.setText("Type  = " + s);
+                typeTextBox.setText(s);
 
                 Thread t = new Thread() {
                     public void run() {

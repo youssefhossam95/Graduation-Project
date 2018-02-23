@@ -68,7 +68,7 @@ public class SensorHandler implements SensorEventListener {
     Location lastAnamolyLoc;
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
-    boolean isVoiceMode = true;
+    boolean isVoiceMode;
     LocationManager locationManager;
     LocationListener locationListener;
     LinkedBlockingQueue<Reading> speedsQ = new LinkedBlockingQueue<Reading>();
@@ -276,10 +276,6 @@ public class SensorHandler implements SensorEventListener {
         });
 
 
-    }
-
-    public void toggleVoiceMode() {
-        isVoiceMode = !isVoiceMode;
     }
 
     private void checkForSensors()
