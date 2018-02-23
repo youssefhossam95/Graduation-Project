@@ -222,7 +222,6 @@ public class SensorHandler implements SensorEventListener {
 
                         extractReadings(event.timestamp);
                         lastAnamolyTime = null;
-                        displayExceptionMessage("ghyrto ya khwal");
                         isStillProcessing.set(false);
                     }
 
