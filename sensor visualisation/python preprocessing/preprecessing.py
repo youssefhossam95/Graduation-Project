@@ -133,9 +133,16 @@ for i in range (100 , 120):
     anamoly2 = ApplySmoothingFilter(anamoly , 10)
     anamoly3 = shiftCurve(anamoly2) ;
 
-    anamoly4 = Anamoly(anamoly=anamoly3)
-    anamoly4.accelValues = list(it.accumulate(anamoly4.accelValues))
-    anamolyArray = [anamoly , anamoly2 , anamoly3, anamoly4] ;
+    anamolySpeed = Anamoly(anamoly=anamoly3)
+    anamolySpeed.accelValues = list(it.accumulate(anamolySpeed.accelValues))
+
+    anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
+    anamolySpeedSifted = shiftCurve(anamolySpeedSifted)
+
+    anamolyDisp = Anamoly(anamoly=anamolySpeedSifted)
+    anamolyDisp.accelValues = list(it.accumulate(anamolyDisp.accelValues))
+
+    anamolyArray = [anamoly , anamoly2 , anamoly3, anamolyDisp] ;
     plotMultipleAnamolies(anamolyArray) ;
 
 
