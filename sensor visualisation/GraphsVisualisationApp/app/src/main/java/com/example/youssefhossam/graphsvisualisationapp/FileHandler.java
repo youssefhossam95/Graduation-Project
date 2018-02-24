@@ -89,8 +89,8 @@ public class FileHandler implements Parcelable {
             accelTime[i]=accelValues[i].time;
         }
         Reading [] speedValues=lastAnamoly.speeds;
-        float[] speedValue=new float[accelValues.length];
-        long [] speedTime=new long[accelValues.length];
+        float[] speedValue=new float[speedValues.length];
+        long [] speedTime=new long[speedValues.length];
         for(int i=0;i<speedValues.length;i++)
         {
             speedValue[i]=speedValues[i].value;
