@@ -29,22 +29,11 @@
         tools:layout_editor_relativeY="500dp" />
 
     <TextView
-        android:id="@+id/averageSpeedTextBox"
-        android:layout_width="156dp"
-        android:layout_height="33dp"
-        android:layout_above="@+id/circle_menu"
-        android:layout_below="@+id/commentTextBox"
-        android:layout_toEndOf="@+id/defectsLayout"
-        android:layout_toStartOf="@+id/commentTextBox"
-        tools:layout_editor_relativeX="118dp"
-        tools:layout_editor_relativeY="500dp" />
-
-    <TextView
         android:id="@+id/commentTextBox"
-        android:layout_width="155dp"
-        android:layout_height="43dp"
-        android:layout_alignEnd="@+id/sensitivityThreshold"
-        android:layout_below="@+id/latitudeText" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/CommentLayOut"
+        android:layout_toEndOf="@+id/CommentLayOut" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -92,8 +81,8 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_above="@+id/longitudeTextLayOut"
-        android:layout_alignParentEnd="true"
         android:layout_toEndOf="@+id/longitudeTextLayOut"
+        android:layout_toStartOf="@+id/typeTextBox"
         android:clickable="false"
         android:fitsSystemWindows="false"
         android:isScrollContainer="false"
@@ -166,17 +155,26 @@
         android:id="@+id/CommentLayOut"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/latitudeText"
-        android:layout_toStartOf="@+id/commentTextBox"
+        android:layout_alignBottom="@+id/fileNumbersText"
+        android:layout_alignStart="@+id/typeBoxLayOut"
         android:text="Comment : "
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/averageSpeedTextBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/graph"
+        android:layout_toEndOf="@+id/speedAverageLayout"
+        tools:layout_editor_relativeX="118dp"
+        tools:layout_editor_relativeY="500dp" />
 
     <TextView
         android:id="@+id/speedAverageLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/commentTextBox"
+        android:layout_alignBottom="@+id/averageSpeedTextBox"
+        android:layout_toEndOf="@+id/sensitivityThreshold"
         android:text="Average Speed : "
         android:textStyle="bold" />
 

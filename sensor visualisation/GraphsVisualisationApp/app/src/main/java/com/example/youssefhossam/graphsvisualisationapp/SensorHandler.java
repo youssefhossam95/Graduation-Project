@@ -31,6 +31,7 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static android.content.Context.SENSOR_SERVICE;
 import static android.hardware.SensorManager.SENSOR_DELAY_FASTEST;
@@ -72,10 +73,11 @@ public class SensorHandler implements SensorEventListener {
     LocationManager locationManager;
     LocationListener locationListener;
     LinkedBlockingQueue<Reading> speedsQ = new LinkedBlockingQueue<Reading>();
-    boolean isStillProcessing = false;
+    AtomicBoolean isStillProcessing;
     boolean isActivityAwake = true;
 
     SensorHandler(AppCompatActivity activity, CircleMenu circMenu) {
+        isStillProcessing=new AtomicBoolean(false);
         threshold = INITIAL_THRESHOLD;
         this.activity = activity;
         circleMenu = circMenu;
@@ -200,7 +202,7 @@ public class SensorHandler implements SensorEventListener {
                             initializeLocation();
                             lastAnamolyLoc = mLocation;
                             lastAnamolyTime = event.timestamp;
-                            isStillProcessing = true;
+                            isStillProcessing.set(true);
                         }
 
 
@@ -220,7 +222,7 @@ public class SensorHandler implements SensorEventListener {
 
                         extractReadings(event.timestamp);
                         lastAnamolyTime = null;
-                        isStillProcessing = false;
+                        isStillProcessing.set(false);
                     }
 
 
