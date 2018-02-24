@@ -538,6 +538,24 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         return speedValueString;
     }
 
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) { //used in the first run for the program
+
+        if(requestCode!=SensorHandler.REQUEST_LOCATION)
+            return;
+
+        int permissionLocation = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+            mySensor.locationManager=(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+            mySensor.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mySensor.locationListener);
+
+        }
+        else //permission refused -> request again
+        {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        }
+    }
+
 }
 
 
