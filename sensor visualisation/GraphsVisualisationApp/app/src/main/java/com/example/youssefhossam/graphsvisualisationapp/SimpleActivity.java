@@ -252,6 +252,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         mySensor.startListening();
         updateFileNumber();
         mySensor.isActivityAwake = true;
+        initializeLocationListener();
         super.onResume();
     }
 
@@ -265,6 +266,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         mySensor.stopListening();
         mySensor.isActivityAwake = false;
         mySensor.lastAnamoly = null;
+        mySensor.locationManager.removeUpdates(mySensor.locationListener);
         saveDefectsValues();
         super.onStop();
     }
@@ -551,6 +553,23 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
         }
         else //permission refused -> request again
+        {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+        }
+    }
+
+
+    void initializeLocationListener()
+    {
+        int permissionLocation = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+            mySensor.locationManager=(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+            mySensor.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mySensor.locationListener);
+
+        }
+        else //first time to run the program -> ask for permission
         {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }

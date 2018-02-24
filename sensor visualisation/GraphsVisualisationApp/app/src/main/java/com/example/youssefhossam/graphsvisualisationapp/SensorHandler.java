@@ -121,18 +121,7 @@ public class SensorHandler implements SensorEventListener {
             }
         };
 
-        int permissionLocation = ContextCompat.checkSelfPermission(activity,
-                Manifest.permission.ACCESS_FINE_LOCATION);
 
-        if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
-            locationManager=(LocationManager)activity.getSystemService(Context.LOCATION_SERVICE);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
-        }
-        else //first time to run the program -> ask for permission
-        {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-        }
 
 
 
