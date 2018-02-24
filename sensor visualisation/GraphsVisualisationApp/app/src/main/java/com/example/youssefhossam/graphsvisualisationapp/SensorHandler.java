@@ -15,6 +15,7 @@ import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -190,6 +191,9 @@ public class SensorHandler implements SensorEventListener {
                         if (lastAnamolyTime == null) {
                             MediaPlayer ring = MediaPlayer.create(activity, R.raw.ring);
                             ring.start();
+                            Vibrator v = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
+                            // Vibrate for 500 milliseconds
+                            v.vibrate(500);
                             if (mLocation != null) {
                                 if (isVoiceMode)
                                     promptSpeechInput();
