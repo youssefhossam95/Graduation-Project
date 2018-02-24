@@ -29,6 +29,17 @@
         tools:layout_editor_relativeY="500dp" />
 
     <TextView
+        android:id="@+id/averageSpeedTextBox"
+        android:layout_width="156dp"
+        android:layout_height="33dp"
+        android:layout_above="@+id/circle_menu"
+        android:layout_below="@+id/commentTextBox"
+        android:layout_toEndOf="@+id/defectsLayout"
+        android:layout_toStartOf="@+id/commentTextBox"
+        tools:layout_editor_relativeX="118dp"
+        tools:layout_editor_relativeY="500dp" />
+
+    <TextView
         android:id="@+id/commentTextBox"
         android:layout_width="155dp"
         android:layout_height="43dp"
@@ -158,6 +169,15 @@
         android:layout_below="@+id/latitudeText"
         android:layout_toStartOf="@+id/commentTextBox"
         android:text="Comment : "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/speedAverageLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/commentTextBox"
+        android:text="Average Speed : "
         android:textStyle="bold" />
 
 </RelativeLayout>

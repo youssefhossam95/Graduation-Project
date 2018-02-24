@@ -41,7 +41,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     CircleButton uploadButton;
     TextView longitudeText;
     TextView latitudeText;
-    public final static int MATAB = 0, HOFRA = 1,GHLAT = 2, HARAKA = 3, TAKSER = 4, UNKNOWN=5;
+    public final static int MATAB = 0, HOFRA = 1, GHLAT = 2, TAKSER = 3, UNKNOWN = 4;
     int currentSessionAnamolyType = UNKNOWN;
     ArrayList<Reading> currentSessionAccelReading;
     String userComment;
@@ -50,6 +50,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     TextView commentTextBox;
     TextView commentTextView;
     TextView typeTextBox;
+    TextView speedTextBox;
     TextView fileNumbersText;
     private Context context;
     int type = 0;
@@ -59,6 +60,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     public final static int SAMPLINGRATE = 120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
     private SensorHandler mySensor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +73,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
                 .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
                 .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
-                .addSubMenu(Color.parseColor("#000000"), R.mipmap.icon_vibration)
                 .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_cracks)
                 .setOnMenuSelectedListener(new OnMenuSelectedListener() {
 
@@ -80,14 +81,12 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                         if (mySensor.isVoiceMode)
                             return;
-
                         if (mySensor.lastAnamoly == null && !mySensor.isStillProcessing) {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
 
-                        type=index;
-
+                        type = index;
                         switch (index) {
                             case MATAB: {
                                 displayExceptionMessage("You have chosen مطب");
@@ -95,8 +94,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 break;
                             }
                             case HOFRA: {
-                                displayExceptionMessage("You have chosen نقرة");
-                                comment = "نقرة";
+                                displayExceptionMessage("You have chosen حفرة");
+                                comment = "حفرة";
                                 break;
                             }
                             case GHLAT: {
@@ -104,12 +103,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 comment = "غلط";
                                 break;
                             }
-                            case HARAKA: {
-                                displayExceptionMessage("You have chosen حركة");
-                                comment = "حركة";
-                                break;
-                            }
-
                             case TAKSER: {
                                 displayExceptionMessage("You have chosen تكسير ");
                                 comment = "تكسير";
@@ -117,13 +110,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                             }
                         }
 
-                        typeTextBox.setText("Type  = " + comment);
+                        typeTextBox.setText(comment);
                         if (mySensor.lastAnamolyLoc != null) {
                             longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
                             latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
-                        }
-                        else
-                        {
+                        } else {
                             displayExceptionMessage("Location not available! file not saved");
                             return;
                         }
@@ -134,6 +125,14 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 try {
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
+                                    Reading [] speedValues=mySensor.lastAnamoly.speeds;
+                                    float Summation=0;
+                                    for(int i=0;i<speedValues.length;i++)
+                                    {
+                                        Summation+=speedValues[i].value;
+                                    }
+                                    float speedAverage=(Summation/speedValues.length)*3.6f;
+                                    speedTextBox.setText(String.valueOf(speedAverage));
                                     fileHandler.saveData(mySensor.lastAnamoly);
                                     saveDefectsValues();
                                     runOnUiThread(new Runnable() {
@@ -144,7 +143,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                     });
 
                                 } catch (Exception e) {
-                                   displayExceptionMessage(e.getMessage());
+                                    displayExceptionMessage(e.getMessage());
                                 }
                             }
                         };
@@ -179,13 +178,13 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 if (isChecked) {
                     if (isNetworkAvailable()) {
                         toggleButton.setTextOn("Voice Mode");
-                        mySensor.isVoiceMode=true;
+                        mySensor.isVoiceMode = true;
                         commentTextBox.setVisibility(View.VISIBLE);
                         commentTextView.setVisibility(View.VISIBLE);
                     } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
-                        mySensor.isVoiceMode=false;
+                        mySensor.isVoiceMode = false;
                     }
 
                 } else {
@@ -193,7 +192,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     toggleButton.setTextOff("Buttons Mode");
                     commentTextBox.setVisibility(View.INVISIBLE);
                     commentTextView.setVisibility(View.INVISIBLE);
-
+                    mySensor.isVoiceMode = false;
                 }
             }
         });
@@ -207,12 +206,13 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         typeTextBox = (TextView) findViewById(R.id.typeTextBox);
         longitudeText = (TextView) findViewById(R.id.longitudeText);
         latitudeText = (TextView) findViewById(R.id.latitudeText);
+        speedTextBox=(TextView)findViewById(R.id.averageSpeedTextBox);
         graphZValues = new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context = getApplicationContext();
         sensitivityThreshold = findViewById(R.id.sensitivityThreshold);
-        commentTextView=findViewById(R.id.CommentLayOut);
+        commentTextView = findViewById(R.id.CommentLayOut);
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -254,7 +254,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     protected void onResume() {
         mySensor.startListening();
         updateFileNumber();
-        mySensor.isActivityAwake=true;
+        mySensor.isActivityAwake = true;
         super.onResume();
     }
 
@@ -266,8 +266,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     protected void onStop() {
         Log.e("On Stop", "Simple Activity Stopped");
         mySensor.stopListening();
-        mySensor.isActivityAwake=false;
-        mySensor.lastAnamoly=null;
+        mySensor.isActivityAwake = false;
+        mySensor.lastAnamoly = null;
         saveDefectsValues();
         super.onStop();
     }
@@ -288,8 +288,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
 
     public void displayExceptionMessage(String msg) {
-        final String text=msg;
-        final AppCompatActivity me=this;
+        final String text = msg;
+        final AppCompatActivity me = this;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -326,74 +326,75 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     } else if (s.contains("غلط")) {
                         currentSessionAnamolyType = GHLAT;
                         break;
-                    } else if (s.contains("حركة") || s.contains("حركه")) {
-                        currentSessionAnamolyType = HARAKA;
-                        break;
                     }
                 }
-                commentTextBox.setText(userComment);
-                if (mySensor.lastAnamolyLoc!=null) {
-                    longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
-                    latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
-                }
-                else
-                {
-                    displayExceptionMessage("Location not available! file not saved");
-                    return;
-                }
-
-                String s = "";
-                switch (currentSessionAnamolyType) {
-                    case UNKNOWN:
-                        s = "UNKNOWN";
-                        break;
-                    case MATAB:
-                        s = "MATAB";
-                        break;
-                    case HOFRA:
-                        s = "HOFRA";
-                        break;
-                    case TAKSER:
-                        s = "TAKSER";
-                        break;
-                    case GHLAT:
-                        s = "GHLAT";
-                        break;
-                    case HARAKA:
-                        s = "HARAKA";
-                        break;
-                }
-                typeTextBox.setText(s);
-
-                Thread t = new Thread() {
-                    public void run() {
-                        while (mySensor.isStillProcessing) ;
-                        try {
-                            mySensor.lastAnamoly.comment = userComment;
-                            mySensor.lastAnamoly.type = currentSessionAnamolyType;
-                            fileHandler.saveData(mySensor.lastAnamoly);
-                            saveDefectsValues();
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    drawGraphData();
-                                }
-                            });
-                            
-                        } catch (Exception e) {
-                            displayExceptionMessage(e.getMessage());
-                        }
-                    }
-                };
-                t.start();
-
-
             }
+            commentTextBox.setText(userComment);
+            if (mySensor.lastAnamolyLoc != null) {
+                longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
+                latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
+            } else {
+                displayExceptionMessage("Location not available! file not saved");
+                return;
+            }
+
+            String s = "";
+            switch (currentSessionAnamolyType) {
+                case UNKNOWN:
+                    s = "UNKNOWN";
+                    break;
+                case MATAB:
+                    s = "MATAB";
+                    break;
+                case HOFRA:
+                    s = "HOFRA";
+                    break;
+                case TAKSER:
+                    s = "TAKSER";
+                    break;
+                case GHLAT:
+                    s = "GHLAT";
+                    break;
+            }
+            typeTextBox.setText(s);
+            Thread t = new Thread() {
+                public void run() {
+                    while (mySensor.isStillProcessing) ;
+                    try {
+                        mySensor.lastAnamoly.comment = userComment;
+                        mySensor.lastAnamoly.type = currentSessionAnamolyType;
+                        Reading [] speedValues=mySensor.lastAnamoly.speeds;
+                        float Summation=0;
+                        for(int i=0;i<speedValues.length;i++)
+                        {
+                            Summation+=speedValues[i].value;
+                        }
+                        float speedAverage=(Summation/speedValues.length) *3.6f;
+                        speedTextBox.setText(String.valueOf(speedAverage));
+                        fileHandler.saveData(mySensor.lastAnamoly);
+                        saveDefectsValues();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                drawGraphData();
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        displayExceptionMessage(e.getMessage());
+                    }
+                }
+            };
+            t.start();
+
 
         }
 
-
     }
+
+
+
+
 
     public boolean onCreateOptionsMenu(Menu menu) {
 

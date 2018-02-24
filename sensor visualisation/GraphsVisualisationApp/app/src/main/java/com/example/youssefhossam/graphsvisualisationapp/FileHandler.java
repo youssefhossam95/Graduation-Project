@@ -77,24 +77,36 @@ public class FileHandler implements Parcelable {
             Toast.makeText(contextHolder.getContext(),"Maximum Number Of Defects Reached Please Upload Data",Toast.LENGTH_LONG).show();
             return;
         }
-        Reading[] accelValues=lastAnamoly.readings;
-        float[] value=new float[accelValues.length];
-        long [] time=new long[accelValues.length];
         int anamolyType=lastAnamoly.type;
         Location location=lastAnamoly.loc;
         String comment=lastAnamoly.comment;
+        Reading[] accelValues=lastAnamoly.readings;
+        float[] accelValue=new float[accelValues.length];
+        long [] accelTime=new long[accelValues.length];
         for(int i=0;i<accelValues.length;i++)
         {
-            value[i]=accelValues[i].value;
-            time[i]=accelValues[i].time;
+            accelValue[i]=accelValues[i].value;
+            accelTime[i]=accelValues[i].time;
         }
-        JSONArray valueArray=new JSONArray(value);
-        JSONArray timeArray=new JSONArray(time);
+        Reading [] speedValues=lastAnamoly.speeds;
+        float[] speedValue=new float[accelValues.length];
+        long [] speedTime=new long[accelValues.length];
+        for(int i=0;i<speedValues.length;i++)
+        {
+            speedValue[i]=speedValues[i].value;
+            speedTime[i]=speedValues[i].time;
+        }
+        JSONArray accelValueArray=new JSONArray(accelValue);
+        JSONArray accelTimeArray=new JSONArray(accelTime);
+        JSONArray speedValueArray=new JSONArray(speedValue);
+        JSONArray speedTimeArray=new JSONArray(speedTime);
         JSONObject jsonFile= new JSONObject();
         try
         {
-            jsonFile.put("accelValues",valueArray);
-            jsonFile.put("accelTime",timeArray);
+            jsonFile.put("accelValues",accelValueArray);
+            jsonFile.put("accelTime",accelTimeArray);
+            jsonFile.put("speedValues",speedValueArray);
+            jsonFile.put("speedTime",speedTimeArray);
             jsonFile.put("anamolyType",anamolyType);
             jsonFile.put("Location",location.toString());
             jsonFile.put("Comment", comment);
