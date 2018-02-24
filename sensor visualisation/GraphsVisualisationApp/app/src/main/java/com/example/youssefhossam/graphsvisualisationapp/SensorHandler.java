@@ -18,6 +18,7 @@ import android.os.SystemClock;
 import android.os.Vibrator;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
@@ -71,8 +72,8 @@ public class SensorHandler implements SensorEventListener {
     CircleMenu circleMenu;
     private FusedLocationProviderClient mFusedLocationClient;
     boolean isVoiceMode;
-    LocationManager locationManager;
-    LocationListener locationListener;
+    public LocationManager locationManager;
+    public LocationListener locationListener;
     LinkedBlockingQueue<Reading> speedsQ = new LinkedBlockingQueue<Reading>();
     AtomicBoolean isStillProcessing;
     boolean isActivityAwake = true;
@@ -96,10 +97,9 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mGravity, SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
-        initializeLocation();
         lastAnamolyLoc = mLocation;
-        locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-// Define a listener that responds to location updates
+
+        // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
@@ -121,13 +121,21 @@ public class SensorHandler implements SensorEventListener {
             }
         };
 
-// Register the listener with the Location Manager to receive location updates
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        int permissionLocation = ContextCompat.checkSelfPermission(activity,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+            locationManager=(LocationManager)activity.getSystemService(Context.LOCATION_SERVICE);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+
+        }
+        else //first time to run the program -> ask for permission
+        {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        checkForSensors();
+
+
+
     }
 
     public void stopListening() {
@@ -149,6 +157,9 @@ public class SensorHandler implements SensorEventListener {
 
         while (endTime - readingsQ.peek().time > 10 * Math.pow(10, 9))
             readingsQ.poll();
+
+        while (!speedsQ.isEmpty()&& endTime - speedsQ.peek().time > 15 * Math.pow(10, 9))
+            speedsQ.poll();
 
         Reading[] tempAccelArray = new Reading[readingsQ.size()];
         Reading[] tempSpeedsArray = new Reading[speedsQ.size()];
@@ -192,8 +203,10 @@ public class SensorHandler implements SensorEventListener {
                             MediaPlayer ring = MediaPlayer.create(activity, R.raw.ring);
                             ring.start();
                             Vibrator v = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
-                            // Vibrate for 500 milliseconds
-                            v.vibrate(500);
+                            // Vibrate for 300 milliseconds
+                            if(v!=null)
+                                v.vibrate(200);
+
                             if (mLocation != null) {
                                 if (isVoiceMode)
                                     promptSpeechInput();
@@ -267,7 +280,7 @@ public class SensorHandler implements SensorEventListener {
     private void initializeLocation() {
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+            return;
         }
 
         mFusedLocationClient.getLastLocation().addOnSuccessListener(activity, new OnSuccessListener<Location>() {

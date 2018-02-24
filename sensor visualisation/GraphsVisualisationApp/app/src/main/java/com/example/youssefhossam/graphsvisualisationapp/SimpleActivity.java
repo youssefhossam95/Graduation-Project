@@ -1,15 +1,19 @@
 package com.example.youssefhossam.graphsvisualisationapp;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -34,6 +38,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import at.markushi.ui.CircleButton;
+
+import static com.example.youssefhossam.graphsvisualisationapp.SensorHandler.REQUEST_LOCATION;
 
 public class SimpleActivity extends AppCompatActivity implements Serializable {
     long sessionStartTime;
@@ -515,6 +521,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     {
         Reading[] speedValues = mySensor.lastAnamoly.speeds;
         float Summation = 0;
+
+        if(speedValues.length==0)
+            return "NA";
+
         for (int i = 0; i < speedValues.length; i++) {
             Summation += speedValues[i].value;
         }
