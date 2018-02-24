@@ -247,12 +247,16 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         updateFileNumber();
     }
 
+    @Override
+    protected void onStart() {
+        initializeLocationListener();
+        super.onStart();
+    }
 
     protected void onResume() {
         mySensor.startListening();
         updateFileNumber();
         mySensor.isActivityAwake = true;
-        initializeLocationListener();
         super.onResume();
     }
 
@@ -525,7 +529,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         float Summation = 0;
 
         if(speedValues.length==0)
-            return "NA";
+            return "0.0";
 
         for (int i = 0; i < speedValues.length; i++) {
             Summation += speedValues[i].value;
