@@ -79,7 +79,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     public void onMenuSelected(int index) {
                         if (mySensor.isVoiceMode)
                             return;
-                        if (mySensor.lastAnamoly == null && !mySensor.isVoiceMode  && !mySensor.isStillProcessing.get()) {
+                        if (mySensor.lastAnamoly == null && !mySensor.isVoiceMode && !mySensor.isStillProcessing.get()) {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
@@ -127,20 +127,18 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Reading [] speedValues=mySensor.lastAnamoly.speeds;
-                                            float Summation=0;
-                                            for(int i=0;i<speedValues.length;i++)
-                                            {
-                                                Summation+=speedValues[i].value;
+                                            Reading[] speedValues = mySensor.lastAnamoly.speeds;
+                                            float Summation = 0;
+                                            for (int i = 0; i < speedValues.length; i++) {
+                                                Summation += speedValues[i].value;
                                             }
-                                            float speedAverage=(Summation/speedValues.length)*3.6f;
-                                            if(Float.isNaN(speedAverage))
-                                            {
-                                                speedAverage=0;
+                                            float speedAverage = (Summation / speedValues.length) * 3.6f;
+                                            if (Float.isNaN(speedAverage)) {
+                                                speedAverage = 0;
                                             }
                                             String speedValueString = String.format("%.02f", speedAverage);
-                                            Log.e("Summation = ",String.valueOf(speedValueString));
-                                            Log.e("speed Average = ",String.valueOf(speedValueString));
+                                            Log.e("Summation = ", String.valueOf(speedValueString));
+                                            Log.e("speed Average = ", String.valueOf(speedValueString));
                                             speedTextBox.setText(String.valueOf(speedValueString));
                                             drawGraphData();
                                         }
@@ -185,22 +183,21 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         mySensor.isVoiceMode = true;
                         commentTextBox.setVisibility(View.VISIBLE);
                         commentTextView.setVisibility(View.VISIBLE);
-                    }
-                    else {
+                    } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
                         mySensor.isVoiceMode = false;
                     }
 
-                }
-                else {
+                } else {
 
                     toggleButton.setTextOff("Buttons Mode");
                     commentTextBox.setVisibility(View.INVISIBLE);
                     commentTextView.setVisibility(View.INVISIBLE);
                     mySensor.isVoiceMode = false;
+                }
             }
-        }});
+        });
         sessionStartTime = 0;
         fileNumbersText = (TextView) findViewById(R.id.fileNumbersText);
         fileHandler = new FileHandler();
@@ -210,7 +207,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         typeTextBox = (TextView) findViewById(R.id.typeTextBox);
         longitudeText = (TextView) findViewById(R.id.longitudeText);
         latitudeText = (TextView) findViewById(R.id.latitudeText);
-        speedTextBox=(TextView)findViewById(R.id.averageSpeedTextBox);
+        speedTextBox = (TextView) findViewById(R.id.averageSpeedTextBox);
         graphZValues = new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
@@ -312,20 +309,17 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             if (resultCode == RESULT_OK) {
                 fileHandler = data.getExtras().getParcelable("fileHandler");
             }
-        } else
-        {
+        } else {
             currentSessionAnamolyType = UNKNOWN;
             if (resultCode == RESULT_OK && requestCode == 100 && null != data) {
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 userComment = result.get(0);
                 for (String s : result) //search for keywords
                 {
-                    if (s.contains("مطب"))
-                    {
+                    if (s.contains("مطب")) {
                         currentSessionAnamolyType = MATAB;
                         break;
-                    } else if (s.contains("حفره") || s.contains("حفرة"))
-                    {
+                    } else if (s.contains("حفره") || s.contains("حفرة")) {
                         currentSessionAnamolyType = HOFRA;
                         break;
                     } else if (s.contains("تكسير")) {
@@ -337,18 +331,15 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     }
                 }
                 commentTextBox.setText(userComment);
-                if (mySensor.lastAnamolyLoc != null)
-                {
+                if (mySensor.lastAnamolyLoc != null) {
                     longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
                     latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
-                } else
-                {
+                } else {
                     displayExceptionMessage("Location not available! file not saved");
                     return;
                 }
                 String s = "";
-                switch (currentSessionAnamolyType)
-                {
+                switch (currentSessionAnamolyType) {
                     case UNKNOWN:
                         s = "UNKNOWN";
                         break;
@@ -377,20 +368,18 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Reading [] speedValues=mySensor.lastAnamoly.speeds;
-                                    float Summation=0;
-                                    for(int i=0;i<speedValues.length;i++)
-                                    {
-                                        Summation+=speedValues[i].value;
+                                    Reading[] speedValues = mySensor.lastAnamoly.speeds;
+                                    float Summation = 0;
+                                    for (int i = 0; i < speedValues.length; i++) {
+                                        Summation += speedValues[i].value;
                                     }
-                                    float speedAverage=(Summation/speedValues.length)*3.6f;
-                                    if(Float.isNaN(speedAverage))
-                                    {
-                                        speedAverage=0;
+                                    float speedAverage = (Summation / speedValues.length) * 3.6f;
+                                    if (Float.isNaN(speedAverage)) {
+                                        speedAverage = 0;
                                     }
                                     String speedValueString = String.format("%.02f", speedAverage);
-                                    Log.e("Summation = ",String.valueOf(speedValueString));
-                                    Log.e("speed Average = ",String.valueOf(speedValueString));
+                                    Log.e("Summation = ", String.valueOf(speedValueString));
+                                    Log.e("speed Average = ", String.valueOf(speedValueString));
 
                                     speedTextBox.setText(String.valueOf(speedValueString));
                                     drawGraphData();
@@ -408,9 +397,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         }
 
     }
-
-
-
 
 
     public boolean onCreateOptionsMenu(Menu menu) {
