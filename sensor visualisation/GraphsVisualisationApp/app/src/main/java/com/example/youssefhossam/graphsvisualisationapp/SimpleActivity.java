@@ -127,18 +127,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Reading[] speedValues = mySensor.lastAnamoly.speeds;
-                                            float Summation = 0;
-                                            for (int i = 0; i < speedValues.length; i++) {
-                                                Summation += speedValues[i].value;
-                                            }
-                                            float speedAverage = (Summation / speedValues.length) * 3.6f;
-                                            if (Float.isNaN(speedAverage)) {
-                                                speedAverage = 0;
-                                            }
-                                            String speedValueString = String.format("%.02f", speedAverage);
-                                            Log.e("Summation = ", String.valueOf(speedValueString));
-                                            Log.e("speed Average = ", String.valueOf(speedValueString));
+                                            String speedValueString =getSpeedAverage();
                                             speedTextBox.setText(String.valueOf(speedValueString));
                                             drawGraphData();
                                         }
@@ -368,19 +357,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Reading[] speedValues = mySensor.lastAnamoly.speeds;
-                                    float Summation = 0;
-                                    for (int i = 0; i < speedValues.length; i++) {
-                                        Summation += speedValues[i].value;
-                                    }
-                                    float speedAverage = (Summation / speedValues.length) * 3.6f;
-                                    if (Float.isNaN(speedAverage)) {
-                                        speedAverage = 0;
-                                    }
-                                    String speedValueString = String.format("%.02f", speedAverage);
-                                    Log.e("Summation = ", String.valueOf(speedValueString));
-                                    Log.e("speed Average = ", String.valueOf(speedValueString));
-
+                                    String speedValueString =getSpeedAverage();
                                     speedTextBox.setText(String.valueOf(speedValueString));
                                     drawGraphData();
                                 }
@@ -532,6 +509,23 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
     void updateFileNumber() {
         fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
+    }
+
+    String getSpeedAverage()
+    {
+        Reading[] speedValues = mySensor.lastAnamoly.speeds;
+        float Summation = 0;
+        for (int i = 0; i < speedValues.length; i++) {
+            Summation += speedValues[i].value;
+        }
+        float speedAverage = (Summation / speedValues.length) * 3.6f;
+        if (Float.isNaN(speedAverage)) {
+            speedAverage = 0;
+        }
+        String speedValueString = String.format("%.02f", speedAverage);
+        Log.e("Summation = ", String.valueOf(speedValueString));
+        Log.e("speed Average = ", String.valueOf(speedValueString));
+        return speedValueString;
     }
 
 }
