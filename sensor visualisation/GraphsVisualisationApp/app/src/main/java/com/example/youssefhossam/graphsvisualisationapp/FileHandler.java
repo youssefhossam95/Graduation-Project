@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 public class FileHandler implements Parcelable {
     public  int NumberOfDefects=0;
-
+    static FileHandler myFile=null;
     private static boolean []AvailableFiles=new boolean[100];
     ContextHolder contextHolder;
-    FileHandler(){
+ private   FileHandler(){
         for(int i=0;i<100;i++)
         {
             AvailableFiles[i]=false;
@@ -52,6 +52,16 @@ public class FileHandler implements Parcelable {
         }
 
     }
+
+    public static FileHandler getFileHandlerObject()
+    {
+        if(myFile==null) {
+            myFile = new FileHandler();
+        }
+            return myFile;
+    }
+
+
     public int getNumberOfDefects()
     {
         int temp=0;
@@ -71,7 +81,7 @@ public class FileHandler implements Parcelable {
         NumberOfDefects=temp;
         return NumberOfDefects;
     }
-    void saveData(Anamoly lastAnamoly) throws JSONException {
+    void saveData(Anamoly lastAnamoly,String userName) throws JSONException {
         if(getNumberOfDefects()==100)
         {
             Toast.makeText(contextHolder.getContext(),"Maximum Number Of Defects Reached Please Upload Data",Toast.LENGTH_LONG).show();
@@ -110,7 +120,7 @@ public class FileHandler implements Parcelable {
             jsonFile.put("anamolyType",anamolyType);
             jsonFile.put("Location",location.toString());
             jsonFile.put("Comment", comment);
-            jsonFile.put("_id",String.valueOf(android.os.Build.MODEL)+ DateFormat.getDateTimeInstance().format(new Date()));
+            jsonFile.put("_id",userName+" "+String.valueOf(android.os.Build.MODEL)+ DateFormat.getDateTimeInstance().format(new Date()));
             ;
         }
         catch(Exception e){
@@ -185,7 +195,7 @@ public class FileHandler implements Parcelable {
         }
 
     }
-    private void writeToFile(String FileName,String Data) {
+    public void writeToFile(String FileName,String Data) {
         try {
             FileOutputStream fileOutputStream =  contextHolder.getContext().openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
             fileOutputStream.write(Data.getBytes());

@@ -11,9 +11,9 @@
         android:id="@+id/circle_menu"
         android:layout_width="123dp"
         android:layout_height="95dp"
-        android:layout_above="@+id/toggleButton"
-        android:layout_marginBottom="15dp"
-        android:layout_toEndOf="@+id/latitudeTextLayOut"
+        android:layout_alignBottom="@+id/toggleButton"
+        android:layout_marginBottom="19dp"
+        android:layout_toStartOf="@+id/CommentLayOut"
         android:longClickable="false"
         android:scaleX="2.6"
         android:scaleY="2.6" />
@@ -49,13 +49,33 @@
         android:id="@+id/uploadButton"
         android:layout_width="60dp"
         android:layout_height="71dp"
-        android:layout_alignBottom="@+id/circle_menu"
-        android:layout_alignStart="@+id/toggleButton"
-        android:layout_marginStart="18dp"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/commentTextBox"
+        android:layout_marginTop="12dp"
         android:src="@drawable/upload"
         app:cb_color="?attr/colorSwitchThumbNormal"
         app:cb_pressedRingWidth="16dp" />
 
+    <ToggleButton
+        android:id="@+id/toggleButton"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="33dp"
+        android:background="@drawable/style_toggle_button"
+        android:textOff=""
+        android:textOn="" />
+
+    <TextView
+        android:id="@+id/applicationModeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/circle_menu"
+        android:text="Buttons Mode"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
     <TextView
         android:id="@+id/latitudeTextLayOut"
         android:layout_width="wrap_content"
@@ -98,15 +118,6 @@
         android:layout_alignTop="@+id/sensitivityThreshold"
         android:text="Sensitivity"
         android:textStyle="bold" />
-
-    <ToggleButton
-        android:id="@+id/toggleButton"
-        android:layout_width="103dp"
-        android:layout_height="39dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:textOff="Buttons Mode"
-        android:textOn="Voice Mode" />
 
     <TextView
         android:id="@+id/defectsLayout"
@@ -176,6 +187,16 @@
         android:layout_alignBottom="@+id/averageSpeedTextBox"
         android:layout_toEndOf="@+id/sensitivityThreshold"
         android:text="Average Speed : "
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/toggleButton"
+        android:layout_alignParentEnd="true"
+        android:text="Upload Files"
+        android:textColor="@android:color/black"
         android:textStyle="bold" />
 
 </RelativeLayout>

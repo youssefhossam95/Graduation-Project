@@ -7,6 +7,7 @@
         <item name="colorPrimaryDark">@android:color/holo_orange_light</item>
         <item name="colorAccent">@android:color/background_dark</item>
         <item name="android:navigationBarColor">@android:color/holo_orange_light</item>
+
     </style>
 
     <style name="AppTheme.NoActionBar">

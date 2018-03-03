@@ -4,5 +4,14 @@
 
     <item
         android:id="@+id/viewFileButton"
-        android:title="View Files" />
+        android:title="Delete Files" />
+    <item
+        android:id="@+id/editName"
+        android:title="Edit Name" />
+    <item
+        android:id="@+id/aboutUs"
+        android:title="About Us" />
+    <item
+        android:id="@+id/Help"
+        android:title="Help" />
 </menu>

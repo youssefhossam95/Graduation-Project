@@ -7,37 +7,49 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-feature android:name="android.hardware.location.gps" />
-    <uses-permission android:name="android.permission.VIBRATE"/>
 
+    <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        tools:replace="android:allowBackup"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        >
-        <activity android:name=".SimpleActivity"  android:screenOrientation="portrait" android:keepScreenOn="true">
+        tools:replace="android:allowBackup">
+        <activity
+            android:name=".SimpleActivity"
+            android:keepScreenOn="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="com.example.youssefhossam.graphsvisualisationapp.Simple" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"  android:screenOrientation="portrait">
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".viewFiles"  android:screenOrientation="portrait">
+        <activity
+            android:name=".viewFiles"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="com.example.youssefhossam.graphsvisualisationapp.View" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
+        <activity android:name=".editUserName" />
+        <activity android:name=".aboutUs" />
+        <activity android:name=".help"></activity>
     </application>
 
 </manifest>

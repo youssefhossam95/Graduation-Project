@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -20,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -33,6 +35,9 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import org.w3c.dom.Text;
+
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -58,6 +63,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     TextView typeTextBox;
     TextView speedTextBox;
     TextView fileNumbersText;
+    TextView applicationModeText;
     private Context context;
     int type = 0;
     String comment = "";
@@ -66,7 +72,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     public final static int SAMPLINGRATE = 120; // number of samples per second (Fs)
     private SeekBar sensitivityThreshold;
     private SensorHandler mySensor;
-
+    String userName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,9 +81,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         ContextHolder contextHolder = new ContextHolder();
         contextHolder.setContext(getApplicationContext());
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
+        applicationModeText=(TextView)findViewById(R.id.applicationModeText);
         circleMenu.setMainMenu(Color.parseColor("#53aaa8"), R.mipmap.icon_menu, R.mipmap.icon_cancel)
                 .addSubMenu(Color.parseColor("#fddd00"), R.mipmap.icon_bump)
-                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_potholes)
+                .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_pothole)
                 .addSubMenu(Color.parseColor("#d00e0e"), R.mipmap.icon_wrong)
                 .addSubMenu(Color.parseColor("#FFFFFF"), R.mipmap.icon_cracks)
                 .setOnMenuSelectedListener(new OnMenuSelectedListener() {
@@ -128,7 +135,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 try {
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
-                                    fileHandler.saveData(mySensor.lastAnamoly);
+                                    fileHandler.saveData(mySensor.lastAnamoly,userName);
                                     saveDefectsValues();
                                     runOnUiThread(new Runnable() {
                                         @Override
@@ -164,9 +171,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         mySensor = new SensorHandler(this, circleMenu);
         if (!isNetworkAvailable()) {
             toggleButton.setChecked(false);
+            applicationModeText.setText("Buttons Mode");
             mySensor.isVoiceMode = false;
 
         } else {
+            applicationModeText.setText("Voice Mode");
             toggleButton.setChecked(true);
             mySensor.isVoiceMode = true;
         }
@@ -174,19 +183,19 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     if (isNetworkAvailable()) {
-                        toggleButton.setTextOn("Voice Mode");
+                        applicationModeText.setText("Voice Mode");
                         mySensor.isVoiceMode = true;
                         commentTextBox.setVisibility(View.VISIBLE);
                         commentTextView.setVisibility(View.VISIBLE);
                     } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
+                        applicationModeText.setText("Buttons Mode");
                         mySensor.isVoiceMode = false;
                     }
 
                 } else {
-
-                    toggleButton.setTextOff("Buttons Mode");
+                    applicationModeText.setText("Buttons Mode");
                     commentTextBox.setVisibility(View.INVISIBLE);
                     commentTextView.setVisibility(View.INVISIBLE);
                     mySensor.isVoiceMode = false;
@@ -195,7 +204,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         });
         sessionStartTime = 0;
         fileNumbersText = (TextView) findViewById(R.id.fileNumbersText);
-        fileHandler = new FileHandler();
+        fileHandler = FileHandler.getFileHandlerObject();
         uploadButton = (CircleButton) findViewById(R.id.uploadButton);
         currentSessionAccelReading = new ArrayList<Reading>();
         commentTextBox = (TextView) findViewById(R.id.commentTextBox);
@@ -207,6 +216,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graph = (GraphView) findViewById(R.id.graph);
         graph.getViewport().setXAxisBoundsManual(true);
         this.context = getApplicationContext();
+
         sensitivityThreshold = findViewById(R.id.sensitivityThreshold);
         commentTextView = findViewById(R.id.CommentLayOut);
         uploadButton.setOnClickListener(new View.OnClickListener() {
@@ -214,6 +224,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             public void onClick(View view) {
 
                 if (isNetworkAvailable()) {
+                    displayExceptionMessage("Uploading Data");
                     if (!fileHandler.uploadLocalData()) {
                         displayExceptionMessage("No Files To Be Uploaded ");
                     }
@@ -244,27 +255,26 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         Toast.LENGTH_SHORT).show();
             }
         });
+        userName=getIntent().getExtras().getString("username");
+        fileHandler.writeToFile("userInfo",userName);
         updateFileNumber();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
-
     @Override
     protected void onStart() {
         initializeLocationListener();
         super.onStart();
     }
-
     protected void onResume() {
         mySensor.startListening();
         updateFileNumber();
         mySensor.isActivityAwake = true;
         super.onResume();
     }
-
     protected void onPause() {
         super.onPause();
 
     }
-
     protected void onStop() {
         Log.e("On Stop", "Simple Activity Stopped");
         mySensor.stopListening();
@@ -274,7 +284,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         saveDefectsValues();
         super.onStop();
     }
-
     protected void onDestroy() {
         Log.e("On Destroy ", "Simple Activity Destory");
         saveDefectsValues();
@@ -282,14 +291,12 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
 
     }
-
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
-
     public void displayExceptionMessage(String msg) {
         final String text = msg;
         final AppCompatActivity me = this;
@@ -302,15 +309,23 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
 
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==3)
+        {
+            if(resultCode==RESULT_OK)
+            {
+                userName=data.getExtras().getString("userName");
+                fileHandler.writeToFile("userInfo",userName);
+            }
+        }
         if (requestCode == 2) {
             if (resultCode == RESULT_OK) {
                 fileHandler = data.getExtras().getParcelable("fileHandler");
             }
-        } else {
+        }
+        else {
             currentSessionAnamolyType = UNKNOWN;
             if (resultCode == RESULT_OK && requestCode == 100 && null != data) {
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
@@ -364,7 +379,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         try {
                             mySensor.lastAnamoly.comment = userComment;
                             mySensor.lastAnamoly.type = currentSessionAnamolyType;
-                            fileHandler.saveData(mySensor.lastAnamoly);
+                            fileHandler.saveData(mySensor.lastAnamoly,userName);
                             saveDefectsValues();
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -386,80 +401,40 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         }
 
     }
-
-
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-
+        Intent myIntent;
         switch (item.getItemId()) {
             case R.id.viewFileButton:
                 displayExceptionMessage("View Files Counts = " + fileHandler.NumberOfDefects);
-                Intent myIntent = new Intent(getApplicationContext(), viewFiles.class);
+                 myIntent = new Intent(getApplicationContext(), viewFiles.class);
                 myIntent.putExtra("myFile", fileHandler);
                 myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivityForResult(myIntent, 2);
+                return true;
+            case R.id.editName:
+                 myIntent = new Intent(getApplicationContext(), editUserName.class);
+                 myIntent.putExtra("userName",userName);
+                 startActivityForResult(myIntent, 3);
+                return true;
+            case R.id.aboutUs:
+                myIntent = new Intent(getApplicationContext(), aboutUs.class);
+                startActivity(myIntent);
+                return true;
+            case R.id.Help:
+                myIntent = new Intent(getApplicationContext(), help.class);
+                startActivity(myIntent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    /**
-     * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
-     *
-     * @param readings array representing the  timeline in nanoseconds of accelerometer readings
-     * @param time     required session length in seconds
-     * @return array of sampled readings
-     */
-    double[] getSampledReadings(ArrayList<Reading> readings, int time) {
-        double xFirst, yFirst, xSecond, ySecond, xInter, yInter;
-        double Ts = 1.0 / (double) SAMPLINGRATE * Math.pow(10, 9); //in nanoseconds
-        int sampledReadingsCount = time * SAMPLINGRATE + 1;
-        double[] sampledReadings = new double[sampledReadingsCount];
-        if (readings.size() == 0) {
-            return new double[10];
-        }
-        sampledReadings[0] = readings.get(0).value; //reading at t=0
-        int i = 1, j = 1;
-        double currentTime = Ts + readings.get(0).time;
-        while (true) {
-            while (i < readings.size() && currentTime > readings.get(i).time)
-                i++;
-
-            if (i == readings.size()) //recorded session is over
-                break;
-
-            xFirst = readings.get(i - 1).time;
-            yFirst = readings.get(i - 1).value;
-            xSecond = readings.get(i).time;
-            ySecond = readings.get(i).value;
-            xInter = currentTime;
-
-            yInter = yFirst + (xInter - xFirst) / (xSecond - xFirst) * (ySecond - yFirst); //linear Interpolation
-            sampledReadings[j] = yInter;
-            j++;
-            if (j == sampledReadingsCount) //sampling session  is over
-                break;
-            currentTime += Ts;
-        }
-
-        while (j < sampledReadingsCount) //assign last recorded reading to all the remaining samples (approximate extrapolation)
-        {
-            sampledReadings[j] = readings.get(i - 1).value;
-            j++;
-        }
-
-        return sampledReadings;
-
-    }
-
     public void saveDefectsValues() {
         try {
             FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
@@ -477,7 +452,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             Log.e("Saving Objects", e.toString());
         }
     }
-
     public void drawGraphData() {
 
         graphZValues.clear();
@@ -498,14 +472,12 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graph.addSeries(series);
         updateFileNumber();
     }
-
     public void statusGPSCheck() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
         }
     }
-
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, Enable it ")
@@ -518,11 +490,9 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         final AlertDialog alert = builder.create();
         alert.show();
     }
-
     void updateFileNumber() {
         fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
     }
-
     String getSpeedAverage()
     {
         Reading[] speedValues = mySensor.lastAnamoly.speeds;
@@ -543,7 +513,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         Log.e("speed Average = ", String.valueOf(speedValueString));
         return speedValueString;
     }
-
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) { //used in the first run for the program
 
         if(requestCode!=SensorHandler.REQUEST_LOCATION)
@@ -561,8 +530,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
     }
-
-
     void initializeLocationListener()
     {
         int permissionLocation = ContextCompat.checkSelfPermission(this,
@@ -578,7 +545,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
     }
-
+    @Override
+    public void onBackPressed() {
+        displayExceptionMessage("You are already logged in ");
+        moveTaskToBack(false);
+    }
 }
 
 
