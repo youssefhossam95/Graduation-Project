@@ -13,10 +13,10 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginTop="42dp"
-        android:textSize="21sp"
         android:text="We are a team of 4 , Our project is about detecting defects on the road like bumps and potholes ,this application is the training app , which we collect the data but by your help with classifing each defect you take "
         android:textAlignment="center"
         android:textColor="@android:color/black"
+        android:textSize="21sp"
         android:textStyle="bold"
         tools:layout_editor_absoluteY="157dp" />
 
@@ -30,6 +30,7 @@
         android:text="Team Members :"
         android:textColor="@android:color/black"
         android:textStyle="bold" />
+
     <at.markushi.ui.CircleButton
         android:id="@+id/ahmedAdelFb"
         android:layout_width="80dp"
@@ -39,6 +40,7 @@
         android:layout_marginTop="18dp"
         android:src="@drawable/icon_aaz"
         app:cb_color="@android:color/white" />
+
     <TextView
         android:id="@+id/ahmedAdelTextView"
         android:layout_width="wrap_content"
@@ -47,6 +49,7 @@
         android:layout_below="@+id/teamMembersTextView"
         android:layout_marginStart="16dp"
         android:layout_marginTop="95dp"
+        android:textSize="14sp"
         android:text="Ahmed Adel Zakaria"
         android:textColor="@android:color/black"
         android:textStyle="bold" />
@@ -55,6 +58,7 @@
         android:id="@+id/youssefHossamTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="14sp"
         android:layout_alignBaseline="@+id/ahmedAdelTextView"
         android:layout_alignBottom="@+id/ahmedAdelTextView"
         android:layout_alignParentEnd="true"
@@ -62,6 +66,7 @@
         android:text="Youssef Hossam"
         android:textColor="@android:color/black"
         android:textStyle="bold" />
+
     <at.markushi.ui.CircleButton
         android:id="@+id/youssefHossamFb"
         android:layout_width="80dp"
@@ -79,6 +84,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/waleedHazemFB"
         android:layout_marginBottom="15dp"
+        android:textSize="14sp"
         android:text="Waleed Hazem"
         android:textColor="@android:color/black"
         android:textStyle="bold" />
@@ -100,6 +106,7 @@
         android:layout_alignBottom="@+id/waleedHazemTextView"
         android:layout_alignEnd="@+id/samaIhabFB"
         android:text="Sama Ihab"
+        android:textSize="14sp"
         android:textColor="@android:color/black"
         android:textStyle="bold" />
 

@@ -7,7 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -35,9 +35,6 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
-import org.w3c.dom.Text;
-
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -269,6 +266,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         mySensor.startListening();
         updateFileNumber();
         mySensor.isActivityAwake = true;
+        if(fileHandler.NumberOfDefects!=0 && mySensor.isVoiceMode==false)
+        {
+            displayExceptionMessage("Reminder : Please upload your files as 100 file is the maximum");
+        }
         super.onResume();
     }
     protected void onPause() {

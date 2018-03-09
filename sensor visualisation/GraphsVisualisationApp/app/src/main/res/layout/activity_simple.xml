@@ -31,7 +31,7 @@
     <TextView
         android:id="@+id/commentTextBox"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
         android:layout_alignTop="@+id/CommentLayOut"
         android:layout_toEndOf="@+id/CommentLayOut" />
 
@@ -49,9 +49,9 @@
         android:id="@+id/uploadButton"
         android:layout_width="60dp"
         android:layout_height="71dp"
-        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/circle_menu"
         android:layout_below="@+id/commentTextBox"
-        android:layout_marginTop="12dp"
+        android:layout_alignParentEnd="true"
         android:src="@drawable/upload"
         app:cb_color="?attr/colorSwitchThumbNormal"
         app:cb_pressedRingWidth="16dp" />
@@ -192,9 +192,9 @@
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/toggleButton"
+        android:layout_height="20dp"
         android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/circle_menu"
         android:text="Upload Files"
         android:textColor="@android:color/black"
         android:textStyle="bold" />

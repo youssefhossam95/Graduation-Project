@@ -60,7 +60,7 @@ public class SensorHandler implements SensorEventListener {
     float[] rotationMatrixTranspose;
     AppCompatActivity activity;
     boolean check = true;
-    static final double INITIAL_THRESHOLD = 3.0;
+    static final double INITIAL_THRESHOLD = 2.5;
     public double threshold;
     LinkedBlockingQueue<Reading> readingsQ = new LinkedBlockingQueue<Reading>();
     Long lastAnamolyTime;
@@ -98,7 +98,6 @@ public class SensorHandler implements SensorEventListener {
         mSensorManager.registerListener(this, mMagnetic, SENSOR_DELAY_FASTEST);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
         lastAnamolyLoc = mLocation;
-
         // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
@@ -120,10 +119,7 @@ public class SensorHandler implements SensorEventListener {
             public void onProviderDisabled(String provider) {
             }
         };
-
-
-
-
+        initializeLocation();
 
     }
 
@@ -167,9 +163,6 @@ public class SensorHandler implements SensorEventListener {
 
 
     public void onSensorChanged(SensorEvent event) {
-
-
-
 
         switch (event.sensor.getType()) {
             case Sensor.TYPE_LINEAR_ACCELERATION: {
