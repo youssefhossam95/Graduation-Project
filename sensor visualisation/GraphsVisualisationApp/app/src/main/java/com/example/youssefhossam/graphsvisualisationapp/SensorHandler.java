@@ -209,7 +209,11 @@ public class SensorHandler implements SensorEventListener {
 
                     if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 5 * Math.pow(10, 9)) {
                         stopListening();
-                        circleMenu.closeMenu();
+                        if (circleMenu.isOpened() && !isVoiceMode){
+                            circleMenu.closeMenu();
+                            displayExceptionMessage("5 Seconds has passed! Anamoly will be ignored.");
+                        }
+
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
