@@ -12,8 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="42dp"
-        android:text="Our graduation project is about detecting defects on the road like bumps and potholes. This application is the training app that will be used to collect the data required to train the program. If you have any concerns or questions, you can easily contact us through our facebook accounts which you can find below."
+        android:text="Our graduation project is about detecting defects on the road like bumps and potholes. This application is the training app that will be used to collect the data required to train the program. If you have any concerns or questions, you can contact us through our facebook accounts by clicking on any of our pictures below."
         android:textAlignment="center"
         android:textColor="@android:color/black"
         android:textSize="21sp"
@@ -27,7 +26,6 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/textView"
         android:layout_marginTop="40dp"
-        android:text=""
         android:textColor="@android:color/black"
         android:textStyle="bold" />
 
@@ -35,7 +33,7 @@
         android:id="@+id/ahmedAdelFb"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_alignEnd="@+id/teamMembersTextView"
+
         android:layout_below="@+id/teamMembersTextView"
         android:layout_marginTop="18dp"
         android:src="@drawable/icon_aaz"
