@@ -209,6 +209,7 @@ public class SensorHandler implements SensorEventListener {
 
                     if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 5 * Math.pow(10, 9)) {
                         stopListening();
+                        circleMenu.closeMenu();
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {

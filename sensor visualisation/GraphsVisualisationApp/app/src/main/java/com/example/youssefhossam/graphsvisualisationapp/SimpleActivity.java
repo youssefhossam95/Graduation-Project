@@ -260,26 +260,26 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     @Override
     protected void onStart() {
         initializeLocationListener();
+        if(fileHandler.NumberOfDefects!=0)
+        {
+            displayExceptionMessage("Reminder : Please don't forget to upload the files!");
+        }
         super.onStart();
     }
     protected void onResume() {
         mySensor.startListening();
         updateFileNumber();
         mySensor.isActivityAwake = true;
-        if(fileHandler.NumberOfDefects!=0 && mySensor.isVoiceMode==false)
-        {
-            displayExceptionMessage("Reminder : Please upload your files as 100 file is the maximum");
-        }
         super.onResume();
     }
     protected void onPause() {
         super.onPause();
+        mySensor.stopListening();
+        mySensor.isActivityAwake = false;
 
     }
     protected void onStop() {
         Log.e("On Stop", "Simple Activity Stopped");
-        mySensor.stopListening();
-        mySensor.isActivityAwake = false;
         mySensor.lastAnamoly = null;
         mySensor.locationManager.removeUpdates(mySensor.locationListener);
         saveDefectsValues();
@@ -361,16 +361,16 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         s = "UNKNOWN";
                         break;
                     case MATAB:
-                        s = "MATAB";
+                        s = "مطب";
                         break;
                     case HOFRA:
-                        s = "HOFRA";
+                        s = "حفرة";
                         break;
                     case TAKSER:
-                        s = "TAKSER";
+                        s = "تكسير";
                         break;
                     case GHLAT:
-                        s = "GHLAT";
+                        s = "غلط";
                         break;
                 }
                 typeTextBox.setText(s);

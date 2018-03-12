@@ -25,6 +25,7 @@
         android:layout_alignBaseline="@+id/typeBoxLayOut"
         android:layout_alignBottom="@+id/typeBoxLayOut"
         android:layout_alignParentEnd="true"
+        android:textAlignment="center"
         tools:layout_editor_relativeX="118dp"
         tools:layout_editor_relativeY="500dp" />
 
