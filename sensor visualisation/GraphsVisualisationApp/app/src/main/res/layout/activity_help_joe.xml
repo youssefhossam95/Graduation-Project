@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.youssefhossam.graphsvisualisationapp.helpJoe">
+
+    <ImageView
+        android:id="@+id/PresModeIcon"
+        android:layout_width="82dp"
+        android:layout_height="73dp"
+        android:layout_marginBottom="56dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/ml"
+        app:layout_constraintBottom_toTopOf="@+id/textView6"
+        app:layout_constraintEnd_toStartOf="@+id/textView6"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="301dp"
+        android:layout_height="52dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="112dp"
+        android:text=" لو الapp عملك دوشة ممكن تقلل الsensitivity"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="320dp"
+        android:layout_height="127dp"
+        android:layout_marginBottom="64dp"
+        android:layout_marginEnd="12dp"
+        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول مش هيرن حتى لو الموبيل اتهز علشان ما يلاخبطكش."
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/textView6"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/sens"
+        android:layout_width="136dp"
+        android:layout_height="94dp"
+        android:layout_marginBottom="172dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/sens"
+        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintEnd_toStartOf="@+id/textView6"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="204dp"
+        android:onClick="nextButtonPressed"
+        android:text="Next>>"
+        app:layout_constraintEnd_toEndOf="@+id/textView6"
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="285dp"
+        android:layout_height="38dp"
+        android:layout_marginBottom="76dp"
+        android:layout_marginEnd="16dp"
+        android:text=" متنساش تعمل upload للداتا اللي إنت سجلتها لما يبقى معاك نت. "
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/up"
+        android:layout_width="84dp"
+        android:layout_height="58dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/upload"
+        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintEnd_toStartOf="@+id/textView6"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

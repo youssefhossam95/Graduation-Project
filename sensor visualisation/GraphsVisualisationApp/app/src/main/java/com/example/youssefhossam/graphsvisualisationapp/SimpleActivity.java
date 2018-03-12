@@ -429,7 +429,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                 startActivity(myIntent);
                 return true;
             case R.id.Help:
-                myIntent = new Intent(getApplicationContext(), help.class);
+                myIntent = new Intent(getApplicationContext(), helpJoe.class);
                 startActivity(myIntent);
                 return true;
             default:
@@ -546,11 +546,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
         }
     }
-    @Override
-    public void onBackPressed() {
-        displayExceptionMessage("You are already logged in ");
-        moveTaskToBack(false);
-    }
+//    @Override
+//    public void onBackPressed() {
+//        displayExceptionMessage("You are already logged in ");
+//        moveTaskToBack(false);
+//    }
 }
 
 

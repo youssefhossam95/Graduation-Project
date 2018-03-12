@@ -187,7 +187,7 @@ public class SensorHandler implements SensorEventListener {
                             Vibrator v = (Vibrator) activity.getSystemService(Context.VIBRATOR_SERVICE);
                             // Vibrate for 300 milliseconds
                             if(v!=null)
-                                v.vibrate(200);
+                                v.vibrate(300);
 
                             if (mLocation != null) {
                                 if (isVoiceMode)
@@ -217,7 +217,7 @@ public class SensorHandler implements SensorEventListener {
                                 if (!isVoiceMode)
                                     lastAnamoly = null;
                             }
-                        }, 3000);
+                        }, 1500);
 
                         extractReadings(event.timestamp);
                         lastAnamolyTime = null;

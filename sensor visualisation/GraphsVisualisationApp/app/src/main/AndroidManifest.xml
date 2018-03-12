@@ -2,12 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.youssefhossam.graphsvisualisationapp">
+
     <supports-screens
         android:largeScreens="true"
         android:normalScreens="true"
         android:smallScreens="true"
-        android:xlargeScreens="true"
-    />
+        android:xlargeScreens="true" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -36,6 +37,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:noHistory="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,9 +54,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".editUserName" />
-        <activity android:name=".aboutUs" />
-        <activity android:name=".help"></activity>
+        <activity android:name=".editUserName" android:screenOrientation="portrait"/>
+        <activity android:name=".aboutUs" android:screenOrientation="portrait" />
+        <activity android:name=".help" android:screenOrientation="portrait" />
+        <activity android:name=".helpJoe" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

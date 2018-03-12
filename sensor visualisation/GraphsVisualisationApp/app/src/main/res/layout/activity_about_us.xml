@@ -13,7 +13,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginTop="42dp"
-        android:text="We are a team of 4 , Our project is about detecting defects on the road like bumps and potholes ,this application is the training app , which we collect the data but by your help with classifing each defect you take "
+        android:text="Our graduation project is about detecting defects on the road like bumps and potholes. This application is the training app that will be used to collect the data required to train the program. If you have any concerns or questions, you can easily contact us through our facebook accounts."
         android:textAlignment="center"
         android:textColor="@android:color/black"
         android:textSize="21sp"
