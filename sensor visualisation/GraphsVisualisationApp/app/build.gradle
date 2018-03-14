@@ -8,7 +8,7 @@ android {
         applicationId "com.stackers.BumpsFinderTrainingApp"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 2
+        versionCode 3
         versionName "1.01"
     }
     buildTypes {

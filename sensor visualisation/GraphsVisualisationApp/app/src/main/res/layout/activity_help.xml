@@ -58,7 +58,7 @@
     <TextView
         android:id="@+id/textView3"
         android:layout_width="280dp"
-        android:layout_height="107dp"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
         android:layout_marginEnd="16dp"
         android:text="إنت كده مشغل الVoice Mode هيطلع لك Voice Dialog فـإنت تقول مطب, حفرة تكسير, غلط. ممكن كمان تقول كومنت يعني مثلا تقول مطب جامد قوي وهو هيفهم إن ده مطب المهم إن كلمة مطب تبقى موجودة في الجملة ونفس الكلام على كل الأنواع التانية.
