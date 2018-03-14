@@ -274,7 +274,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     }
     protected void onPause() {
         super.onPause();
-        mySensor.stopListening();
         mySensor.isActivityAwake = false;
 
     }
