@@ -283,6 +283,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         mySensor.lastAnamoly = null;
         mySensor.locationManager.removeUpdates(mySensor.locationListener);
         saveDefectsValues();
+        mySensor.stopListening();
         super.onStop();
     }
     protected void onDestroy() {
