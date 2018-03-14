@@ -182,8 +182,8 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                     if (isNetworkAvailable()) {
                         applicationModeText.setText("Voice Mode");
                         mySensor.isVoiceMode = true;
-                        commentTextBox.setVisibility(View.VISIBLE);
-                        commentTextView.setVisibility(View.VISIBLE);
+                        //commentTextBox.setVisibility(View.VISIBLE);
+                        //commentTextView.setVisibility(View.VISIBLE);
                     } else {
                         displayExceptionMessage("To Enable Voice Mode Please Check Your Internet Connection");
                         toggleButton.setChecked(false);
@@ -193,8 +193,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
                 } else {
                     applicationModeText.setText("Buttons Mode");
-                    commentTextBox.setVisibility(View.INVISIBLE);
-                    commentTextView.setVisibility(View.INVISIBLE);
                     mySensor.isVoiceMode = false;
                 }
             }
@@ -216,6 +214,9 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
         sensitivityThreshold = findViewById(R.id.sensitivityThreshold);
         commentTextView = findViewById(R.id.CommentLayOut);
+        commentTextBox.setVisibility(View.INVISIBLE);
+        commentTextView.setVisibility(View.INVISIBLE);
+
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
