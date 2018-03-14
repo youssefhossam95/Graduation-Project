@@ -5,36 +5,28 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.youssefhossam.graphsvisualisationapp.SimpleActivity">
+    tools:context=".SimpleActivity">
 
     <com.hitomi.cmlibrary.CircleMenu
         android:id="@+id/circle_menu"
         android:layout_width="123dp"
         android:layout_height="95dp"
         android:layout_alignBottom="@+id/toggleButton"
-        android:layout_marginBottom="19dp"
-        android:layout_toStartOf="@+id/CommentLayOut"
+        android:layout_alignStart="@+id/sensitivityThreshold"
+        android:layout_marginBottom="18dp"
         android:longClickable="false"
         android:scaleX="2.6"
         android:scaleY="2.6" />
 
     <TextView
         android:id="@+id/typeTextBox"
-        android:layout_width="156dp"
-        android:layout_height="33dp"
-        android:layout_alignBaseline="@+id/typeBoxLayOut"
-        android:layout_alignBottom="@+id/typeBoxLayOut"
-        android:layout_alignParentEnd="true"
-        android:textAlignment="center"
-        tools:layout_editor_relativeX="118dp"
-        tools:layout_editor_relativeY="500dp" />
+        android:layout_width="100dp"
+        android:layout_height="26dp"
 
-    <TextView
-        android:id="@+id/commentTextBox"
-        android:layout_width="wrap_content"
-        android:layout_height="20dp"
-        android:layout_alignTop="@+id/CommentLayOut"
-        android:layout_toEndOf="@+id/CommentLayOut" />
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/averageSpeedTextBox"
+        android:text="مطب"
+        android:textAlignment="center" />
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
@@ -51,7 +43,6 @@
         android:layout_width="60dp"
         android:layout_height="71dp"
         android:layout_above="@+id/circle_menu"
-        android:layout_below="@+id/commentTextBox"
         android:layout_alignParentEnd="true"
         android:src="@drawable/upload"
         app:cb_color="?attr/colorSwitchThumbNormal"
@@ -99,11 +90,12 @@
 
     <SeekBar
         android:id="@+id/sensitivityThreshold"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
         android:layout_above="@+id/longitudeTextLayOut"
-        android:layout_toEndOf="@+id/longitudeTextLayOut"
-        android:layout_toStartOf="@+id/typeTextBox"
+        android:layout_marginBottom="14dp"
+        android:layout_toEndOf="@+id/sensitivityThreshLayout"
+        android:layout_toStartOf="@+id/speedAverageLayout"
         android:clickable="false"
         android:fitsSystemWindows="false"
         android:isScrollContainer="false"
@@ -154,23 +146,6 @@
         android:layout_alignEnd="@+id/typeBoxLayOut"
         android:layout_alignStart="@+id/longitudeText" />
 
-    <TextView
-        android:id="@+id/typeBoxLayOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/latitudeText"
-        android:layout_toStartOf="@+id/typeTextBox"
-        android:text="Type : "
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/CommentLayOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/fileNumbersText"
-        android:layout_alignStart="@+id/typeBoxLayOut"
-        android:text="Comment : "
-        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/averageSpeedTextBox"
@@ -182,11 +157,22 @@
         tools:layout_editor_relativeY="500dp" />
 
     <TextView
+        android:id="@+id/typeBoxLayOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/typeTextBox"
+        android:layout_marginEnd="18dp"
+        android:layout_toStartOf="@+id/typeTextBox"
+        android:text="Type : "
+        android:textStyle="bold" />
+
+    <TextView
         android:id="@+id/speedAverageLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/averageSpeedTextBox"
         android:layout_alignBottom="@+id/averageSpeedTextBox"
-        android:layout_toEndOf="@+id/sensitivityThreshold"
+        android:layout_toStartOf="@+id/uploadButton"
         android:text="Average Speed : "
         android:textStyle="bold" />
 
