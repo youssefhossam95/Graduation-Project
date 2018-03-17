@@ -98,10 +98,10 @@ public class SensorHandler implements SensorEventListener {
             public void onLocationChanged(Location location) {
                 // Called when a new location is found by the network location provider.
                 if (speedsQ.size() < 3000)
-                    speedsQ.add(new Reading(location.getTime(), location.getSpeed()));
+                    speedsQ.add(new Reading(location.getElapsedRealtimeNanos(), location.getSpeed()));
                 else {
                     speedsQ.poll();
-                    speedsQ.add(new Reading(location.getTime(), location.getSpeed()));
+                    speedsQ.add(new Reading(location.getElapsedRealtimeNanos(), location.getSpeed()));
                 }
             }
 
@@ -138,7 +138,10 @@ public class SensorHandler implements SensorEventListener {
         while (endTime - readingsQ.peek().time > 10 * Math.pow(10, 9))
             readingsQ.poll();
 
-       
+        while (!speedsQ.isEmpty() && endTime - speedsQ.peek().time > 15 * Math.pow(10, 9))
+            speedsQ.poll();
+
+
 
         Reading[] tempAccelArray = new Reading[readingsQ.size()];
         Reading[] tempSpeedsArray = new Reading[speedsQ.size()];
@@ -151,7 +154,6 @@ public class SensorHandler implements SensorEventListener {
         for (int i = 0; i < tempAccelArray.length; i++) {
             tempAccelArray[i] = readingsQ.poll();
         }
-
         lastAnamoly = new Anamoly(tempAccelArray, tempSpeedsArray, lastAnamolyLoc); //han7ot el array of speeds hena
     }
 
