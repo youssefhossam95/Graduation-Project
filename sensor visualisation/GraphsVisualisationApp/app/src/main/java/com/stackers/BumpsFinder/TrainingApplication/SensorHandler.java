@@ -138,8 +138,7 @@ public class SensorHandler implements SensorEventListener {
         while (endTime - readingsQ.peek().time > 10 * Math.pow(10, 9))
             readingsQ.poll();
 
-        while (!speedsQ.isEmpty()&& endTime - speedsQ.peek().time > 15 * Math.pow(10, 9))
-            speedsQ.poll();
+       
 
         Reading[] tempAccelArray = new Reading[readingsQ.size()];
         Reading[] tempSpeedsArray = new Reading[speedsQ.size()];
