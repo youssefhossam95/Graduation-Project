@@ -490,7 +490,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         float Summation = 0;
 
         if(speedValues.length==0)
+        {
             return "0.0";
+        }
+
 
         for (int i = 0; i < speedValues.length; i++) {
             Summation += speedValues[i].value;
