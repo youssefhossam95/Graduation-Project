@@ -4,20 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.youssefhossam.graphsvisualisationapp.helpJoe">
+    tools:context=".helpJoe">
 
     <ImageView
         android:id="@+id/PresModeIcon"
         android:layout_width="82dp"
         android:layout_height="73dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="64dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
         android:src="@drawable/ml"
         app:layout_constraintBottom_toTopOf="@+id/textView6"
         app:layout_constraintEnd_toStartOf="@+id/textView6"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView6"
@@ -33,15 +35,20 @@
 
     <TextView
         android:id="@+id/textView3"
-        android:layout_width="320dp"
-        android:layout_height="127dp"
-        android:layout_marginBottom="64dp"
+        android:layout_width="259dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="112dp"
         android:layout_marginEnd="12dp"
-        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول مش هيرن حتى لو الموبيل اتهز علشان ما يلاخبطكش."
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول مش هيرن حتى لو\n الموبيل اتهز علشان ما يلاخبطكش."
         android:textColor="@android:color/black"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/textView6"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.428"
+        app:layout_constraintStart_toEndOf="@+id/PresModeIcon"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/sens"

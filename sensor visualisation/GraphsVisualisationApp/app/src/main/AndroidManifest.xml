@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.youssefhossam.graphsvisualisationapp">
+    package="com.stackers.BumpsFinder.TrainingApplication">
 
     <supports-screens
         android:largeScreens="true"
@@ -12,7 +12,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+ />
 
     <uses-feature android:name="android.hardware.location.gps" />
 
@@ -26,7 +26,7 @@
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup">
         <activity
-            android:name=".SimpleActivity"
+            android:name="com.stackers.BumpsFinder.TrainingApplication.SimpleActivity"
             android:keepScreenOn="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -36,7 +36,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name="com.stackers.BumpsFinder.TrainingApplication.MainActivity"
             android:noHistory="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -46,7 +46,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".viewFiles"
+            android:name="com.stackers.BumpsFinder.TrainingApplication.viewFiles"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="com.example.youssefhossam.graphsvisualisationapp.View" />
@@ -54,10 +54,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".editUserName" android:screenOrientation="portrait"/>
-        <activity android:name=".aboutUs" android:screenOrientation="portrait" />
-        <activity android:name=".help" android:screenOrientation="portrait" />
-        <activity android:name=".helpJoe" android:screenOrientation="portrait"></activity>
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.editUserName" android:screenOrientation="portrait"/>
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.aboutUs" android:screenOrientation="portrait" />
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.help" android:screenOrientation="portrait" />
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.helpJoe" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

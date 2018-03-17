@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Training Application</string>
+    <string name="app_name">Bumps Finder</string>
     <string name="title_activity_voice_mode">VoiceMode</string>
     <string name="bumpImage" />
 </resources>
