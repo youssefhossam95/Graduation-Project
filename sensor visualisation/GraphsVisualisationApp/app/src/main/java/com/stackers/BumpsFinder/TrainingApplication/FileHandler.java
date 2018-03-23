@@ -41,7 +41,7 @@ public class FileHandler implements Parcelable {
         if(Result[0]!=null)
         {
             int i=0;
-                while(Result[i]!=null)
+                while(i<100 && Result[i]!=null)
                 {
                     AvailableFiles[Integer.valueOf(Result[i])]=true;
                     NumberOfDefects++;
@@ -132,7 +132,7 @@ public class FileHandler implements Parcelable {
             String temp1=readSingleFile("File"+(i));
             if(temp1==null)
             {
-                AvailableFiles[NumberOfDefects]=true;
+                AvailableFiles[i]=true;
                 writeToFile("File"+String.valueOf(i),jsonFile.toString());
                 NumberOfDefects++;
                 Log.e("file is Here",String.valueOf(i));
