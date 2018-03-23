@@ -89,6 +89,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
+                        if(fileHandler.getNumberOfDefects()==100) {
+                            displayExceptionMessage("Anamoly Ignored as maximum number of files reached! Please upload Data to record new anamolies");
+                            return;
+                        }
                         type = index;
                         switch (index) {
                             case MATAB: {
@@ -128,10 +132,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 try {
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
-                                    if(fileHandler.getNumberOfDefects()!=100)
-                                        fileHandler.saveData(mySensor.lastAnamoly,userName);
-                                    else
-                                        displayExceptionMessage("Maximum number of files reached! Please upload Data");
+                                    fileHandler.saveData(mySensor.lastAnamoly,userName);
                                     saveDefectsValues();
                                     runOnUiThread(new Runnable() {
                                         @Override
@@ -341,6 +342,12 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         break;
                     }
                 }
+
+                if(fileHandler.getNumberOfDefects()==100) {
+                    displayExceptionMessage("Anamoly Ignored as maximum number of files reached! Please upload data to record new anamolies");
+                    return;
+                }
+
                 if (mySensor.lastAnamolyLoc != null) {
                     longitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLongitude()));
                     latitudeText.setText(String.valueOf(mySensor.lastAnamolyLoc.getLatitude()));
@@ -373,10 +380,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         try {
                             mySensor.lastAnamoly.comment = userComment;
                             mySensor.lastAnamoly.type = currentSessionAnamolyType;
-                            if(fileHandler.getNumberOfDefects()!=100)
-                                fileHandler.saveData(mySensor.lastAnamoly,userName);
-                            else
-                                displayExceptionMessage("Maximum number of files reached! Please upload Data");
+                            fileHandler.saveData(mySensor.lastAnamoly,userName);
                             saveDefectsValues();
                             runOnUiThread(new Runnable() {
                                 @Override
