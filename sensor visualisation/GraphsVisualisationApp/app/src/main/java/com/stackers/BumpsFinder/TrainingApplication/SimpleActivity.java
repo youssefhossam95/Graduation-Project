@@ -128,7 +128,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 try {
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
-                                    fileHandler.saveData(mySensor.lastAnamoly,userName);
+                                    if(fileHandler.getNumberOfDefects()!=100)
+                                        fileHandler.saveData(mySensor.lastAnamoly,userName);
+                                    else
+                                        displayExceptionMessage("Maximum number of files reached! Please upload Data");
                                     saveDefectsValues();
                                     runOnUiThread(new Runnable() {
                                         @Override
@@ -370,7 +373,10 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                         try {
                             mySensor.lastAnamoly.comment = userComment;
                             mySensor.lastAnamoly.type = currentSessionAnamolyType;
-                            fileHandler.saveData(mySensor.lastAnamoly,userName);
+                            if(fileHandler.getNumberOfDefects()!=100)
+                                fileHandler.saveData(mySensor.lastAnamoly,userName);
+                            else
+                                displayExceptionMessage("Maximum number of files reached! Please upload Data");
                             saveDefectsValues();
                             runOnUiThread(new Runnable() {
                                 @Override

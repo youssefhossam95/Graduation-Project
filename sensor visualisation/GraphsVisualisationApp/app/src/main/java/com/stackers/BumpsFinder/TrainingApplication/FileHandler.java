@@ -80,11 +80,6 @@ public class FileHandler implements Parcelable {
         return NumberOfDefects;
     }
     void saveData(Anamoly lastAnamoly,String userName) throws JSONException {
-        if(getNumberOfDefects()==100)
-        {
-            Toast.makeText(contextHolder.getContext(),"Maximum Number Of Defects Reached Please Upload Data",Toast.LENGTH_LONG).show();
-            return;
-        }
         int anamolyType=lastAnamoly.type;
         Location location=lastAnamoly.loc;
         String comment=lastAnamoly.comment;
