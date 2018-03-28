@@ -145,6 +145,7 @@ public class FileHandler implements Parcelable {
             return false;
 
         isCurrentlyUploading=true;
+        displayExceptionMessage("Uploading files...");
         Thread t=new Thread(){
           public void run(){
               upload();
@@ -192,6 +193,7 @@ public class FileHandler implements Parcelable {
                 }
 
             }
+            displayExceptionMessage("files uploaded!");
             getNumberOfDefects();
             return result;
         }
