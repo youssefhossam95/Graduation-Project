@@ -197,7 +197,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         });
         sessionStartTime = 0;
         fileNumbersText = (TextView) findViewById(R.id.fileNumbersText);
-        fileHandler = FileHandler.getFileHandlerObject();
+        fileHandler = FileHandler.getFileHandlerObject(this);
         uploadButton = (CircleButton) findViewById(R.id.uploadButton);
         currentSessionAccelReading = new ArrayList<Reading>();
         typeTextBox = (TextView) findViewById(R.id.typeTextBox);
@@ -491,7 +491,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         final AlertDialog alert = builder.create();
         alert.show();
     }
-    void updateFileNumber() {
+    public void updateFileNumber() {
         fileNumbersText.setText(String.valueOf(fileHandler.getNumberOfDefects()));
     }
     String getSpeedAverage()

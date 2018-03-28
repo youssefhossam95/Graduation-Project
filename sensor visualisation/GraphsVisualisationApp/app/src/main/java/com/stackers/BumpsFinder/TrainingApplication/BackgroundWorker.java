@@ -79,7 +79,7 @@ public class BackgroundWorker extends AsyncTask<JSONObject,Void,String>
 
     @Override
     protected void onPreExecute() {
-        Toast.makeText(this.context,"Uploading Data ....",Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.context,"Uploading Data ....",Toast.LENGTH_SHORT).show();
     }
 
     @Override

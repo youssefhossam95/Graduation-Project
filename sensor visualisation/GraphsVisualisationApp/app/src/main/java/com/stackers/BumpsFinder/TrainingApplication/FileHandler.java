@@ -1,5 +1,6 @@
 package com.stackers.BumpsFinder.TrainingApplication;
 
+import android.app.Application;
 import android.content.Context;
 import android.location.Location;
 import android.os.Parcel;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class FileHandler implements Parcelable {
+    static AppCompatActivity simpleActivity;
     public  int NumberOfDefects=0;
     static FileHandler myFile=null;
     private static boolean []AvailableFiles=new boolean[100];
@@ -53,8 +55,9 @@ public class FileHandler implements Parcelable {
 
     }
 
-    public static FileHandler getFileHandlerObject()
+    public static FileHandler getFileHandlerObject(AppCompatActivity activity)
     {
+        simpleActivity=activity;
         if(myFile==null) {
             myFile = new FileHandler();
         }
@@ -145,11 +148,17 @@ public class FileHandler implements Parcelable {
             return false;
 
         isCurrentlyUploading=true;
-        displayExceptionMessage("Uploading files...");
         Thread t=new Thread(){
           public void run(){
               upload();
               isCurrentlyUploading=false;
+              simpleActivity.runOnUiThread(new Runnable() {
+                  @Override
+                  public void run() {
+                      ((SimpleActivity)simpleActivity).updateFileNumber();
+                  }
+              });
+
           }
         };
         t.start();
@@ -164,6 +173,7 @@ public class FileHandler implements Parcelable {
             String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
             int temp=NumberOfDefects;
             boolean result=false;
+            int counter=0;
             for(int i=0;i<100;i++)
             {
                 if(AvailableFiles[i]==true)
@@ -179,6 +189,9 @@ public class FileHandler implements Parcelable {
                         deleteFile("File"+(i)+".txt");
                         NumberOfDefects--;
                         result=true;
+                        counter++;
+                        if(counter%5==0)
+                            displayExceptionMessage(Integer.toString(counter)+" files uploaded");
                     }
                     else if(Integer.valueOf(Result)==409)
                     {
@@ -193,7 +206,7 @@ public class FileHandler implements Parcelable {
                 }
 
             }
-            displayExceptionMessage("files uploaded!");
+            displayExceptionMessage("finished uploading!");
             getNumberOfDefects();
             return result;
         }
@@ -201,10 +214,13 @@ public class FileHandler implements Parcelable {
         {
             displayExceptionMessage("Server is Busy or Uploading the File please try again after 1 minute or close and open the application");
             getNumberOfDefects();
+            E.printStackTrace();
             return false;
         }
 
     }
+
+
     public void writeToFile(String FileName,String Data) {
         try {
             FileOutputStream fileOutputStream =  contextHolder.getContext().openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
@@ -344,11 +360,10 @@ public class FileHandler implements Parcelable {
 
     public void displayExceptionMessage(String msg) {
         final String text = msg;
-        final AppCompatActivity activity = (AppCompatActivity) contextHolder.getContext();
-        activity.runOnUiThread(new Runnable() {
+        simpleActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+                Toast.makeText(simpleActivity, text, Toast.LENGTH_SHORT).show();
             }
         });
     }
