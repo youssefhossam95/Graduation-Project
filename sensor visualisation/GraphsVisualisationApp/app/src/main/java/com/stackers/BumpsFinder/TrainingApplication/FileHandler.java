@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,6 +31,7 @@ public class FileHandler implements Parcelable {
     public  int NumberOfDefects=0;
     static FileHandler myFile=null;
     private static boolean []AvailableFiles=new boolean[100];
+    public static boolean isCurrentlyUploading=false;
     ContextHolder contextHolder;
  private   FileHandler(){
         for(int i=0;i<100;i++)
@@ -136,13 +138,27 @@ public class FileHandler implements Parcelable {
         }
 
     }
-    public boolean uploadLocalData() {
+
+    public boolean uploadLocalData()
+    {
+        if(NumberOfDefects==0)
+            return false;
+
+        isCurrentlyUploading=true;
+        Thread t=new Thread(){
+          public void run(){
+              upload();
+              isCurrentlyUploading=false;
+          }
+        };
+        t.start();
+       return true;
+    }
+
+    public boolean upload() {
         try
         {
-            if(NumberOfDefects==0)
-            {
-                return false;
-            }
+
             Log.e("Welcome","Uploading  NumberOfData= "+NumberOfDefects);
             String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
             int temp=NumberOfDefects;
@@ -158,7 +174,6 @@ public class FileHandler implements Parcelable {
                     String Result=  BW.execute(jsonObj).get(5, TimeUnit.SECONDS);
                     if(Integer.valueOf(Result)==201)
                     {
-                       Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Uploaded Successfully",Toast.LENGTH_SHORT).show();
                         Log.e("App Context",String.valueOf(contextHolder.getContext()));
                         deleteFile("File"+(i)+".txt");
                         NumberOfDefects--;
@@ -168,11 +183,11 @@ public class FileHandler implements Parcelable {
                     {
                         Log.e("Dola","i = "+String.valueOf(i));
                         deleteFile("File"+(i)+".txt");
-                        Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Already uploaded to the server",Toast.LENGTH_SHORT).show();
+                        displayExceptionMessage("File "+(i+1)+" Already uploaded to the server");
                     }
                     else
                     {
-                       Toast.makeText(contextHolder.getContext(),"File "+(i+1)+" Not Uploaded",Toast.LENGTH_SHORT).show();
+                       displayExceptionMessage("File "+(i+1)+" Not Uploaded");
                     }
                 }
 
@@ -182,7 +197,7 @@ public class FileHandler implements Parcelable {
         }
         catch (Exception E)
         {
-            Toast.makeText(contextHolder.getContext(),"Server is Busy or Uploading the File please try again after 1 minute or close and open the application",Toast.LENGTH_SHORT).show();
+            displayExceptionMessage("Server is Busy or Uploading the File please try again after 1 minute or close and open the application");
             getNumberOfDefects();
             return false;
         }
@@ -324,6 +339,17 @@ public class FileHandler implements Parcelable {
         }
 
     }
+
+    public void displayExceptionMessage(String msg) {
+        final String text = msg;
+        final AppCompatActivity activity = (AppCompatActivity) contextHolder.getContext();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     protected FileHandler(Parcel in) {
         NumberOfDefects = in.readInt();
         contextHolder = (ContextHolder) in.readValue(ContextHolder.class.getClassLoader());
@@ -349,4 +375,7 @@ public class FileHandler implements Parcelable {
             return new FileHandler[size];
         }
     };
+
+
+
 }

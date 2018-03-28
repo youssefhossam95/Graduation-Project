@@ -176,7 +176,7 @@ public class SensorHandler implements SensorEventListener {
                         readingsQ.poll();
                         readingsQ.add(new Reading(event.timestamp, correctedAccelValues[2]));
                     }
-                    if (correctedAccelValues[2] > threshold) {
+                    if (correctedAccelValues[2] > threshold  && !FileHandler.isCurrentlyUploading) {
                         if (lastAnamolyTime == null) {
                             MediaPlayer ring = MediaPlayer.create(activity, R.raw.ring);
                             ring.start();
