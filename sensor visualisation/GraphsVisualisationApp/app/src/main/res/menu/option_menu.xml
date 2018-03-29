@@ -10,7 +10,7 @@
         android:title="Edit Name" />
     <item
         android:id="@+id/aboutUs"
-        android:title="About Us" />
+        android:title="About" />
     <item
         android:id="@+id/Help"
         android:title="Help" />

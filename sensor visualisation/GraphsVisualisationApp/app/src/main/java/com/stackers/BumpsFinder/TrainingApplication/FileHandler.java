@@ -146,7 +146,6 @@ public class FileHandler implements Parcelable {
     {
         if(NumberOfDefects==0)
             return false;
-
         isCurrentlyUploading=true;
         Thread t=new Thread(){
           public void run(){
@@ -173,7 +172,6 @@ public class FileHandler implements Parcelable {
             String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
             int temp=NumberOfDefects;
             boolean result=false;
-            int counter=0;
             for(int i=0;i<100;i++)
             {
                 if(AvailableFiles[i]==true)
@@ -189,9 +187,7 @@ public class FileHandler implements Parcelable {
                         deleteFile("File"+(i)+".txt");
                         NumberOfDefects--;
                         result=true;
-                        counter++;
-                        if(counter%5==0)
-                            displayExceptionMessage(Integer.toString(counter)+" files uploaded");
+                        displayExceptionMessage(" File "+(i+1)+" uploaded to the server");
                     }
                     else if(Integer.valueOf(Result)==409)
                     {
@@ -206,7 +202,6 @@ public class FileHandler implements Parcelable {
                 }
 
             }
-            displayExceptionMessage("finished uploading!");
             getNumberOfDefects();
             return result;
         }
