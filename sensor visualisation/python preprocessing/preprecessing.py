@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from copy import  deepcopy as dc
 import itertools as it
+import math
 
 # gets all the data from the server and store it in the file named "recievedJson.txt"
 #input: -----
@@ -58,17 +59,28 @@ def plotAnamoly (anamoly):
     plt.show()
 
 #plot multiple anamolies in vertical sub plots  represented by anamolyArray
-#input: Anamoly Array
+#input: Anamoly Array // array of tubles of anamolies to be printed and thier titles
 #output: -----
-def plotMultipleAnamolies(anamolyArray):
+def plotMultipleAnamolies(anamolyArray , numberOfCols =2  ):
     numberOfPlots = len(anamolyArray)
+    numberOfRows = math.ceil(numberOfPlots/numberOfCols)
+    plotNumber = 1
     for i in range (0 , numberOfPlots):
-        subPlotNumber= numberOfPlots*100 + 10 +i+1
+        subPlotNumber= numberOfRows*100 + numberOfCols * 10 + plotNumber
+        plotNumber =  plotNumber + numberOfCols
+        plotNumberMod = plotNumber%(numberOfCols*numberOfRows+1)
+        if (plotNumber != plotNumberMod ):
+            plotNumber = plotNumberMod + 2
+        else :
+            plotNumber = plotNumberMod
+
        # subPlotNumber = numberOfPlots/2*100 + 20 + i +1
         print(subPlotNumber)
+        anamoly , title = anamolyArray[i]
         plt.subplot(subPlotNumber)
-        plt.plot(anamolyArray[i].accelTime , anamolyArray[i].accelValues)
-        plt.title(getTypeName(anamolyArray[i].anamolyType)+" "+str(i))
+        plt.plot(anamoly.accelTime , anamoly.accelValues)
+        plt.title(getTypeName(anamoly.anamolyType)+" "+ title)
+        plt.grid()
 
     figManager = plt.get_current_fig_manager()
     figManager.window.state('zoomed')
@@ -120,7 +132,50 @@ def shiftCurve(anamoly):
     newAnamoly.accelValues -= mean;
     return newAnamoly
 
+def getDisplacement (anamoly , anamolyArray = [] , smoothingWindow=10 ):
+    anamoly2 = ApplySmoothingFilter(anamoly, smoothingWindow)
+    anamoly3 = shiftCurve(anamoly2);
+    anamolyArray.append((anamoly3,"Shifting and smoothing"))
 
+    anamolySpeed = Anamoly(anamoly=anamoly3)
+    anamolySpeed.accelValues = list(it.accumulate(anamolySpeed.accelValues))
+    anamolyArray.append((anamolySpeed,"Speed"))
+
+    # anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
+    # anamolySpeedSifted = shiftCurve(anamolySpeedSifted)
+    # anamolyArray.append((anamolySpeedSifted,"Speed Shifting and smoothing"))
+
+    anamolyDisp = Anamoly(anamoly=anamolySpeed)
+    anamolyDisp.accelValues = list(it.accumulate(anamolyDisp.accelValues))
+
+    return anamolyDisp
+
+def interpolate (y1 , x1 , y0 , x0 , x):
+    return y0 + (x-x0)* (y1-y0)/ (x1-x0);
+def sample( anamoly , samplingRate = 1  ) :
+    convertToRelativeTime(anamoly)
+    sampledAnamoly = Anamoly(anamoly=anamoly)
+    sampledAnamoly.accelTime=[]
+    sampledAnamoly.accelValues= []
+    samplingTime = 1/samplingRate ;
+    time = 0
+    index = 0
+    while (time<max(anamoly.accelTime)):
+        while (anamoly.accelTime[index] < time):
+            index+=1
+        if(anamoly.accelTime[index] == time):
+            sampledAnamoly.accelValues.append(anamoly.accelValues[index])
+        else:
+            y1=anamoly.accelValues[index];
+            x1=anamoly.accelTime[index];
+            y0 = anamoly.accelValues[index-1];
+            x0 = anamoly.accelTime[index-1];
+            x = time ;
+            sampledAnamoly.accelValues.append(interpolate(y1,x1 ,y0,x0 ,x))
+
+        sampledAnamoly.accelTime.append(time)
+        time+=samplingTime
+    return sampledAnamoly
 ##### code starts from here ######
 
 rows = getStoredJsonRows() ;
@@ -130,19 +185,14 @@ for i in range (100 , 120):
     anamoly = Anamoly(JsonObj=rows[i]['value'])
     convertToRelativeTime(anamoly)
 
-    anamoly2 = ApplySmoothingFilter(anamoly , 10)
-    anamoly3 = shiftCurve(anamoly2) ;
 
-    anamolySpeed = Anamoly(anamoly=anamoly3)
-    anamolySpeed.accelValues = list(it.accumulate(anamolySpeed.accelValues))
+    anamolyArray = []
+    anamolyArray.append((anamoly , "Original"))
 
-    anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
-    anamolySpeedSifted = shiftCurve(anamolySpeedSifted)
-
-    anamolyDisp = Anamoly(anamoly=anamolySpeedSifted)
-    anamolyDisp.accelValues = list(it.accumulate(anamolyDisp.accelValues))
-
-    anamolyArray = [anamoly , anamoly2 , anamoly3, anamolyDisp] ;
+    sampledAnamoly = sample(anamoly,30) ;
+    anamolyArray.append((sampledAnamoly,"Sampling"))
+    anamolyDisp = getDisplacement(anamoly , anamolyArray)
+    anamolyArray.append((anamolyDisp , "Displacement"))
     plotMultipleAnamolies(anamolyArray) ;
 
 
