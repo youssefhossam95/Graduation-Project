@@ -216,7 +216,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             public void onClick(View view) {
 
                 if (isNetworkAvailable()) {
-                    displayExceptionMessage("Uploading Data");
                     if (!fileHandler.uploadLocalData()) {
                         displayExceptionMessage("No Files To Be Uploaded ");
                     }
