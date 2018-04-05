@@ -51,6 +51,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     CircleButton uploadButton;
     TextView longitudeText;
     TextView latitudeText;
+    TextView sensitivityText;
     Button createFilesButton;
     public final static int MATAB = 0, HOFRA = 1, GHLAT = 2, TAKSER = 3, UNKNOWN = 4;
     int currentSessionAnamolyType = UNKNOWN;
@@ -209,6 +210,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         typeTextBox = (TextView) findViewById(R.id.typeTextBox);
         longitudeText = (TextView) findViewById(R.id.longitudeText);
         latitudeText = (TextView) findViewById(R.id.latitudeText);
+        sensitivityText=(TextView)findViewById(R.id.senstivityValueText);
         speedTextBox = (TextView) findViewById(R.id.averageSpeedTextBox);
         graphZValues = new ArrayList<DataPoint>();
         graph = (GraphView) findViewById(R.id.graph);
@@ -239,6 +241,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 mySensor.threshold = (100.0 - (double) i) / 50.0 + mySensor.INITIAL_THRESHOLD;
+                sensitivityText.setText(String.valueOf( sensitivityThreshold.getProgress()));
             }
 
             @Override
@@ -248,8 +251,6 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(SimpleActivity.this, "Sensitivity:" + sensitivityThreshold.getProgress(),
-                        Toast.LENGTH_SHORT).show();
             }
         });
         userName=getIntent().getExtras().getString("username");
