@@ -22,7 +22,6 @@
         android:id="@+id/typeTextBox"
         android:layout_width="100dp"
         android:layout_height="30dp"
-
         android:layout_above="@+id/longitudeText"
         android:layout_alignParentEnd="true"
         android:textAlignment="center" />
@@ -186,4 +185,12 @@
         android:textColor="@android:color/black"
         android:textStyle="bold" />
 
+    <!--<Button
+        android:layout_width="wrap_content"
+        android:id="@+id/createFilesButton"
+        android:onClick="createFiles"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/defectsLayout"
+        android:text="create 499 File" />-->
 </RelativeLayout>

@@ -29,9 +29,8 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/MachineLearningPhoto"
         android:layout_toEndOf="@+id/MachineLearningPhoto"
-        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده\n. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك\n ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني\n تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول\n مش هيرن حتى لو الموبيل اتهز علشان ما يلاخبطكش."
+        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول مش هيرن حتى لو الموبيل اتهز علشان ما يلاخبطكش."
         android:textColor="@android:color/black"
         android:textStyle="bold" />
 

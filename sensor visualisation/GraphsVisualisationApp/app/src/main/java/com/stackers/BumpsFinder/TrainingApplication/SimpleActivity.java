@@ -22,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -35,6 +36,9 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.FileOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,6 +51,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
     CircleButton uploadButton;
     TextView longitudeText;
     TextView latitudeText;
+    Button createFilesButton;
     public final static int MATAB = 0, HOFRA = 1, GHLAT = 2, TAKSER = 3, UNKNOWN = 4;
     int currentSessionAnamolyType = UNKNOWN;
     ArrayList<Reading> currentSessionAccelReading;
@@ -71,6 +76,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_simple);
         statusGPSCheck();
+     //   createFilesButton=(Button)findViewById(R.id.createFilesButton); For Testing Un Comment This and in activity_simple
         ContextHolder contextHolder = new ContextHolder();
         contextHolder.setContext(getApplicationContext());
         circleMenu = (CircleMenu) findViewById(R.id.circle_menu);
@@ -440,7 +446,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
             FileOutputStream fileOutputStream = openFileOutput("Defects.txt", Context.MODE_PRIVATE);
             if (fileHandler.getNumberOfDefects() != 0) {
                 boolean[] temp = fileHandler.getAvailableFiles();
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 500; i++) {
                     if (temp[i] == true) {
                         fileOutputStream.write(String.valueOf(i).getBytes());
                         fileOutputStream.write(String.valueOf("\n").getBytes());
@@ -515,6 +521,39 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         Log.e("Summation = ", String.valueOf(speedValueString));
         Log.e("speed Average = ", String.valueOf(speedValueString));
         return speedValueString;
+    }
+
+    public void createFiles(View V) throws JSONException //It's a test function to create files easily and fast for the db it's related to the createFileSButton
+    {
+        Thread t = new Thread() {
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        JSONObject jsonFile= new JSONObject();
+                        for(int i=0;i<500;i++)
+                        {
+                            try
+                            {
+                                jsonFile.put("myData","Bala7");
+                                jsonFile.put("_id",String.valueOf(i));
+                                fileHandler.writeToFile("File"+String.valueOf(i),jsonFile.toString());
+                                Log.e("Creation",i+" is created");
+                            }
+                            catch (Exception e)
+                            {
+
+                            }
+
+                        }
+                        updateFileNumber();
+                    }
+                });
+
+            }
+        };
+    t.start();
+
     }
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) { //used in the first run for the program
 

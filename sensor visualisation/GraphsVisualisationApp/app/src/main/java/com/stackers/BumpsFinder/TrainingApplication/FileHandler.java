@@ -32,11 +32,11 @@ public class FileHandler implements Parcelable {
     static AppCompatActivity simpleActivity;
     public  int NumberOfDefects=0;
     static FileHandler myFile=null;
-    private static boolean []AvailableFiles=new boolean[100];
+    private static boolean []AvailableFiles=new boolean[500];
     public static boolean isCurrentlyUploading=false;
     ContextHolder contextHolder;
  private   FileHandler(){
-        for(int i=0;i<100;i++)
+        for(int i=0;i<500;i++)
         {
             AvailableFiles[i]=false;
         }
@@ -45,7 +45,7 @@ public class FileHandler implements Parcelable {
         if(Result[0]!=null)
         {
             int i=0;
-                while(i<100 && Result[i]!=null)
+                while(i<500 && Result[i]!=null)
                 {
                     AvailableFiles[Integer.valueOf(Result[i])]=true;
                     NumberOfDefects++;
@@ -68,7 +68,7 @@ public class FileHandler implements Parcelable {
     public int getNumberOfDefects()
     {
         int temp=0;
-        for (int i=0;i<100;i++)
+        for (int i=0;i<500;i++)
         {
                 String temp1=readSingleFile("File"+(i));
                 if(temp1!=null)
@@ -127,7 +127,7 @@ public class FileHandler implements Parcelable {
 
         }
         int temp=0;
-        for (int i=0;i<100;i++)
+        for (int i=0;i<500;i++)
         {
             String temp1=readSingleFile("File"+(i));
             if(temp1==null)
@@ -151,13 +151,7 @@ public class FileHandler implements Parcelable {
           public void run(){
               upload();
               isCurrentlyUploading=false;
-              simpleActivity.runOnUiThread(new Runnable() {
-                  @Override
-                  public void run() {
-                      ((SimpleActivity)simpleActivity).updateFileNumber();
-                  }
-              });
-
+              displayExceptionMessage("All Files Uploaded Successfully");
           }
         };
         t.start();
@@ -169,10 +163,10 @@ public class FileHandler implements Parcelable {
         {
 
             Log.e("Welcome","Uploading  NumberOfData= "+NumberOfDefects);
-            String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/";
+            String url="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/"; // To Be Edited testdb
             int temp=NumberOfDefects;
             boolean result=false;
-            for(int i=0;i<100;i++)
+            for(int i=0;i<500;i++)
             {
                 if(AvailableFiles[i]==true)
                 {
@@ -187,7 +181,17 @@ public class FileHandler implements Parcelable {
                         deleteFile("File"+(i)+".txt");
                         NumberOfDefects--;
                         result=true;
-                        displayExceptionMessage(" File "+(i+1)+" uploaded to the server");
+                        Thread t=new Thread() {
+                            public void run() {
+                                simpleActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ((SimpleActivity) simpleActivity).updateFileNumber();
+                                    }
+                                });
+                            }
+                        };
+                        t.start();
                     }
                     else if(Integer.valueOf(Result)==409)
                     {
@@ -229,7 +233,7 @@ public class FileHandler implements Parcelable {
     }
     public String[] readFromFile(String FileName) {
 
-        String [] ret =new String[100];
+        String [] ret =new String[500];
         int i=0;
         try {
             InputStream inputStream = contextHolder.getContext().openFileInput(FileName+".txt");
