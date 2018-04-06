@@ -6,6 +6,57 @@ import numpy as np
 from copy import  deepcopy as dc
 import itertools as it
 import math
+from pynput import keyboard
+import sys
+
+
+#this should be called everytime you create a new plot
+# 1 to move to the previous anamoly
+# 2 to move to the next anamoly
+# q to exit the
+def setKeyPressHandler():
+    fig, ax = plt.subplots()
+    fig.canvas.mpl_connect('key_press_event', press)
+
+def press(event):
+    global indexDirction
+    global endPloting
+    global lookingFor
+    print('press', event.key)
+    sys.stdout.flush()
+    if event.key == '1':
+        indexDirction = -1 #change the direction to be negative i.e. move backwards
+        plt.close()
+    elif event.key == '2':
+        indexDirction = 1#change the direction to be positive i.e. move forward
+        plt.close()
+
+    elif event.key == 'q':
+        endPloting = True
+    else:
+        lookingFor = event.key
+
+
+# writes some data to a file
+#input: fileName: string of the name of the file
+#       content: string containing the data to be written ;
+#output: -----
+def writeToFile( fileName , content):
+    f = open(fileName, "w+", encoding='utf8')
+    f.write(content)
+    print("wrote to file" + fileName)
+    f.close()
+# writes some data to a file
+#input: fileName: string of the name of the file
+#       jsonObjArray: array containing the json objects to be written to the file ;
+#output: -----
+def storeJsonArray (fileName , jsonObjArray ):
+    ArrayString = "[" ;
+    for json in jsonObjArray:
+        ArrayString += (str(json) + ",")
+    ArrayString= ArrayString[: len(ArrayString)-1] + "]" # overwrite the last elemet which will be the ',' with ']'
+    writeToFile(fileName, ArrayString)
+
 
 # gets all the data from the server and store it in the file named "recievedJson.txt"
 #input: -----
@@ -15,10 +66,7 @@ def getDataFromServer():
     print('sending the url')
     r = requests.get(url, auth=('somishopperchousesingetc', '6be49dadc1332531c1f128d871d02e05a5469f71'))
     print("got response " + str(r.status_code))
-    f = open("recievedJson.txt", "w+", encoding='utf8')
-    f.write(r.text)
-    print("wrote to file!")
-    f.close()
+    writeToFile("recievedJson.txt" , r.text)
 
 # gets the local stored json rows
 #input: -----
@@ -31,6 +79,14 @@ def getStoredJsonRows():
     print("object is loaded")
     return obj["rows"]
 
+def getDataForTest():
+    f = open("testFile.txt", "r+", encoding='utf8')
+    x = f.read()
+    print("file is read")
+    print ( x )
+    obj = json.loads(x.replace("'" , "\""))
+    print("object is loaded")
+    return obj
 # converts time stamps stored in anamoly into range 0 -> end of time (10)
 #input: Anamoly
 #output: -----
@@ -61,7 +117,7 @@ def plotAnamoly (anamoly):
 #plot multiple anamolies in vertical sub plots  represented by anamolyArray
 #input: Anamoly Array // array of tubles of anamolies to be printed and thier titles
 #output: -----
-def plotMultipleAnamolies(anamolyArray , numberOfCols =2  ):
+def plotMultipleAnamolies(anamolyArray , numberOfCols =2 , index=""  ):
     numberOfPlots = len(anamolyArray)
     numberOfRows = math.ceil(numberOfPlots/numberOfCols)
     plotNumber = 1
@@ -74,16 +130,15 @@ def plotMultipleAnamolies(anamolyArray , numberOfCols =2  ):
         else :
             plotNumber = plotNumberMod
 
-       # subPlotNumber = numberOfPlots/2*100 + 20 + i +1
-        print(subPlotNumber)
         anamoly , title = anamolyArray[i]
         plt.subplot(subPlotNumber)
         plt.plot(anamoly.accelTime , anamoly.accelValues)
-        plt.title(getTypeName(anamoly.anamolyType)+" "+ title)
+        plt.title(title)
         plt.grid()
 
     figManager = plt.get_current_fig_manager()
     figManager.window.state('zoomed')
+    plt.suptitle(getTypeName(anamoly.anamolyType)+" "+ str(index))
     plt.show()
 
 #class that represent anamolies can be initiated with json object or another anamoly object
@@ -105,7 +160,6 @@ class Anamoly:
 #output: New anamoly after modification
 def ApplySmoothingFilter (anamoly , fsize) :
     maxBefore = np.amax(anamoly.accelValues)
-    print("max before conv", maxBefore)
     #
     Filter = []
     for i in range(1, fsize):
@@ -113,7 +167,6 @@ def ApplySmoothingFilter (anamoly , fsize) :
 
     newValues = np.convolve(anamoly.accelValues, Filter, 'same')
     maxAfter = np.amax(newValues)
-    print("max after conv", maxAfter)
 
     anamoly2 = Anamoly(anamoly=anamoly)
     anamoly2.accelValues = newValues * maxBefore / maxAfter;
@@ -176,36 +229,109 @@ def sample( anamoly , samplingRate = 1  ) :
         sampledAnamoly.accelTime.append(time)
         time+=samplingTime
     return sampledAnamoly
+
+def getAreaOfInterest(anamoly , windowSize):
+    startIndex = 0
+    endTime =  windowSize
+    accel = anamoly.accelValues
+    time = anamoly.accelTime
+
+    maxSum = 0 #the maximum sum of abselutes
+    maxStart = 0 #the index of the start of the max Sum window
+    maxEnd = 0
+    index = 0 #index of the acceleration/time value
+    tempTime = 0 #time start from 0
+
+    while tempTime <= endTime and index < len(time):
+        maxSum += abs(accel[index])
+        index+=1
+        tempTime=time[index]
+
+    endIndex = index # now start and end are start and end indices of the window
+    maxEnd= endIndex
+    tempSum = maxSum # the summation of the current window abs
+
+    while(endIndex<len(time)-1):
+        endIndex+=1
+        tempSum += abs(accel[endIndex])
+        tempSum -= abs(accel[startIndex])
+        startIndex+=1
+        if(tempSum>maxSum):
+            maxSum=tempSum
+            maxStart= startIndex
+            maxEnd = endIndex
+
+    newAnamoly = Anamoly(anamoly=anamoly)
+    newAnamoly.accelTime=time[maxStart:maxEnd] - time[maxStart]
+    newAnamoly.accelValues=accel[maxStart:maxEnd]
+    return newAnamoly
+
+#check if the type of the anamoly is the type that the user wants
+#input: lookingFor: char representing what the user is looking for
+#       anamolyType: int the type of the current anamoly
+#output: boolean true if type of anamoly is what we are looking OR it is not in the list for else false
+def isLookingFor(lookingFor , type):
+#   names = ["MATAB", 'HOFRA', 'GALAT', 'TAKSER', 'UNKNWON']
+#   type will be as the index of the names array
+    types = ['m', 'h' ,'g', 't', 'u']
+    if(lookingFor in types):
+        return types.index(lookingFor)==type
+    else:
+        return True
+
+
+
 ##### code starts from here ######
 
-rows = getStoredJsonRows() ;
+
+
+# rows = getStoredJsonRows() ;
+#
+# storeJsonArray("testFile.txt" , [rows[0] , rows[1] , rows[2]])
+rows = getStoredJsonRows()
+plotingIndex = 1
+endPloting = False
+setKeyPressHandler()
+lookingFor = 'a'
+indexDirction = 1 # 1 for positive direction and -1 for negative
+while ( True ):
+    anamolyArray = [];
+    anamoly = Anamoly(JsonObj=rows[plotingIndex]['value'])
+    if(isLookingFor(lookingFor , anamoly.anamolyType)):
+        convertToRelativeTime(anamoly)
+        anamolyArray.append((anamoly, 'original'))
+        sampledAnamoly = sample(anamoly, 40)
+        shiftedAnamoly = shiftCurve(sampledAnamoly)
+        interestAnamoly = getAreaOfInterest(anamoly,2)
+        anamolyArray.append((interestAnamoly , "Interest"))
+        anamolyDisplacement= getDisplacement ( interestAnamoly)
+        anamolyArray.append((anamolyDisplacement,"displacement"))
+        plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
+        if(endPloting):
+            break
+        setKeyPressHandler()
+
+    plotingIndex += indexDirction
+    if(plotingIndex > len(rows) or plotingIndex < 0):  # if out of the bounds of the rows array
+        plotingIndex-=indexDirction  # reverse the last step so nothing will happen in the algorithm
+
+# anamolyArray.append( ( Anamoly(JsonObj=rows[0]['value']), 'no' )  )
+# anamolyArray.append( (Anamoly(JsonObj=rows[1]['value']) , 'yes') )
+#
+# plotMultipleAnamolies(anamolyArray)
 
 #for loop on the index of rows you wnat to apply preprocessing on
-for i in range (100 , 120):
-    anamoly = Anamoly(JsonObj=rows[i]['value'])
-    convertToRelativeTime(anamoly)
-
-
-    anamolyArray = []
-    anamolyArray.append((anamoly , "Original"))
-
-    sampledAnamoly = sample(anamoly,30) ;
-    anamolyArray.append((sampledAnamoly,"Sampling"))
-    anamolyDisp = getDisplacement(anamoly , anamolyArray)
-    anamolyArray.append((anamolyDisp , "Displacement"))
-    plotMultipleAnamolies(anamolyArray) ;
-
-
-# anamoly = Anamoly(JsonObj=rows[4]['value'])
-# convertToRelativeTime(anamoly)
+# for i in range (100 , 120):
+#     anamoly = Anamoly(JsonObj=rows[i]['value'])
+#     convertToRelativeTime(anamoly)
 #
-# anamoly2 = ApplySmoothingFilter(anamoly , 10 )
-# anamoly3 = shiftCurve(anamoly2) ;
 #
-# anamoly4 = Anamoly(anamoly=anamoly3)
-# anamoly4.accelValues = list(it.accumulate(anamoly4.accelValues))
+#     anamolyArray = []
+#     anamolyArray.append((anamoly , "Original"))
 #
-# anamolyArray = [anamoly , anamoly2 , anamoly3  ,anamoly4] ;
-# plotMultipleAnamolies(anamolyArray) ;
-
+#     sampledAnamoly = sample(anamoly,30) ;
+#     anamolyArray.append((sampledAnamoly,"Sampling"))
+#     anamolyDisp = getDisplacement(anamoly , anamolyArray)
+#     anamolyArray.append((anamolyDisp , "Displacement"))
+#     plotMultipleAnamolies(anamolyArray) ;
 

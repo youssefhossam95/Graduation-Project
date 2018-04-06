@@ -1,9 +1,6 @@
-a = [ 1 , 1 , 2 , 2 , 1 , 1 , 2 , 2 ] ;
-x = sum(a)
-n =len(a)
-for i in range(0 , len(a) ) :
-    a[i]-= x/n
-x = sum(a) ;
+import numpy as np
 
-y = sorted(set(a) ,key=a.count,reverse= True)
-print(x)
+a = np.array([  1 , 0.6 , 0.4 , 0 ])
+
+a = a > 0.5
+print(a)
