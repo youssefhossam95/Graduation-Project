@@ -147,7 +147,15 @@ def getAreaOfInterest(anamoly , windowSize):
     newAnamoly.accelValues=accel[maxStart:maxEnd]
     return newAnamoly
 
-
+def convertToRelativeTimeWithScales(anamoly,scale):
+    timeArray = anamoly.accelTime
+    ref = timeArray[0]
+    if(ref == 0): #so if it was called twice by mistake nothing wrong happens
+        return
+    timeArray = np.array(timeArray)
+    relativeTime  = (timeArray-ref) / pow(10, 9)
+    relativeTime=relativeTime/scale
+    anamoly.accelTime  = relativeTime
 ##### code starts from here ######
 
 
