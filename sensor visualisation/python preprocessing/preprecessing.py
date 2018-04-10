@@ -153,5 +153,26 @@ def convertToRelativeTimeWithScales(anamoly,scale):
     relativeTime  = (timeArray-ref) / pow(10, 9)
     relativeTime=relativeTime/scale
     anamoly.accelTime  = relativeTime
+
+def paddding( anamoly , windowSize , samplingRate):
+    newAnamoly = Anamoly(anamoly=anamoly)
+    samplingTime = 1 / samplingRate
+    convertToRelativeTime(anamoly)
+
+    maxTime = max(newAnamoly.accelTime)
+    maxTime += samplingTime
+    times = []
+    values = []
+    while maxTime <= windowSize:
+        times.append(maxTime)
+        values.append(np.random.normal(0 , 0.5))
+        maxTime += samplingTime
+
+    # print(times)
+    newAnamoly.accelTime = np.append(newAnamoly.accelTime, times)
+    newAnamoly.accelValues = np.append(newAnamoly.accelValues, values)
+
+    return newAnamoly
+
 ##### code starts from here ######
 

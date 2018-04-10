@@ -85,7 +85,7 @@ class Ploter:
             plt.grid()
 
         figManager = plt.get_current_fig_manager()
-        #figManager.window.state('zoomed')
+        figManager.window.state('zoomed')
         plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
         plt.show()
 

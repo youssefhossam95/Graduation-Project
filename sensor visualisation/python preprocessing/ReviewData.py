@@ -7,7 +7,7 @@ import json
 ploter= Ploter.Ploter()
 ploter.reviewMode = False
 anamolyArray=[]
-rows = FH.loadObjFromFile('AllJsonFiles.txt')
+rows = FH.loadObjFromFile('DevData.txt')
 plotingIndex = 0
 
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
