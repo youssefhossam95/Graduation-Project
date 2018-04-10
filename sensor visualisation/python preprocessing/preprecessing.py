@@ -41,7 +41,6 @@ class Anamoly:
 #output: New anamoly after modification
 def ApplySmoothingFilter (anamoly , fsize) :
     maxBefore = np.amax(anamoly.accelValues)
-    #
     Filter = []
     for i in range(1, fsize):
         Filter.append(1 / fsize)
@@ -51,17 +50,13 @@ def ApplySmoothingFilter (anamoly , fsize) :
 
     anamoly2 = Anamoly(anamoly=anamoly)
     anamoly2.accelValues = newValues * maxBefore / maxAfter;
-
     return anamoly2
 
 #function to shift curve of accelerations to be around zero
 #input: anamoly
 #ouput: New shifted anamoly
 def shiftCurve(anamoly):
-
-
     newAnamoly = Anamoly(anamoly=anamoly)
-
     mean = sum(newAnamoly.accelValues)/len(newAnamoly.accelValues) ;
     newAnamoly.accelValues -= mean;
     return newAnamoly
@@ -75,9 +70,9 @@ def getDisplacement (anamoly , anamolyArray = [] , smoothingWindow=10 ):
     anamolySpeed.accelValues = list(it.accumulate(anamolySpeed.accelValues))
     anamolyArray.append((anamolySpeed,"Speed"))
 
-    # anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
-    # anamolySpeedSifted = shiftCurve(anamolySpeedSifted)
-    # anamolyArray.append((anamolySpeedSifted,"Speed Shifting and smoothing"))
+    anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
+    anamolySpeedSifted = shiftCurve(anamolySpeedSifted)
+    anamolyArray.append((anamolySpeedSifted,"Speed Shifting and smoothing"))
 
     anamolyDisp = Anamoly(anamoly=anamolySpeed)
     anamolyDisp.accelValues = list(it.accumulate(anamolyDisp.accelValues))
@@ -85,7 +80,9 @@ def getDisplacement (anamoly , anamolyArray = [] , smoothingWindow=10 ):
     return anamolyDisp
 
 def interpolate (y1 , x1 , y0 , x0 , x):
-    return y0 + (x-x0)* (y1-y0)/ (x1-x0);
+    return y0 + (x-x0)* (y1-y0)/ (x1-x0)
+
+
 def sample( anamoly , samplingRate = 1  ) :
     convertToRelativeTime(anamoly)
     sampledAnamoly = Anamoly(anamoly=anamoly)
@@ -149,42 +146,4 @@ def getAreaOfInterest(anamoly , windowSize):
 
 
 ##### code starts from here ######
-
-
-
-# rows = getStoredJsonRows() ;
-#
-# storeJsonArray("testFile.txt" , [rows[0] , rows[1] , rows[2]])
-
-# rows = getStoredJsonRows()
-# counter = 0
-
-# print(sizes)
-# plotingIndex = 350
-# endPloting = False
-# setKeyPressHandler()
-# lookingFor = 'a'
-# indexDirction = 1 # 1 for positive direction and -1 for negative
-# while ( True ):
-#     anamolyArray = [];
-#     anamoly = Anamoly(JsonObj=rows[plotingIndex]['value'])
-#     if(isLookingFor(lookingFor , anamoly.anamolyType)):
-#         convertToRelativeTime(anamoly)
-#         if ("Hossam" in anamoly.id):
-#             continue
-#         anamolyArray.append((anamoly, 'original'))
-#         sampledAnamoly = sample(anamoly, 40)
-#         shiftedAnamoly = shiftCurve(sampledAnamoly)
-#         interestAnamoly = getAreaOfInterest(anamoly,2)
-#         anamolyArray.append((interestAnamoly , "Interest"))
-#         anamolyDisplacement= getDisplacement ( interestAnamoly)
-#         anamolyArray.append((anamolyDisplacement,"displacement"))
-#         plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
-#         if(endPloting):
-#             break
-#         setKeyPressHandler()
-#
-#     plotingIndex += indexDirction
-#     if(plotingIndex > len(rows) or plotingIndex < 0):  # if out of the bounds of the rows array
-#         plotingIndex-=indexDirction  # reverse the last step so nothing will happen in the algorithm
 
