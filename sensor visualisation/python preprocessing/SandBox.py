@@ -6,9 +6,10 @@ import Ploter
 import Server
 import json
 import random
+from scipy import signal
+import matplotlib.pyplot as plt
 ploter= Ploter.Ploter()
 anamolyArray=[]
-
 def ScalingFN():
     plotingIndex = 0
     anamolies=[]
@@ -92,6 +93,7 @@ def loadDatasetFromFile(fileName):
     Tx = len(rows[0]['value']['accelValues'])
     X= np.zeros((m , Tx))
     Y = np.zeros((m , 1))
+    random.seed(1)
     random.shuffle(rows)
     trainingPrecentage = 0.8
     trainingIndex = math.ceil(trainingPrecentage * m)
@@ -104,3 +106,16 @@ def loadDatasetFromFile(fileName):
     yTest =Y[trainingIndex:]
 
     return xTrain , yTrain , xTest , yTest
+
+xTrain , yTrain , _ ,_ = loadDatasetFromFile('DevDataSampledZero.txt')
+for i in range (xTrain.shape[0]):
+    f, t, Sxx = signal.spectrogram(xTrain[i][:] , nperseg=10)
+    print(yTrain[i])
+    print(f.shape)
+    print(t.shape)
+    print(Sxx.shape)
+    plt.pcolormesh(t, f, Sxx)
+
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+    plt.show()
