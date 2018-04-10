@@ -2,7 +2,7 @@ import preprecessing as PP
 import matplotlib.pyplot as plt
 import math
 import sys
-
+import numpy as np
 class Ploter:
     indexDirection = 1
     endPloting = False
@@ -85,7 +85,7 @@ class Ploter:
             plt.grid()
 
         figManager = plt.get_current_fig_manager()
-        figManager.window.state('zoomed')
+        #figManager.window.state('zoomed')
         plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
         plt.show()
 
@@ -124,3 +124,35 @@ class Ploter:
 
 
 
+    def plotMultipleAnamoliesWithScaling(self, anamolyArray , numberOfCols =2 , index="" ,scales=[] ):
+        if(len(anamolyArray)==0):
+            print('the array is empty')
+            return
+        self.setKeyPressHandler() # to allow control through keyboard
+        numberOfPlots = len(anamolyArray)
+        numberOfRows = math.ceil(numberOfPlots/numberOfCols)
+        plotNumber = 1
+        for i in range (0 , numberOfPlots):
+            subPlotNumber= numberOfRows*100 + numberOfCols * 10 + plotNumber
+            plotNumber =  plotNumber + numberOfCols
+            plotNumberMod = plotNumber%(numberOfCols*numberOfRows+1)
+            if (plotNumber != plotNumberMod ):
+                plotNumber = plotNumberMod + 2
+            else :
+                plotNumber = plotNumberMod
+
+            anamoly , title = anamolyArray[i]
+            PP.convertToRelativeTimeWithScales(anamoly,scales[i]) #convert time to be in seconds
+            plt.subplot(subPlotNumber)
+            print(scales[i])
+            anamoly.accelValues=np.array(anamoly.accelValues)*scales[i]
+            plt.plot(anamoly.accelTime , anamoly.accelValues)
+            plt.title(title)
+            plt.xlim([0,10])
+            plt.ylim([-10,10])
+            plt.grid()
+
+        figManager = plt.get_current_fig_manager()
+        #figManager.window.state('zoomed')
+        plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
+        plt.show()

@@ -1,11 +1,25 @@
 import FileHandler as FH
-import numpy as np
 
+from preprecessing import *
+import Ploter
+import Server
+import json
+ploter= Ploter.Ploter()
+ploter.reviewMode = True
+anamolyArray=[]
+plotingIndex = 0
+anamolies=[]
+#Server.getDataFromServer()
+rows = FH.loadObjFromFile('AllJsonFiles.txt')
+scales=[1,21/14 ,1]
+for row in rows:
+    if row['value']['anamolyType']==4:
+        if plotingIndex==1281:
+            anamolies.append((Anamoly(rows[plotingIndex]['value']),"zeby"+str(plotingIndex)+" batee2"))
+        anamolies.append((Anamoly(rows[plotingIndex]['value']), "zeby" + str(plotingIndex)))
+    plotingIndex=plotingIndex+1
 
-def loadData():
-    rows = FH.loadObjFromFile('AllJsonFiles.txt')
-    m=len(rows)
-    T_x = len(rows[0]['value']['accelValues'])
-    X = np.zeros((m,T_x))
-    Y = np.zeros((m,1))
-    return X ,Y
+ploter.plotMultipleAnamoliesWithScaling(anamolies[0:3] , numberOfCols=1 , index=plotingIndex,scales=scales)
+
+    # elif(plotingIndex == len(rows)-1 or plotingIndex == 0):
+    #     break
