@@ -1,16 +1,10 @@
-import tensorflow as tf
 
-# Simple hello world using TensorFlow
 
-# Create a Constant op
-# The op is added as a node to the default graph.
-#
-# The value returned by the constructor represents the output
-# of the Constant op.
-hello = tf.constant('Hello, TensorFlow!')
+import  numpy as np
+a = [(2,2)]
 
-# Start tf session
-sess = tf.Session()
+print(a)
 
-# Run the op
-print(sess.run(hello))
+a= dict(a)
+a.update([(1,3) ,(3,3) ,(4,2)])
+print(a)

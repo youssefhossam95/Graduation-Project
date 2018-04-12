@@ -92,31 +92,108 @@ def getRandomValue():
     # return 2 / 3 * random.uniform(0.3, 0.8) + 1 / 3 * random.uniform(1.4, 2.4)
     # return  np.random.normal(2 , 0.5)
     return 0.5
-def augmentAnamoly (anamoly , timeFactor, accelFactor):
+def augmentAnamoly (anamoly , accelFactor, timeFactor=1):
     newAnamoly=Anamoly(anamoly=anamoly)
     for i in range(len(newAnamoly.accelTime)):
         newAnamoly.accelValues[i] *= accelFactor
-        newAnamoly.accelTime[i] /=timeFactor
+        newAnamoly.accelTime[i] *=timeFactor
     return newAnamoly
+
+def augmentAreaOfInterest(anamoly , accelFactor , timeFactor = 1):
+    _,startIndex, endIndex = getAreaOfInterest(anamoly , 3)
+    newAnamoly=Anamoly(anamoly=anamoly)
+    for i in range(startIndex , endIndex):
+        newAnamoly.accelValues[i] *= accelFactor
+    for i in range(len(anamoly.accelTime)):
+        newAnamoly.accelTime[i]*=timeFactor
+
+    return newAnamoly
+
+def padAuto(anamoly , endOfTime , samplingRate):
+    _,startIndex, endIndex = getAreaOfInterest(anamoly , 3)
+    accelArray = np.append(anamoly.accelValues[:startIndex] , anamoly.accelValues[endIndex:])
+    if(len(accelArray > 2)):
+        mean = np.mean(accelArray)
+        var = np.var(accelArray)
+    else:
+        mean=0
+        var =0.5
+    print(mean , var)
+    return paddding(anamoly,endOfTime,samplingRate,mean , var)
+
+def augmentAuto(anamoly , numberOfAugments ,samplingRage=50, anamolyArray=[]):
+    maxAccel = 10
+    minAccel = 2
+    maxTime=10
+    minTime=5
+
+    anamolyMaxAccel = np.max(anamoly.accelValues)
+    anamolyMaxTime = np.max(anamoly.accelTime)
+
+    accelAugmentTarget = [i for i in np.arange(minAccel, maxAccel , 1)]
+    timeAugmentTarget = [i for i in np.arange(minTime , maxTime , 1)]
+
+    accelFactors = accelAugmentTarget / anamolyMaxAccel
+    timeFactors = timeAugmentTarget/anamolyMaxTime
+    print(accelFactors)
+    choosenPairs =[]
+    while len(choosenPairs) < numberOfAugments:
+
+        if(len(choosenPairs) > len(accelAugmentTarget) * len(timeAugmentTarget)): # if the number of augments required is larger
+            break                                                                  #than the possible combinations
+        accelIndex = np.random.randint(0,len(accelFactors)-1)
+        timeIndex = np.random.randint(0,len(timeFactors)-1)
+
+        if((accelIndex , timeIndex) not in choosenPairs):
+            if(accelAugmentTarget[accelIndex] < anamolyMaxAccel):
+                newAnamoly = augmentAnamoly(anamoly,accelFactors[accelIndex], timeFactors[timeIndex])
+            else:
+                newAnamoly = augmentAreaOfInterest(anamoly,accelFactors[accelIndex], timeFactors[timeIndex])
+            print(accelFactors[accelIndex])
+            title = 'augmented accel Factor: '+str(accelAugmentTarget[accelIndex]) + ' and accelTime: '+str(timeAugmentTarget[timeIndex])
+            choosenPairs.append((accelIndex,timeIndex))
+            anamolySampled = sample(newAnamoly, samplingRage)
+            paddedAnamoly = padAuto(anamolySampled ,10,samplingRage)
+            anamolyArray.append((paddedAnamoly,'augmented'))
 
 
 ploter.reviewMode = False
 fileName= 'AllJsonFiles.txt'
 rows = FH.loadObjFromFile(fileName)
-plotingIndex = 0
+plotingIndex = 1011
+samplingRate = 50
 
 
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
+    convertToRelativeTime(anamoly)
+    anamolyArray = [(anamoly,'original')]
     if(ploter.isLookingFor(anamoly.anamolyType)):
-        
-        anamolyArray = [(anamoly,'original')]
-        ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
+        augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
+        ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=2 , index=plotingIndex )
     if(ploter.endPloting):
         break
     plotingIndex += ploter.indexDirection
 
 
+
+
+# while plotingIndex<len(rows) and plotingIndex>=0:
+#     anamoly = Anamoly(rows[plotingIndex]['value'])
+#     convertToRelativeTime(anamoly)
+#     if(ploter.isLookingFor(anamoly.anamolyType)):
+#         max0 = np.max(anamoly.accelValues)
+#         newAnamoly =augmentAnamoly(anamoly,2/max0 , 1)
+#         anamolySampled=sample(newAnamoly,50)
+#         paddedAnamoly = padAuto(anamolySampled ,10,50)
+#         anamolyArray = [ (anamoly,'original'),(newAnamoly , 'augment area of interest'),
+#                          (anamolySampled,'sample') , (paddedAnamoly, 'padding')]
+#         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=2 , index=plotingIndex )
+#     if(ploter.endPloting):
+#         break
+#     plotingIndex += ploter.indexDirection
+#
+#
 
 
 #

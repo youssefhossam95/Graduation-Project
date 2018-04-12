@@ -24,8 +24,8 @@ def convertToRelativeTime(anamoly):
 class Anamoly:
     def __init__(self , JsonObj = 0 , anamoly = 0  ):
         if(JsonObj != 0 ):
-            self.accelValues = JsonObj["accelValues"]
-            self.accelTime = JsonObj["accelTime"]
+            self.accelValues = np.array(JsonObj["accelValues"])
+            self.accelTime = np.array(JsonObj["accelTime"])
             self.anamolyType = JsonObj["anamolyType"]
             self.Comment = JsonObj["Comment"]
             self.id = JsonObj["_id"]
@@ -111,10 +111,11 @@ def sample( anamoly , samplingRate = 1  ) :
     return sampledAnamoly
 
 def getAreaOfInterest(anamoly , windowSize):
+    convertToRelativeTime(anamoly)
     startIndex = 0
     endTime =  windowSize
     accel = anamoly.accelValues
-    time = anamoly.accelTime
+    time = np.array(anamoly.accelTime)
 
     maxSum = 0 #the maximum sum of abselutes
     maxStart = 0 #the index of the start of the max Sum window
@@ -122,10 +123,10 @@ def getAreaOfInterest(anamoly , windowSize):
     index = 0 #index of the acceleration/time value
     tempTime = 0 #time start from 0
 
-    while tempTime <= endTime and index < len(time):
+    while tempTime < endTime and index < len(time):
         maxSum += abs(accel[index])
-        index+=1
         tempTime=time[index]
+        index+=1
 
     endIndex = index # now start and end are start and end indices of the window
     maxEnd= endIndex
@@ -141,10 +142,11 @@ def getAreaOfInterest(anamoly , windowSize):
             maxStart= startIndex
             maxEnd = endIndex
 
+    print(maxStart , ' ' , maxEnd)
     newAnamoly = Anamoly(anamoly=anamoly)
-    newAnamoly.accelTime=time[maxStart:maxEnd] - time[maxStart]
+    newAnamoly.accelTime= time[maxStart:maxEnd]-time[maxStart]
     newAnamoly.accelValues=accel[maxStart:maxEnd]
-    return newAnamoly
+    return newAnamoly , maxStart , maxEnd
 
 def convertToRelativeTimeWithScales(anamoly,scale):
     timeArray = anamoly.accelTime
@@ -156,7 +158,7 @@ def convertToRelativeTimeWithScales(anamoly,scale):
     relativeTime=relativeTime/scale
     anamoly.accelTime  = relativeTime
 
-def paddding( anamoly , windowSize , samplingRate):
+def paddding( anamoly , endOfTime , samplingRate , mean , var):
     newAnamoly = Anamoly(anamoly=anamoly)
     samplingTime = 1 / samplingRate
     convertToRelativeTime(anamoly)
@@ -165,10 +167,10 @@ def paddding( anamoly , windowSize , samplingRate):
     maxTime += samplingTime
     times = []
     values = []
-    while maxTime <= windowSize:
+    while maxTime <= endOfTime:
         times.append(maxTime)
         #np.random.normal(0 , 0.5)
-        values.append(0)
+        values.append(np.random.normal(mean, var))
         maxTime += samplingTime
 
     # print(times)

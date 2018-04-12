@@ -9,7 +9,7 @@ ploter.reviewMode = False
 anamolyArray=[]
 fileName= 'AllJsonFiles.txt'
 rows = FH.loadObjFromFile(fileName)
-plotingIndex = 0
+plotingIndex = 991
 
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
 #this function will be executed on the object indexed at 'plotingIndex' which is  a global variable
