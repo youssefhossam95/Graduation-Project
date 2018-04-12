@@ -1,11 +1,6 @@
 import FileHandler as FH
-import os
-import math
 from preprecessing import *
 import Ploter
-import Server
-import json
-import random
 from scipy import signal
 import matplotlib.pyplot as plt
 ploter= Ploter.Ploter()
@@ -86,36 +81,56 @@ def showDifferenceInPadding() :
 
         ploter.plotMultipleAnamolies(anamolyArray , 2 , i )
 
+def visualizeSpectrogram():
+    samplingRate = 50
+    xTrain, yTrain, _, _ = loadDatasetFromFile('DevDataSampledZero.txt')
+    for i in range(xTrain.shape[0]):
+        f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=10)
+        ploter.dataVsSpectrogram(f, t, Sxx, samplingRate, xTrain[i][0:500], int(yTrain[i][0]))
 
-def loadDatasetFromFile(fileName):
-    rows = FH.loadObjFromFile(fileName)
-    m= len(rows)
-    Tx = len(rows[0]['value']['accelValues'])
-    X= np.zeros((m , Tx))
-    Y = np.zeros((m , 1))
-    random.seed(1)
-    random.shuffle(rows)
-    trainingPrecentage = 0.8
-    trainingIndex = math.ceil(trainingPrecentage * m)
-    for i in range(len(rows)):
-        X[i][:] = np.array(rows[i]['value']['accelValues'])
-        Y[i] = rows[i]['value']['anamolyType']==0
-    xTrain= X[0:trainingIndex][:]
-    yTrain =Y[0:trainingIndex]
-    xTest = X[trainingIndex:][:]
-    yTest =Y[trainingIndex:]
+def getRandomValue():
+    # return 2 / 3 * random.uniform(0.3, 0.8) + 1 / 3 * random.uniform(1.4, 2.4)
+    # return  np.random.normal(2 , 0.5)
+    return 0.5
+def augmentAnamoly (anamoly , timeFactor, accelFactor):
+    newAnamoly=Anamoly(anamoly=anamoly)
+    for i in range(len(newAnamoly.accelTime)):
+        newAnamoly.accelValues[i] *= accelFactor
+        newAnamoly.accelTime[i] /=timeFactor
+    return newAnamoly
 
-    return xTrain , yTrain , xTest , yTest
 
-xTrain , yTrain , _ ,_ = loadDatasetFromFile('DevDataSampledZero.txt')
-for i in range (xTrain.shape[0]):
-    f, t, Sxx = signal.spectrogram(xTrain[i][:] , nperseg=10)
-    print(yTrain[i])
-    print(f.shape)
-    print(t.shape)
-    print(Sxx.shape)
-    plt.pcolormesh(t, f, Sxx)
+ploter.reviewMode = False
+fileName= 'AllJsonFiles.txt'
+rows = FH.loadObjFromFile(fileName)
+plotingIndex = 0
 
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-    plt.show()
+
+while plotingIndex<len(rows) and plotingIndex>=0:
+    anamoly = Anamoly(rows[plotingIndex]['value'])
+    if(ploter.isLookingFor(anamoly.anamolyType)):
+        
+        anamolyArray = [(anamoly,'original')]
+        ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
+    if(ploter.endPloting):
+        break
+    plotingIndex += ploter.indexDirection
+
+
+
+
+#
+# row = rows [3]['value'] #matab
+# anamoly = Anamoly(JsonObj=row)
+# counter = 0
+# for i in range(10):
+#     randomValue1 = 1
+#     randomValue2 = 2
+#     sampledAnamoly = sample(anamoly , 50)
+#     newAnamoly = augmentAnamoly(sampledAnamoly , randomValue1 , randomValue2)
+#     smoothedAnamoly = ApplySmoothingFilter(newAnamoly , 5)
+#     augmentedTitle = 'augmented time:' + str(randomValue1) + ' accel: ' + str(randomValue2)
+#     ploter.plotMultipleAnamolies([(anamoly,'original') , (sampledAnamoly ,'sampled ') ,
+#                                   (smoothedAnamoly, 'smoothed'),(newAnamoly, augmentedTitle)])
+#     if(ploter.endPloting):
+#         break

@@ -7,14 +7,15 @@ import json
 ploter= Ploter.Ploter()
 ploter.reviewMode = False
 anamolyArray=[]
-rows = FH.loadObjFromFile('DevData.txt')
+fileName= 'AllJsonFiles.txt'
+rows = FH.loadObjFromFile(fileName)
 plotingIndex = 0
 
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
 #this function will be executed on the object indexed at 'plotingIndex' which is  a global variable
 #input: correct boolean whether or not the existing label of the anamoly is correct
-#output: ----
-def reviewData ( isCorrectLabel ):
+#output: boolean represents the sucess of the lableing operation
+def reviewData ( isCorrectLabel , fileName ):
     global plotingIndex
     global rows # all json rows
     rows[plotingIndex]['value']['Reviewed'] = True
@@ -24,9 +25,12 @@ def reviewData ( isCorrectLabel ):
         rows[plotingIndex]['value']['anamolyType'] = rows[plotingIndex]['value']['anamolyType'] - 5
 
     r= Server.updateValueInServer(rows[plotingIndex]['value'])
+    if(r==False):
+        print('error in the server response')
+        return False
     rows[plotingIndex]['value']['_rev'] = json.loads(r.text)['rev']
-    FH.writeObjToFile('AllJsonFiles.txt' , rows)
-
+    FH.writeObjToFile(fileName , rows)
+    return True
 
 #return true if we are interested in reviewing the current anamoly
 #input reviewLabledData boolean true if we want to review data that is already labled
@@ -41,10 +45,11 @@ reviewUnlabledData = True
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
     if(ploter.isLookingFor(anamoly.anamolyType) and wantToReview(reviewLabledData,rows[plotingIndex]['value'] )):
-        anamolyArray = [(anamoly,'hi')]
+        anamolyArray = [(anamoly,'original')]
         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
         if (ploter.reviewButtonPressed):
-            reviewData(ploter.lastReview)
+            if(not reviewData(ploter.lastReview , fileName)):
+                break;
             ploter.reviewButtonPressed=False
 
     # elif(plotingIndex == len(rows)-1 or plotingIndex == 0):

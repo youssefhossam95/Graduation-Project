@@ -83,13 +83,32 @@ class Ploter:
             plt.plot(anamoly.accelTime , anamoly.accelValues)
             plt.title(title)
             plt.grid()
+            plt.xlim([0,10])
+            plt.ylim([-10,10])
+
 
         figManager = plt.get_current_fig_manager()
         figManager.window.state('zoomed')
         plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
         plt.show()
 
+    def dataVsSpectrogram(self,f,t,Sxx , samplingRate , accelValues , type):
+        time = [i for i in np.arange (0 , 10 , 1/samplingRate)]
+        plt.subplot(211)
+        plt.plot(time , accelValues)
+        plt.grid()
 
+        plt.subplot(212)
+        plt.pcolormesh(t, f, Sxx)
+        plt.ylabel('Frequency [Hz]')
+        plt.xlabel('Time [sec]')
+
+        if(type==1):
+            title='matab'
+        else:
+            title='Galat be kol anwa3o'
+        plt.suptitle(title)
+        plt.show()
     #plot a single anamoly
     #input: Anamoly
     #output: -----

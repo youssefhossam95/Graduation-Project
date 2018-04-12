@@ -1,12 +1,16 @@
-import  math
-import time
-import numpy as np
-import random
+import tensorflow as tf
 
-a =[i for i in range(100)]
+# Simple hello world using TensorFlow
 
-print(a)
+# Create a Constant op
+# The op is added as a node to the default graph.
+#
+# The value returned by the constructor represents the output
+# of the Constant op.
+hello = tf.constant('Hello, TensorFlow!')
 
+# Start tf session
+sess = tf.Session()
 
-random.shuffle(a)
-print(a)
+# Run the op
+print(sess.run(hello))

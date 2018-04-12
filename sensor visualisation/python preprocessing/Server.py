@@ -22,5 +22,8 @@ def updateValueInServer(JsonObj):
     r = requests.post(url, json=JsonObj, auth=('somishopperchousesingetc', '6be49dadc1332531c1f128d871d02e05a5469f71'))
     print('got Response', r.status_code)
     print('Response Data: ', r.text)
-    return r
+    if(r.status_code!=201):
+        return False
+    else:
+        return r
 

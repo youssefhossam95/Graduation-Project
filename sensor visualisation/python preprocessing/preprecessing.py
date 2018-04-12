@@ -2,6 +2,8 @@ import numpy as np
 from copy import  deepcopy as dc
 import itertools as it
 import FileHandler as FH
+import random
+import math
 
 
 # converts time stamps stored in anamoly into range 0 -> end of time (10)
@@ -165,7 +167,8 @@ def paddding( anamoly , windowSize , samplingRate):
     values = []
     while maxTime <= windowSize:
         times.append(maxTime)
-        values.append(np.random.normal(0 , 0.5))
+        #np.random.normal(0 , 0.5)
+        values.append(0)
         maxTime += samplingTime
 
     # print(times)
@@ -173,6 +176,27 @@ def paddding( anamoly , windowSize , samplingRate):
     newAnamoly.accelValues = np.append(newAnamoly.accelValues, values)
 
     return newAnamoly
+
+def loadDatasetFromFile(fileName):
+    rows = FH.loadObjFromFile(fileName)
+    m= len(rows)
+    Tx = len(rows[0]['value']['accelValues'])
+    X= np.zeros((m , Tx))
+    Y = np.zeros((m , 1))
+    random.seed(1)
+    random.shuffle(rows)
+    trainingPrecentage = 0.8
+    trainingIndex = math.ceil(trainingPrecentage * m)
+    for i in range(len(rows)):
+        X[i][:] = np.array(rows[i]['value']['accelValues'])
+        Y[i] = rows[i]['value']['anamolyType']==0
+    xTrain= X[0:trainingIndex][:]
+    yTrain =Y[0:trainingIndex]
+    xTest = X[trainingIndex:][:]
+    yTest =Y[trainingIndex:]
+
+    return xTrain , yTrain , xTest , yTest
+
 
 ##### code starts from here ######
 
