@@ -88,10 +88,6 @@ def visualizeSpectrogram():
         f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=10)
         ploter.dataVsSpectrogram(f, t, Sxx, samplingRate, xTrain[i][0:500], int(yTrain[i][0]))
 
-def getRandomValue():
-    # return 2 / 3 * random.uniform(0.3, 0.8) + 1 / 3 * random.uniform(1.4, 2.4)
-    # return  np.random.normal(2 , 0.5)
-    return 0.5
 def augmentAnamoly (anamoly , accelFactor, timeFactor=1):
     newAnamoly=Anamoly(anamoly=anamoly)
     for i in range(len(newAnamoly.accelTime)):
@@ -156,6 +152,12 @@ def augmentAuto(anamoly , numberOfAugments ,samplingRage=50, anamolyArray=[]):
             paddedAnamoly = padAuto(anamolySampled ,10,samplingRage)
             anamolyArray.append((paddedAnamoly,'augmented'))
 
+def shifting(anamoly , timeShift , samplingRate):
+    indexShifting = int(timeShift * samplingRate)
+    newAnamoly = Anamoly(anamoly=anamoly)
+    for i in range (len (newAnamoly.accelTime)):
+        newAnamoly.accelValues[i] = anamoly.accelValues[(i+indexShifting)%len(newAnamoly.accelValues)]
+    return newAnamoly
 
 ploter.reviewMode = False
 fileName= 'AllJsonFiles.txt'
@@ -167,9 +169,12 @@ samplingRate = 50
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
     convertToRelativeTime(anamoly)
-    anamolyArray = [(anamoly,'original')]
     if(ploter.isLookingFor(anamoly.anamolyType)):
-        augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
+        # augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
+        anamoly= sample(anamoly , samplingRate)
+        anamolyArray = [(anamoly, 'original')]
+        ShiftedAnamoly = shifting(anamoly , max(anamoly.accelTime) , samplingRate)
+        anamolyArray.append((ShiftedAnamoly , 'shifting with 2 '))
         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=2 , index=plotingIndex )
     if(ploter.endPloting):
         break
