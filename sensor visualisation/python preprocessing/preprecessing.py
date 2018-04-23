@@ -4,7 +4,7 @@ import itertools as it
 import FileHandler as FH
 import random
 import math
-
+import Server
 
 # converts time stamps stored in anamoly into range 0 -> end of time (10)
 #input: Anamoly
@@ -202,3 +202,4 @@ def loadDatasetFromFile(fileName):
 
 ##### code starts from here ######
 
+#Server.getDataFromServer()
