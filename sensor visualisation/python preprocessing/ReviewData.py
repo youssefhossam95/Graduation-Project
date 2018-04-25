@@ -1,16 +1,15 @@
 import FileHandler as FH
-from preprecessing import Anamoly
+from preprecessing import *
 import Ploter
 import Server
 import json
 
 ploter= Ploter.Ploter()
-ploter.reviewMode = False
+ploter.reviewMode = True
 anamolyArray=[]
-fileName= 'AllJsonFiles.txt'
+fileName= 'MatabsJsonFiles.txt'
 rows = FH.loadObjFromFile(fileName)
-plotingIndex = 991
-
+plotingIndex = 205
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
 #this function will be executed on the object indexed at 'plotingIndex' which is  a global variable
 #input: correct boolean whether or not the existing label of the anamoly is correct
@@ -40,12 +39,18 @@ def wantToReview(reviewLabledData , row):
     reviewedBefore = 'Reviewed' in row
     return (reviewLabledData and reviewedBefore) or (reviewUnlabledData and not reviewedBefore)
 
-reviewLabledData = False
+reviewLabledData = True
 reviewUnlabledData = True
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
     if(ploter.isLookingFor(anamoly.anamolyType) and wantToReview(reviewLabledData,rows[plotingIndex]['value'] )):
         anamolyArray = [(anamoly,'original')]
+        sampledAnamoly= sample(anamoly,50)
+        anamolyArray.append((sampledAnamoly,'sampled'))
+        smoothedFiveAnamoly = ApplySmoothingFilter(sampledAnamoly, 5)
+        sampled25Anamoly = sample(smoothedFiveAnamoly, 25)
+        anamolyArray.append((sampled25Anamoly,"sampled 15"))
+        anamolyArray.append((smoothedFiveAnamoly, "smoothed 5"))
         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
         if (ploter.reviewButtonPressed):
             if(not reviewData(ploter.lastReview , fileName)):

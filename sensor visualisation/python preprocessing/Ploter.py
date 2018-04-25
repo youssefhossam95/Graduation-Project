@@ -88,7 +88,8 @@ class Ploter:
 
 
         figManager = plt.get_current_fig_manager()
-        figManager.window.state('zoomed')
+        #figManager.window.state('zoomed')
+        figManager.full_screen_toggle()
         plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
         plt.show()
 
@@ -173,5 +174,6 @@ class Ploter:
 
         figManager = plt.get_current_fig_manager()
         #figManager.window.state('zoomed')
+        figManager.full_screen_toggle()
         plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
         plt.show()
