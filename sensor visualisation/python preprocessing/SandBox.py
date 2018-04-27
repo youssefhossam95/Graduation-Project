@@ -117,7 +117,54 @@ def padAuto(anamoly , endOfTime , samplingRate):
     print(mean , var)
     return paddding(anamoly,endOfTime,samplingRate,mean , var)
 
-def augmentAuto(anamoly , numberOfAugments ,samplingRage=50, anamolyArray=[]):
+#crop the sides of the signal (NOT TESTED YET)
+def cropSignal(anamoly, targetTime , samplingRate, periodOfInterest ):
+    newAnamoly = Anamoly(anamoly=anamoly)
+    anamolyMaxTime= np.max(anamoly.accelTime)
+    numberOfSamplesToCrop = (anamolyMaxTime- targetTime) * samplingRate
+    if(numberOfSamplesToCrop <= 0):
+        return anamoly
+    cropIndexStart = numberOfSamplesToCrop
+    cropIndexEnd = len(anamoly.accelTime)-numberOfSamplesToCrop
+    _, startInterestIndex , endInterestIndex = getAreaOfInterest(anamoly , periodOfInterest)
+
+    if(cropIndexStart > startInterestIndex and cropIndexStart < endInterestIndex):
+        newAnamoly.accelValues= anamoly.accelValues[:cropIndexEnd]
+        newAnamoly.accelTime = anamoly.accelTime[:cropIndexEnd]
+
+    elif( cropIndexEnd > startInterestIndex and cropIndexEnd < endInterestIndex):
+        newAnamoly.accelValues = anamoly.accelValues[cropIndexStart:]
+        newAnamoly.accelTime = anamoly.accelTime[cropIndexStart:]
+    else:
+        sumStart = np.sum(np.abs(newAnamoly.accelValues[:cropIndexStart]))
+        sumEnd = np.sum(np.abs(newAnamoly.accelValues[:cropIndexStart]))
+        if(sumStart>sumEnd):
+            newAnamoly.accelValues = anamoly.accelValues[cropIndexStart:]
+            newAnamoly.accelTime = anamoly.accelTime[cropIndexStart:]
+        else:
+            newAnamoly.accelValues = anamoly.accelValues[:cropIndexEnd]
+            newAnamoly.accelTime = anamoly.accelTime[:cropIndexEnd]
+
+    return newAnamoly
+
+#perform Random Speed like augmentations
+def augmentSpeed (anamoly, numberOfAugments , samplingRate=50 , anamolyArray=[]):
+    maxAccel = 10
+    minAccel = 2
+    maxTime = 10
+    minTime = 5
+
+    anamolyMaxAccel = np.max(anamoly.accelValues)
+    anamolyMaxTime = np.max(anamoly.accelTime)
+
+    accelStep = (maxAccel-minAccel)/numberOfAugments
+    accelAugmentTarget = [i for i in np.arange(minAccel, maxAccel, accelStep)]
+
+    accelFactors = accelAugmentTarget / anamolyMaxAccel
+    accelFactors = accelFactors[anamolyMaxTime / accelFactors  <= maxTime and anamolyMaxTime / accelFactors  >= minTime]
+
+
+def augmentRandom(anamoly , numberOfAugments ,samplingRage=50, anamolyArray=[]):
     maxAccel = 10
     minAccel = 2
     maxTime=10
@@ -150,7 +197,7 @@ def augmentAuto(anamoly , numberOfAugments ,samplingRage=50, anamolyArray=[]):
             choosenPairs.append((accelIndex,timeIndex))
             anamolySampled = sample(newAnamoly, samplingRage)
             paddedAnamoly = padAuto(anamolySampled ,10,samplingRage)
-            anamolyArray.append((paddedAnamoly,'augmented'))
+            anamolyArray.append((paddedAnamoly,title))
 
 def shifting(anamoly , timeShift , samplingRate):
     indexShifting = int(timeShift * samplingRate)
@@ -159,28 +206,43 @@ def shifting(anamoly , timeShift , samplingRate):
         newAnamoly.accelValues[i] = anamoly.accelValues[(i+indexShifting)%len(newAnamoly.accelValues)]
     return newAnamoly
 
+
+
 ploter.reviewMode = False
 fileName= 'AllJsonFiles.txt'
 rows = FH.loadObjFromFile(fileName)
-plotingIndex = 1011
+plotingIndex = 0
 samplingRate = 50
+matabVars = []
+galatVars = []
+for row in rows:
+    anamoly= Anamoly(JsonObj=row)
 
 
-while plotingIndex<len(rows) and plotingIndex>=0:
-    anamoly = Anamoly(rows[plotingIndex]['value'])
-    convertToRelativeTime(anamoly)
-    if(ploter.isLookingFor(anamoly.anamolyType)):
-        # augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
-        anamoly= sample(anamoly , samplingRate)
-        anamolyArray = [(anamoly, 'original')]
-        ShiftedAnamoly = shifting(anamoly , max(anamoly.accelTime) , samplingRate)
-        anamolyArray.append((ShiftedAnamoly , 'shifting with 2 '))
-        ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=2 , index=plotingIndex )
-    if(ploter.endPloting):
-        break
-    plotingIndex += ploter.indexDirection
 
-
+# ploter.reviewMode = False
+# fileName= 'AllJsonFiles.txt'
+# rows = FH.loadObjFromFile(fileName)
+# plotingIndex = 10
+# samplingRate = 50
+#
+#
+# while plotingIndex<len(rows) and plotingIndex>=0:
+#     anamoly = Anamoly(rows[plotingIndex]['value'])
+#     convertToRelativeTime(anamoly)
+#     anamolyArray = [ ]
+#     if(ploter.isLookingFor(anamoly.anamolyType)):
+#         # augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
+#         anamoly= sample(anamoly , samplingRate)
+#         SmoothedAnamoly=ApplySmoothingFilter(anamoly , 5)
+#         speedMean= np.mean(anamoly.speedValues)
+#         speedVar = np.var(anamoly.speedValues)
+#         anamolyArray.append((SmoothedAnamoly , 'Avg Speed: '+ str(speedMean) + " Var: "+ str(speedVar)))
+#         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
+#
+#     if(ploter.endPloting):
+#         break
+#     plotingIndex += ploter.indexDirection
 
 
 # while plotingIndex<len(rows) and plotingIndex>=0:

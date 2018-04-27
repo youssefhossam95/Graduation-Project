@@ -5,6 +5,8 @@ import FileHandler as FH
 import random
 import math
 import Server
+from scipy import  signal
+
 
 # converts time stamps stored in anamoly into range 0 -> end of time (10)
 #input: Anamoly
@@ -26,6 +28,7 @@ class Anamoly:
         if(JsonObj != 0 ):
             self.accelValues = np.array(JsonObj["accelValues"])
             self.accelTime = np.array(JsonObj["accelTime"])
+            self.speedValues=np.array(JsonObj["speedValues"])
             self.anamolyType = JsonObj["anamolyType"]
             self.Comment = JsonObj["Comment"]
             self.id = JsonObj["_id"]
@@ -33,15 +36,25 @@ class Anamoly:
         elif(anamoly!=0):
             self.accelValues = dc(anamoly.accelValues)
             self.accelTime = dc(anamoly.accelTime)
+            self.speedValues=dc(anamoly.speedValues)
             self.anamolyType = anamoly.anamolyType
             self.Comment = anamoly.Comment
             self.id = anamoly.id
             self.rev = anamoly.rev
+def partialSmoothingFilter (anamoly , fsize , startIndex,endIndex):
+    anamoly1=Anamoly(anamoly=anamoly)
+    anamoly2=Anamoly(anamoly=anamoly)
+    anamoly1.accelValues = anamoly1.accelValues[:startIndex]
+    anamoly2.accelValues = anamoly2.accelValues[endIndex:]
+    result1= ApplySmoothingFilter(anamoly1, fsize)
+    result2=ApplySmoothingFilter(anamoly2 ,fsize)
+    anamoly1.accelValues = np.append(result1.accelValues , np.append(anamoly.accelValues[startIndex:endIndex] , result2.accelValues))
+    return anamoly1
 
 #apply sommothing filter on anamoly
 #input: Anamoly , filter size
 #output: New anamoly after modification
-def ApplySmoothingFilter (anamoly , fsize) :
+def ApplySmoothingFilter (anamoly , fsize ) :
     maxBefore = np.amax(anamoly.accelValues)
     Filter = []
     for i in range(1, fsize):
@@ -57,19 +70,51 @@ def ApplySmoothingFilter (anamoly , fsize) :
 #function to shift curve of accelerations to be around zero
 #input: anamoly
 #ouput: New shifted anamoly
-def shiftCurve(anamoly):
+def shiftCurve(anamoly , startIndex , endIndex):
     newAnamoly = Anamoly(anamoly=anamoly)
-    mean = sum(newAnamoly.accelValues)/len(newAnamoly.accelValues) ;
+    numberOfSamples = len(newAnamoly.accelValues[:startIndex]) + len(newAnamoly.accelValues[endIndex:])
+    mean = (sum(newAnamoly.accelValues[:startIndex]) + sum(newAnamoly.accelValues[endIndex:]))/numberOfSamples
     newAnamoly.accelValues -= mean;
     return newAnamoly
 
-def getDisplacement (anamoly , anamolyArray = [] , smoothingWindow=10 ):
+## perform integration on some sampled values
+#input:  array of values to be integrated
+#output: numpy array of values affter integration
+def integrate (inputArray  , samplingRate):
+    output = list(it.accumulate(inputArray));
+    output = np.array(output)
+    output /= samplingRate
+# output= signal.detrend(output)
+    return output
+
+#get displacement form acceleration values
+#input: anamoly: input anamoly with accelValues representing the acceleration values
+#       anamolyArray: the array to which  the function append intermediate results, for later use or ploting
+#output: anamoly:with accelValues representing the displacement values
+def getPureDisplacement ( anamoly , samplingRate , anamolyArray=[]):
+
+    anamolySpeed = Anamoly(anamoly=anamoly)
+    anamolySpeed.accelValues = integrate(anamolySpeed.accelValues , samplingRate)
+    anamolyArray.append((anamolySpeed,"Speed"))
+
+    anamolyDisp = Anamoly(anamoly=anamolySpeed)
+    anamolyDisp.accelValues = integrate(anamolyDisp.accelValues , samplingRate)
+
+    return anamolyDisp
+
+#get displacement form acceleration values and perform shifting and smothing between different steps
+#input: anamoly: input anamoly with accelValues representing the acceleration values
+#       anamolyArray: the array to which  the function append intermediate results, for later use or ploting
+#       smoothing window the window used in smoothing intermediate values
+#output: anamoly:with accelValues representing the displacement values
+def getDisplacement (anamoly, samplingRate , anamolyArray = [] , smoothingWindow=10 ):
     anamoly2 = ApplySmoothingFilter(anamoly, smoothingWindow)
     anamoly3 = shiftCurve(anamoly2);
     anamolyArray.append((anamoly3,"Shifting and smoothing"))
 
     anamolySpeed = Anamoly(anamoly=anamoly3)
     anamolySpeed.accelValues = list(it.accumulate(anamolySpeed.accelValues))
+    anamolySpeed.accelValues /=samplingRate
     anamolyArray.append((anamolySpeed,"Speed"))
 
     anamolySpeedSifted = Anamoly(anamoly=anamolySpeed)
@@ -78,6 +123,7 @@ def getDisplacement (anamoly , anamolyArray = [] , smoothingWindow=10 ):
 
     anamolyDisp = Anamoly(anamoly=anamolySpeed)
     anamolyDisp.accelValues = list(it.accumulate(anamolyDisp.accelValues))
+    anamolyDisp.accelValues /=samplingRate
 
     return anamolyDisp
 
@@ -109,11 +155,11 @@ def sample( anamoly , samplingRate = 1  ) :
         sampledAnamoly.accelTime.append(time)
         time+=samplingTime
     return sampledAnamoly
-
-def getAreaOfInterest(anamoly , windowSize):
+#gets the indecies of the part of the signal with maximum absotute sum
+def getAreaOfInterest(anamoly , periodOfInterest):
     convertToRelativeTime(anamoly)
     startIndex = 0
-    endTime =  windowSize
+    endTime =  periodOfInterest
     accel = anamoly.accelValues
     time = np.array(anamoly.accelTime)
 
