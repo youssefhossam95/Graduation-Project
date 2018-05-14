@@ -1,4 +1,4 @@
-﻿package com.stackers.BumpsFinder.TrainingApplication;
+package com.stackers.BumpsFinder.TrainingApplication;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -96,7 +96,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                             displayExceptionMessage("Sorry No Data To Classify You Missed It");
                             return;
                         }
-                        if(fileHandler.getNumberOfDefects()==100) {
+                        if(fileHandler.getNumberOfDefects()==500) {
                             displayExceptionMessage("Anamoly Ignored as maximum number of files reached! Please upload Data to record new anamolies");
                             return;
                         }
