@@ -208,15 +208,16 @@ def shifting(anamoly , timeShift , samplingRate):
 
 
 
-ploter.reviewMode = False
-fileName= 'AllJsonFiles.txt'
-rows = FH.loadObjFromFile(fileName)
-plotingIndex = 0
-samplingRate = 50
-matabVars = []
-galatVars = []
-for row in rows:
-    anamoly= Anamoly(JsonObj=row)
+# ploter.reviewMode = False
+# fileName= 'AllJsonFiles.txt'
+# rows = FH.loadObjFromFile(fileName)
+# plotingIndex = 0
+# samplingRate = 50
+# matabVars = []
+# galatVars = []
+# for row in rows:
+#     anamoly= Anamoly(JsonObj=row)
+
 
 
 
@@ -278,3 +279,4 @@ for row in rows:
 #                                   (smoothedAnamoly, 'smoothed'),(newAnamoly, augmentedTitle)])
 #     if(ploter.endPloting):
 #         break
+visualizeSpectrogram()

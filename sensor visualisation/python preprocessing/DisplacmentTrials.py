@@ -1,6 +1,7 @@
 import FileHandler as FH
 from preprecessing import *
 import Ploter
+from scipy import  signal
 ploter= Ploter.Ploter()
 
 ploter.reviewMode = False
@@ -16,6 +17,7 @@ while plotingIndex<len(rows) and plotingIndex>=0:
     if(ploter.isLookingFor(anamoly.anamolyType)):
         # augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
         anamoly= sample(anamoly , samplingRate)
+        anamoly.accelValues=signal.detrend(anamoly.accelValues)
         anamolyArray = [(anamoly, 'original')]
         SmoothedAnamoly=ApplySmoothingFilter(anamoly , 5)
         anamolyArray.append((SmoothedAnamoly , 'smoothing'))

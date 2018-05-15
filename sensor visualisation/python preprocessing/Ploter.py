@@ -80,11 +80,11 @@ class Ploter:
             anamoly , title = anamolyArray[i]
             PP.convertToRelativeTime(anamoly) #convert time to be in seconds
             plt.subplot(subPlotNumber)
-            plt.plot(anamoly.accelTime , anamoly.accelValues)
+            plt.scatter(anamoly.accelTime , anamoly.accelValues)
             plt.title(title)
             plt.grid()
-            # plt.xlim([0,10])
-            # plt.ylim([-10,10])
+            plt.xlim([0,10])
+            plt.ylim([-10,10])
 
 
         figManager = plt.get_current_fig_manager()
