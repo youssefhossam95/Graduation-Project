@@ -55,6 +55,7 @@ import static android.opengl.Matrix.transposeM;
 public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitListener {
 
 
+    private static final double COSSIMTHRESHOLD = 0.99;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGravity;
@@ -397,7 +398,7 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         }
 
         cosSim=dot/(prevGravityMag*gravityMag);
-        if(cosSim<0.99)
+        if(cosSim<COSSIMTHRESHOLD)
             lastSmallCosSimTime=SystemClock.elapsedRealtime();
     }
 
