@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MapDirectionSample</string>
+    <string name="title_activity_maps">MapDirectionSample</string>
+    <string name="google_maps_API_Key">AIzaSyC3p3sF1P4rU3AjG7SM5owDOrKFbs65xsE</string>
+</resources>

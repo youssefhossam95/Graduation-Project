@@ -98,12 +98,8 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
 
 
     SensorHandler(AppCompatActivity activity, CircleMenu circMenu) {
-        try {
-            loadNNWeights();
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-        nu.pattern.OpenCV.loadLibrary();
+
+        //nu.pattern.OpenCV.loadLibrary();
         isStillProcessing=new AtomicBoolean(false);
         threshold = INITIAL_THRESHOLD;
         this.activity = activity;
@@ -129,6 +125,11 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         lastAnamolyLoc = mLocation;
         tts= new TextToSpeech(activity, this);
         tts.setLanguage(Locale.US);
+        try {
+            loadNNWeights();
+        }catch(IOException e){
+            e.printStackTrace();
+        }
         // Define a listener that responds to location updates
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
@@ -408,22 +409,28 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
 
     }
     public void loadNNWeights() throws IOException{
-        InputStream is = activity.getResources().openRawResource(R.raw.nnweights1);
+        InputStream is=null;
+        try{
+         is = activity.getResources().openRawResource(R.raw.nnweights1);}
+        catch(Exception e){
+            e.printStackTrace();
+        }
         BufferedReader input =  new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer1Weights=constructWeightsMatrix(input);
+        layer1Weights=loadCsvToMatrix(input);
         is=activity.getResources().openRawResource(R.raw.nnweights2);
         input=new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer2Weights=constructWeightsMatrix(input);
+        layer2Weights=loadCsvToMatrix(input);
     }
 
 
-    public double [][] constructWeightsMatrix(BufferedReader input) throws IOException {
+    public double [][] loadCsvToMatrix(BufferedReader input) throws IOException {
         String line = null;
         ArrayList<String[]>stringVals=new ArrayList<String[]>();
-        double[][]weights=new double[stringVals.size()][stringVals.get(0).length];
+
         while (( line = input.readLine()) != null)
             stringVals.add(line.split(","));
 
+        double[][]weights=new double[stringVals.size()][stringVals.get(0).length];
         for(int i=0;i<stringVals.size();i++){
             for(int j=0;j<stringVals.get(i).length;j++)
               weights[i][j]=Double.parseDouble(stringVals.get(i)[j]);
