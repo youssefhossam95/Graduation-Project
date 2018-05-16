@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".SimpleActivity">
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/sensitivityThreshold"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="8dp" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <SeekBar
+            android:id="@+id/sensitivityThreshold"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:layout_toEndOf="@+id/sensitivityThreshLayout"
+            android:clickable="false"
+            android:fitsSystemWindows="false"
+            android:isScrollContainer="false"
+            android:keepScreenOn="false"
+            android:longClickable="false" />
+
+        <TextView
+            android:id="@+id/sensitivityThreshLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:text="Sensitivity"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/senstivityValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_alignParentTop="true"
+            android:paddingRight="8dp"
+            android:layout_toEndOf="@+id/sensitivityThreshold"
+            android:text="100" />
+        <TextView
+            android:id="@+id/longitudeTextLayOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Longitude : "
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/longitudeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/latitudeTextLayOut"
+            android:layout_below="@+id/sensitivityThreshold"
+            android:paddingLeft="2dp"
+            android:paddingRight="20dp"
+            android:layout_toEndOf="@+id/longitudeTextLayOut"
+            android:text="" />
+        <TextView
+            android:id="@+id/latitudeTextLayOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/longitudeTextLayOut"
+            android:layout_alignStart="@+id/longitudeTextLayOut"
+            android:layout_below="@+id/longitudeTextLayOut"
+            android:layout_marginTop="11dp"
+            android:text="Latitude : "
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/latitudeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/latitudeTextLayOut"
+            android:layout_alignBottom="@+id/latitudeTextLayOut"
+            android:layout_toEndOf="@+id/latitudeTextLayOut"
+            android:paddingLeft="2dp"
+            android:layout_marginRight="20dp"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/speedAverageLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/typeBoxLayOut"
+            android:layout_alignParentTop="true"
+            android:text="Speed : "
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/averageSpeedTextBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:paddingLeft="1dp"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/typeBoxLayOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/longitudeTextLayOut"
+            android:layout_alignBottom="@+id/longitudeTextLayOut"
+            android:layout_marginEnd="16dp"
+            android:layout_toStartOf="@+id/typeTextBox"
+            android:text="Type : "
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/typeTextBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/sensitivityThreshold"
+            android:text=""
+            android:paddingLeft="20dp"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/defectsLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/fileNumbersText"
+            android:layout_alignBottom="@+id/fileNumbersText"
+            android:layout_toStartOf="@+id/fileNumbersText"
+            android:text="Number Of Files : "
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/fileNumbersText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/latitudeText"
+            android:layout_alignBottom="@+id/latitudeText"
+            android:layout_alignParentEnd="true"
+            android:text="" />
+    </RelativeLayout>
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="8dp">
+
+    <com.hitomi.cmlibrary.CircleMenu
+        android:id="@+id/circle_menu"
+        android:layout_width="120dp"
+        android:layout_height="95dp"
+        android:layout_above="@+id/toggleButton"
+        android:layout_centerHorizontal="true"
+        android:longClickable="false"
+        android:scaleX="2.6"
+        android:scaleY="2.6" />
+
+        <at.markushi.ui.CircleButton
+            android:id="@+id/uploadButton"
+            android:layout_width="60dp"
+            android:layout_height="71dp"
+            android:layout_above="@+id/textView2"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/upload"
+            app:cb_color="?attr/colorSwitchThumbNormal"
+            app:cb_pressedRingWidth="16dp" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:text="Upload Files"
+            android:textColor="@android:color/black"
+            android:textStyle="bold" />
+
+        <ToggleButton
+            android:id="@+id/toggleButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_above="@+id/applicationModeText"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/style_toggle_button"
+            android:textOff=""
+            android:textOn="" />
+
+        <TextView
+            android:id="@+id/applicationModeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/textView2"
+            android:layout_alignBottom="@+id/textView2"
+            android:layout_alignParentEnd="true"
+            android:text="Buttons Mode"
+            android:textColor="@android:color/black"
+            android:textStyle="bold" />
+    </RelativeLayout>
+</LinearLayout>

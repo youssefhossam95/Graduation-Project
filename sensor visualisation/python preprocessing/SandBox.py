@@ -334,19 +334,6 @@ def extractDataSetDiffDist(fileName , areaOfInterest= False , Balanced = True):
 
 
     return xTrain , yTrain , xDev, yDev
-def getInterestSpeed (anamoly  , interestPeriod , samplingRate ):
-    startOfAccelTime = anamoly.accelStartAbsTime
-    _ ,startIndex , endIndex = getAreaOfInterest( anamoly , interestPeriod )
-    absStartTime = startIndex * 1/samplingRate* 10**9 + startOfAccelTime
-    absEndTime = endIndex * 1 / samplingRate * 10**9 + startOfAccelTime
-
-    for i in range (len(anamoly.speedTime)):
-        speedTime = anamoly.speedTime[i]
-        if(speedTime>absStartTime and speedTime<absEndTime):
-            return anamoly.speedValues[i]
-
-    return np.mean(anamoly.speedValues);
-
 
 
 
@@ -485,3 +472,4 @@ with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelTi
 #                                   (smoothedAnamoly, 'smoothed'),(newAnamoly, augmentedTitle)])
 #     if(ploter.endPloting):
 #         break
+# visualizeSpectrogram()

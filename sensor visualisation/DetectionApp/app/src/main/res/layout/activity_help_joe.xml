@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.youssefhossam.graphsvisualisationapp.helpJoe">
+
+    <ImageView
+        android:id="@+id/MachineLearningPhoto"
+        android:layout_width="70dp"
+        android:layout_height="80dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="41dp"
+        android:src="@drawable/ml" />
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/sens"
+        android:text=" لو الapp عملك دوشة \n ممكن تقلل الsensitivity"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/MachineLearningPhoto"
+        android:text="الهدف من الapp ده إنه يتعلم يdetect ان الuser اخد مطب او حفرة لوحده. فلما يحصل هزة في الموبيل هيطلع صوت وبعدين يسألك ده كان إيه و انت المفروض ترد عليه في خلال خمس ثواني تقوله ده كان إيه بظبط علشان يتعلم. و في الخمس ثواني دول مش هيرن حتى لو الموبيل اتهز علشان ما يلاخبطكش."
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/sens"
+        android:layout_width="136dp"
+        android:layout_height="94dp"
+        android:layout_alignStart="@+id/up"
+        android:layout_centerVertical="true"
+        android:src="@drawable/sens" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="13dp"
+        android:onClick="nextButtonPressed"
+        android:text="Next>>" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/up"
+        android:text=" متنساش تعمل upload للداتا \n اللي إنت سجلتها لما يبقى معاك نت. "
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+
+    <ImageView
+        android:id="@+id/up"
+        android:layout_width="84dp"
+        android:layout_height="58dp"
+        android:layout_above="@+id/button2"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="55dp"
+        android:layout_marginStart="22dp"
+        android:src="@drawable/upload" />
+
+</RelativeLayout>

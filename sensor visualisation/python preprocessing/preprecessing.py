@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 from copy import  deepcopy as dc
 import itertools as it
@@ -6,7 +7,20 @@ import random
 import math
 import Server
 from scipy import  signal
+from sklearn.neighbors import*
+from sklearn.model_selection import train_test_split
 
+
+from scipy.signal import butter, lfilter
+
+
+def smoothFreq(sig,cutoff,fs):
+    B, A = butter(1, cutoff / (fs / 2) , btype='low') # 1st order Butterworth low-pass
+    filtered_signal = lfilter(B, A, sig, axis=0)
+    absAvgBefore = np.mean(np.abs(sig))
+    absAvgAfter = np.mean(np.abs(filtered_signal))
+    #filtered_signal = filtered_signal * absAvgBefore / absAvgAfter
+    return filtered_signal
 
 # converts time stamps stored in anamoly into range 0 -> end of time (10)
 #input: Anamoly
@@ -28,6 +42,11 @@ class Anamoly:
         if(JsonObj != 0 ):
             self.accelValues = np.array(JsonObj["accelValues"])
             self.accelTime = np.array(JsonObj["accelTime"])
+
+            if("speedValues" in JsonObj):
+                self.speedValues=np.array(JsonObj["speedValues"])
+            else:
+                self.speedValues=[]
             self.anamolyType = JsonObj["anamolyType"]
             self.Comment = JsonObj["Comment"]
             self.id = JsonObj["_id"]
@@ -69,12 +88,29 @@ def ApplySmoothingFilter (anamoly , fsize ) :
     for i in range(0, fsize):
         Filter.append(1 / fsize)
 
+    Filter=signal.gaussian(fsize,1)
     newValues = np.convolve(anamoly.accelValues, Filter, 'same')
+
     maxAfter = np.sum(np.abs(newValues)) ;
 
     anamoly2 = Anamoly(anamoly=anamoly)
-    anamoly2.accelValues = newValues * maxBefore / maxAfter;
+    anamoly2.accelValues = newValues
+    anamoly2.accelValues = newValues*(maxBefore/maxAfter)
     return anamoly2
+
+def getInterestSpeed (anamoly  , interestPeriod , samplingRate ):
+    startOfAccelTime = anamoly.accelStartAbsTime
+    _ ,startIndex , endIndex = getAreaOfInterest( anamoly , interestPeriod )
+    absStartTime = startIndex * 1/samplingRate* 10**9 + startOfAccelTime
+    absEndTime = endIndex * 1 / samplingRate * 10**9 + startOfAccelTime
+
+    for i in range (len(anamoly.speedTime)):
+        speedTime = anamoly.speedTime[i]
+        if(speedTime>absStartTime and speedTime<absEndTime):
+            return anamoly.speedValues[i]
+
+    return np.mean(anamoly.speedValues);
+
 
 #function to shift curve of accelerations to be around zero
 #input: anamoly
@@ -103,9 +139,11 @@ def integrate (inputArray  , samplingRate):
 def getPureDisplacement ( anamoly , samplingRate , anamolyArray=[]):
 
     anamolySpeed = Anamoly(anamoly=anamoly)
+    _,start,end=getAreaOfInterest(anamoly,3)
+    anamoly = shiftCurve(anamoly,start,end)
     anamolySpeed.accelValues = integrate(anamolySpeed.accelValues , samplingRate)
     anamolyArray.append((anamolySpeed,"Speed"))
-
+    anamolySpeed.accelValues=signal.detrend(anamolySpeed.accelValues)
     anamolyDisp = Anamoly(anamoly=anamolySpeed)
     anamolyDisp.accelValues = integrate(anamolyDisp.accelValues , samplingRate)
 
@@ -197,7 +235,6 @@ def getAreaOfInterest(anamoly , periodOfInterest):
             maxStart= startIndex
             maxEnd = endIndex
 
-    # print(maxStart , ' ' , maxEnd)
     newAnamoly = Anamoly(anamoly=anamoly)
     newAnamoly.accelTime= time[maxStart:maxEnd]-time[maxStart]
     newAnamoly.accelValues=accel[maxStart:maxEnd]
@@ -309,3 +346,68 @@ def preprossing(anamoly, padding=False, shifting=False, smoothing=False, sFilter
             ##### code starts from here ######
 
 #Server.getDataFromServer()
+# def DTWDistance(s1, s2,w):
+#     DTW={}
+#
+#     w = max(w, abs(len(s1)-len(s2)))
+#
+#     for i in range(-1,len(s1)):
+#         for j in range(-1,len(s2)):
+#             DTW[(i, j)] = float('inf')
+#     DTW[(-1, -1)] = 0
+#
+#     for i in range(len(s1)):
+#         for j in range(max(0, i-w), min(len(s2), i+w)):
+#             dist= (s1[i]-s2[j])**2
+#             DTW[(i, j)] = dist + min(DTW[(i-1, j)],DTW[(i, j-1)], DTW[(i-1, j-1)])
+#
+#     return math.sqrt(DTW[len(s1)-1, len(s2)-1])
+#
+#
+# rows=FH.loadObjFromFile("MatabsJsonFiles.txt")
+# count=0
+# X=[]
+# y=[]
+# for row in rows:
+#     if "Reviewed" not in row["value"]:
+#         continue
+#     anamoly=Anamoly(JsonObj=row["value"])
+#     anamoly1=sample(anamoly,50)
+#     anamoly2, _, _ = getAreaOfInterest(anamoly1, 3)
+#     anamoly3=ApplySmoothingFilter(anamoly2,5)
+#     if (len(anamoly3.accelValues) != 151):
+#         continue
+#     if anamoly.anamolyType==0:
+#         y.append(1)
+#     else:
+#         y.append(0)
+#     X.append(anamoly3.accelValues)
+#
+# X=np.array(X)
+# y=np.array(y)
+#
+#
+#
+#
+# t_size=20
+# (Xtrain, Xtest, ytrain, ytest) = train_test_split(
+#     X, y, test_size=t_size,random_state=100)
+#
+# knr=KNeighborsClassifier(n_neighbors=5,n_jobs=1,metric=DTWDistance,metric_params={"w":1000})
+# print(Xtrain.shape)
+# print(ytrain.shape)
+# print("[KNN] Training")
+# # TODO: Fit the model using trainFeatures and trainLabels
+# tf=knr.fit(Xtrain, ytrain)
+#
+#
+# print('get Score')
+# # TODO: Get the accuracy of the model using model.score(). Pass testFeatures and testLabes as parameters.
+# acc = tf.score(Xtest, ytest)
+
+def normalize(anamoly):
+  newAnamoly=Anamoly(anamoly=anamoly)
+  absAccels=[abs(number) for number in newAnamoly.accelValues]
+  maxx=max(absAccels)
+  newAnamoly.accelValues=[x /maxx  for x in newAnamoly.accelValues]
+  return newAnamoly

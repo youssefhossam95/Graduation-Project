@@ -3,7 +3,6 @@ from  preprecessing import *
 import numpy as np
 import Server
 import Ploter
-from SandBox import getInterestSpeed
 ploter = Ploter.Ploter()
 
 rows = loadObjFromFile("AllJsonFilesLatest.txt")
@@ -47,3 +46,5 @@ smoothedAnamoly = ApplySmoothingFilter(anamoly , 3)
 #
 print('speed' , anamoly.speedValues)
 print('time' , anamoly.speedTime)
+
+
