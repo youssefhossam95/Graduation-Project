@@ -41,6 +41,5 @@ dependencies {
     compile 'com.github.Hitomis:CircleMenu:v1.1.0'
     compile 'org.apache.commons:commons-math3:3.2'
     testCompile 'junit:junit:4.12'
-    compile 'nu.pattern:opencv:2.4.9-4'
 
 }

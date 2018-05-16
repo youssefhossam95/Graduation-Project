@@ -130,7 +130,6 @@
     <orderEntry type="library" scope="TEST" name="org.hamcrest:hamcrest-core:1.3@jar" level="project" />
     <orderEntry type="library" name="com.github.Hitomis:CircleMenu-v1.1.0" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-basement-11.8.0" level="project" />
-    <orderEntry type="library" name="nu.pattern:opencv:2.4.9-4@jar" level="project" />
     <orderEntry type="library" name="android.arch.core:common:1.0.0@jar" level="project" />
     <orderEntry type="library" name="com.android.support:support-core-ui-27.0.2" level="project" />
     <orderEntry type="library" name="com.android.support:support-compat-27.0.2" level="project" />

@@ -29,6 +29,7 @@ import com.hitomi.cmlibrary.CircleMenu;
 
 import org.apache.commons.math3.analysis.function.Sigmoid;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -55,7 +56,7 @@ import static android.opengl.Matrix.transposeM;
 public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitListener {
 
 
-    private static final double COSSIMTHRESHOLD = 0.99;
+    private static final double COSSIMTHRESHOLD = 0.998;
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private Sensor mGravity;
@@ -96,6 +97,8 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
     TextToSpeech tts ;
     double[][] layer1Weights;
     double[][] layer2Weights;
+    double [][]layer1bias;
+    double[][]layer2bias;
 
 
     SensorHandler(AppCompatActivity activity, CircleMenu circMenu) {
@@ -127,7 +130,7 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         tts= new TextToSpeech(activity, this);
         tts.setLanguage(Locale.US);
         try {
-            loadNNWeights();
+            loadNNParams();
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -409,18 +412,25 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
     public void onInit(int status) {
 
     }
-    public void loadNNWeights() throws IOException{
+    public void loadNNParams() throws IOException{
         InputStream is=null;
-        try{
-         is = activity.getResources().openRawResource(R.raw.nnweights1);}
-        catch(Exception e){
-            e.printStackTrace();
-        }
+        is = activity.getResources().openRawResource(R.raw.nnweights1);
         BufferedReader input =  new BufferedReader(new InputStreamReader(is), 1024*8);
         layer1Weights=loadCsvToMatrix(input);
+
         is=activity.getResources().openRawResource(R.raw.nnweights2);
         input=new BufferedReader(new InputStreamReader(is), 1024*8);
         layer2Weights=loadCsvToMatrix(input);
+
+        is=activity.getResources().openRawResource(R.raw.nnbias1);
+        input=new BufferedReader(new InputStreamReader(is), 1024*8);
+        layer1bias=loadCsvToMatrix(input);
+
+        is=activity.getResources().openRawResource(R.raw.nnbias2);
+        input=new BufferedReader(new InputStreamReader(is), 1024*8);
+        layer2bias=loadCsvToMatrix(input);
+
+
     }
 
 
@@ -437,24 +447,35 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
               weights[i][j]=Double.parseDouble(stringVals.get(i)[j]);
         }
         return weights;
-
     }
     public double forwardProp(double [] features){
 
+        Array2DRowRealMatrix featuresM=new Array2DRowRealMatrix(features);
         Array2DRowRealMatrix layer1W=new Array2DRowRealMatrix(layer1Weights);
         Array2DRowRealMatrix layer2W=new Array2DRowRealMatrix(layer2Weights);
+        Array2DRowRealMatrix layer1B=new Array2DRowRealMatrix(layer1bias);
+        Array2DRowRealMatrix layer2B=new Array2DRowRealMatrix(layer2bias);
+
         layer1W=(Array2DRowRealMatrix)layer1W.transpose();
         layer2W=(Array2DRowRealMatrix)layer2W.transpose();
-        double [] a1=layer1W.preMultiply(features);
+        //bias no transpose
 
-        for (double x : a1)
-            x=Math.max(x,0);
+        Array2DRowRealMatrix z1=layer1W.multiply(featuresM);
+        z1=z1.add(layer1B);
+        double[][] a1Arr=z1.getData();
 
-        double [] a2=layer2W.preMultiply(a1);
+        for (double[] arr : a1Arr) { //relu
+            for (double x : arr)
+                x = Math.max(x, 0);
+        }
+
+        Array2DRowRealMatrix z2=layer2W.multiply(new Array2DRowRealMatrix(a1Arr));
+        z2=z2.add(layer2B);
         Sigmoid s=new Sigmoid();
-        return s.value(a2[0]);
+        return s.value(z2.getData()[0][0]); 
 
     }
+
 
 
 }

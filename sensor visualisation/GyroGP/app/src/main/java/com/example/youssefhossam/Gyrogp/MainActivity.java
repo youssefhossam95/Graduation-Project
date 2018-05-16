@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //        startButton = (Button) findViewById(R.id.button);
 //        startButton.setBackgroundColor(Color.GREEN);
         timeBox=(EditText)findViewById(R.id.editText);
-        timeBox.setText("10");
+        timeBox.setText("0.99");
         gravitySeries=new LineGraphSeries<DataPoint>();
         gyroSeries=new LineGraphSeries<DataPoint>();
         gravityGraph.addSeries(gravitySeries);
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             cosSim=dot/(prevGravityMag*gravityMag);
             counter++;
-            if(cosSim<0.99&&counter>15){
+            if(cosSim<Float.parseFloat(timeBox.getText().toString())&&counter>15){
                 MediaPlayer ring = MediaPlayer.create(this, R.raw.ring);
                 counter=0;
                 ring.start();
@@ -192,11 +192,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 gravityStartTime = SystemClock.elapsedRealtime();
             gravitySeries.appendData(new DataPoint(gravitySamplesCounter,cosSim),false,1000000);
             gravitySamplesCounter++;
-            if (SystemClock.elapsedRealtime() - gravityStartTime >= Integer.parseInt(timeBox.getText().toString()) * 1000) {
+            if (SystemClock.elapsedRealtime() - gravityStartTime >= 10 * 1000) {
                 gravitySamplesCounter = 0;
-                gravityGraph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
+                gravityGraph.getViewport().setMaxX(100 * 10);
                 gravitySeries.resetData(new DataPoint[0]);
-                gravityGraph.getViewport().setMaxX(150* Integer.parseInt(timeBox.getText().toString()));
+                gravityGraph.getViewport().setMaxX(150* 10);
             }
         }
         catch(Exception e)
@@ -215,13 +215,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     gyroStartTime = SystemClock.elapsedRealtime();
                 gyroSeries.appendData(new DataPoint(gyroSamplesCounter,correctedAccelValues[1]),false,1000000);
                 gyroSamplesCounter++;
-                if (SystemClock.elapsedRealtime() - gyroStartTime >= Integer.parseInt(timeBox.getText().toString()) * 1000) {
+                if (SystemClock.elapsedRealtime() - gyroStartTime >= 10* 1000) {
                     gyroSamplesCounter = 0;
     //                startButton.setBackgroundColor(Color.GREEN);
     //                startButton.setText("Start");
-                    gyroGraph.getViewport().setMaxX(100 * Integer.parseInt(timeBox.getText().toString()));
+                    gyroGraph.getViewport().setMaxX(100 * 10);
                     gyroSeries.resetData(new DataPoint[0]);
-                    gyroGraph.getViewport().setMaxX(150* Integer.parseInt(timeBox.getText().toString()));
+                    gyroGraph.getViewport().setMaxX(150* 10);
                 }
         }
         catch(Exception e)
@@ -258,6 +258,7 @@ public static String getHTML() throws Exception {
     public void displayExceptionMessage(String msg)
     {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+        SingularValueDecomposition
     }
 
 }
