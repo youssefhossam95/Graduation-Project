@@ -85,10 +85,10 @@ def partialSmoothingFilter (anamoly , fsize , startIndex,endIndex):
 def ApplySmoothingFilter (anamoly , fsize ) :
     maxBefore = np.sum(np.abs(anamoly.accelValues))
     Filter = []
-    for i in range(0, fsize):
+    for i in range(1, fsize):
         Filter.append(1 / fsize)
 
-    Filter=signal.gaussian(fsize,1)
+    # Filter=signal.gaussian(fsize,1)
     newValues = np.convolve(anamoly.accelValues, Filter, 'same')
 
     maxAfter = np.sum(np.abs(newValues)) ;

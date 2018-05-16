@@ -339,7 +339,7 @@ def extractDataSetDiffDist(fileName , areaOfInterest= False , Balanced = True):
 
 rows = loadObjFromFile("AllJsonFilesLatest.txt")
 
-anamoly = Anamoly(rows[20]['value'])
+anamoly = Anamoly(rows[419]['value'])
 
 print(len(anamoly.accelValues))
 print(np.mean(anamoly.accelValues))
@@ -352,7 +352,14 @@ with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelTi
     spamwriter = csv.writer(csvfile, delimiter=',')
     spamwriter.writerow(anamoly.accelTime)
 
-#
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedValues.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.speedValues)
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedTime.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.speedTime)
+
+            #
 # rows = loadObjFromFile("AllJsonFilesLatest.txt") ;
 #
 # for row in rows:

@@ -7,7 +7,7 @@ ploter = Ploter.Ploter()
 
 rows = loadObjFromFile("AllJsonFilesLatest.txt")
 
-anamoly = Anamoly(rows[20]['value'])
+anamoly = Anamoly(rows[419]['value'])
 
 
 def ApplySmoothingFilter2 ( array , fsize ) :
@@ -28,23 +28,21 @@ def zeroCrossings1D(x):
     if (x[j]*x[j-1])<0:
       XCrossings+=1
   return XCrossings
-
-print(anamoly.accelValues)
 anamoly = sample(anamoly,50)
 print(anamoly.accelValues)
-#print(anamoly.accelTime)
-interestAnamoly,start,end = getAreaOfInterest(anamoly , 3 )
+anamoly = ApplySmoothingFilter(anamoly , 5);
+print(anamoly.accelValues)
+interestAnamoly,start,end = getAreaOfInterest(anamoly , 2 )
 print(start , end )
-print('interest speed' , getInterestSpeed(anamoly,3,50))
-print(getNumberOfPeaks(interestAnamoly));
+print('interest speed' , getInterestSpeed(anamoly,2,50))
+print('number of peaks ' , getNumberOfPeaks(interestAnamoly));
+print("zero corssings" , zeroCrossings1D(interestAnamoly.accelValues))
+print('avgAbs: ' , avgAbsRatio(anamoly ,2))
 
 ploter.plotAnamoly(anamoly)
-print(avgAbsRatio(anamoly ,3))
-print(zeroCrossings1D(interestAnamoly.accelValues))
-smoothedAnamoly = ApplySmoothingFilter(anamoly , 3)
 
-#
-print('speed' , anamoly.speedValues)
-print('time' , anamoly.speedTime)
+# #
+# print('speed' , anamoly.speedValues)
+# print('time' , anamoly.speedTime)
 
 
