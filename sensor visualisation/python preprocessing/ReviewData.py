@@ -7,7 +7,7 @@ import json
 ploter= Ploter.Ploter()
 ploter.reviewMode = True
 anamolyArray=[]
-fileName= 'MatabsJsonFiles.txt'
+fileName= 'AllJsonFilesLatest.txt'
 rows = FH.loadObjFromFile(fileName)
 plotingIndex = 205
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
@@ -44,12 +44,15 @@ reviewUnlabledData = True
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
     if(ploter.isLookingFor(anamoly.anamolyType) and wantToReview(reviewLabledData,rows[plotingIndex]['value'] )):
-        anamolyArray = [(anamoly,'original')]
+        preProAnamoly = preprossing(anamoly, smoothing=True , areaOfInterest=True)
+        avgAbs = avgAbsRatio(preProAnamoly,3)
+        peakCount = getNumberOfPeaks( preProAnamoly )
+        anamolyArray = [(preProAnamoly,'numberOfPeaks:'+ str(peakCount))]
         sampledAnamoly= sample(anamoly,50)
         anamolyArray.append((sampledAnamoly,'sampled'))
         smoothedFiveAnamoly = ApplySmoothingFilter(sampledAnamoly, 5)
-        sampled25Anamoly = sample(smoothedFiveAnamoly, 25)
-        anamolyArray.append((sampled25Anamoly,"sampled 15"))
+        # sampled25Anamoly = sample(smoothedFiveAnamoly, 25)
+        # anamolyArray.append((sampled25Anamoly,"sampled 15"))
         anamolyArray.append((smoothedFiveAnamoly, "smoothed 5"))
         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
         if (ploter.reviewButtonPressed):
