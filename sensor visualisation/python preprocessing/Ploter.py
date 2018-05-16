@@ -80,7 +80,10 @@ class Ploter:
             anamoly , title = anamolyArray[i]
             PP.convertToRelativeTime(anamoly) #convert time to be in seconds
             plt.subplot(subPlotNumber)
-            plt.scatter(anamoly.accelTime , anamoly.accelValues)
+            plt.xlabel("Time in seconds")
+            plt.ylabel("acceleration in m/s2")
+            plt.plot(anamoly.accelTime , anamoly.accelValues)
+
             plt.title(title)
             plt.grid()
             plt.xlim([0,10])

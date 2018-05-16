@@ -7,9 +7,9 @@ import json
 ploter= Ploter.Ploter()
 ploter.reviewMode = True
 anamolyArray=[]
-fileName= 'MatabsJsonFiles.txt'
+fileName= 'AllJsonFilesLatest.txt'
 rows = FH.loadObjFromFile(fileName)
-plotingIndex = 251
+plotingIndex = 400
 #change the type of the anamoly if it was miss labled otherwise it will mark it as Human Reviewed correctly
 #this function will be executed on the object indexed at 'plotingIndex' which is  a global variable
 #input: correct boolean whether or not the existing label of the anamoly is correct
@@ -47,7 +47,11 @@ while plotingIndex<len(rows) and plotingIndex>=0:
         anamoly.anamolyType=0
 
     if(ploter.isLookingFor(anamoly.anamolyType) and wantToReview(reviewLabledData,rows[plotingIndex]['value'] )):
-        anamolyArray = [(anamoly,'original')]
+        convertToRelativeTime(anamoly)
+        preProAnamoly = preprossing(anamoly, smoothing=True , areaOfInterest=False)
+        avgAbs = avgAbsRatio(preProAnamoly,3)
+        peakCount = getNumberOfPeaks( preProAnamoly )
+        anamolyArray = [(preProAnamoly,'numberOfPeaks:'+ str(peakCount))]
         sampledAnamoly= sample(anamoly,50)
         #sampledAnamoly,start,end=getAreaOfInterest(sampledAnamoly,periodOfInterest=3)
         sampledAnamoly=ApplySmoothingFilter(sampledAnamoly,5)

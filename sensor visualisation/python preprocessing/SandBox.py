@@ -1,9 +1,15 @@
+import csv
+
 import FileHandler as FH
+from FileHandler import *
 from preprecessing import *
 import Ploter
 from scipy import signal
 import matplotlib.pyplot as plt
 ploter= Ploter.Ploter()
+import math
+
+
 anamolyArray=[]
 def ScalingFN():
     plotingIndex = 0
@@ -85,7 +91,7 @@ def visualizeSpectrogram():
     samplingRate = 50
     xTrain, yTrain, _, _ = loadDatasetFromFile('DevDataSampledZero.txt')
     for i in range(xTrain.shape[0]):
-        f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=10)
+        f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=150)
         ploter.dataVsSpectrogram(f, t, Sxx, samplingRate, xTrain[i][0:500], int(yTrain[i][0]))
 
 def augmentAnamoly (anamoly , accelFactor, timeFactor=1):
@@ -105,17 +111,6 @@ def augmentAreaOfInterest(anamoly , accelFactor , timeFactor = 1):
 
     return newAnamoly
 
-def padAuto(anamoly , endOfTime , samplingRate):
-    _,startIndex, endIndex = getAreaOfInterest(anamoly , 3)
-    accelArray = np.append(anamoly.accelValues[:startIndex] , anamoly.accelValues[endIndex:])
-    if(len(accelArray > 2)):
-        mean = np.mean(accelArray)
-        var = np.var(accelArray)
-    else:
-        mean=0
-        var =0.5
-    print(mean , var)
-    return paddding(anamoly,endOfTime,samplingRate,mean , var)
 
 #crop the sides of the signal (NOT TESTED YET)
 def cropSignal(anamoly, targetTime , samplingRate, periodOfInterest ):
@@ -207,38 +202,243 @@ def shifting(anamoly , timeShift , samplingRate):
     return newAnamoly
 
 
+def analyzeSpeed ():
+    ploter.reviewMode = False
+    fileName= 'AllJsonFiles.txt'
+    rows = FH.loadObjFromFile(fileName)
+    plotingIndex = 0
+    samplingRate = 50
+    matabVars = []
+    galatVars = []
+    matabMeans = []
+    galatMeans = []
+    for row in rows:
+        anamoly= Anamoly(JsonObj=row['value'])
+        if(len(anamoly.speedValues)==0):
+            continue
+        speedVar = round(np.var(anamoly.speedValues)**1/2)
+        speedMean= np.mean(anamoly.speedValues)
+        if(anamoly.anamolyType == 0 and speedMean!=0):
+            matabVars.append(speedVar)
+            matabMeans.append(speedMean)
+        else:
+            galatVars.append(speedVar)
+            galatMeans.append(speedMean)
 
-# ploter.reviewMode = False
-# fileName= 'AllJsonFiles.txt'
-# rows = FH.loadObjFromFile(fileName)
-# plotingIndex = 0
-# samplingRate = 50
-# matabVars = []
-# galatVars = []
+
+    print(len(matabMeans))
+    print(len(galatMeans))
+    plt.subplot(121)
+    binwidth = 1
+    plt.hist(matabVars, bins=range( 0, 20 + binwidth, binwidth) )
+    plt.subplot(122)
+    plt.hist(galatVars, bins=range( 0, 20 + binwidth, binwidth) )
+    plt.show()
+
+def normalize(anamoly):
+    newAnamoly = Anamoly(anamoly=anamoly)
+    absAccels = [abs(number) for number in newAnamoly.accelValues]
+    maxx = max(absAccels)
+    newAnamoly.accelValues = np.array([x / maxx for x in newAnamoly.accelValues])
+    return newAnamoly
+
+def compineData(x_matab, y_matab, x_ghalat, y_ghalat , shuffle = True):
+    y_matab = y_matab.reshape(y_matab.shape[0], 1)
+    y_ghalat = y_ghalat.reshape(y_matab.shape[0], 1)
+    x = np.vstack((x_matab, x_ghalat))
+    y = np.vstack((y_matab, y_ghalat))
+    if(shuffle):
+        perm = np.random.permutation(len(x))
+        x = x[perm, : ]
+        y = y[perm, :]
+    return x, y
+#extract data set such that training and dev set come from different destribution
+def extractDataSetDiffDist(fileName , areaOfInterest= False , Balanced = True):
+    rows = loadObjFromFile(fileName)
+    xTrainM =[]
+    yTrainM = []
+    xDevM = []
+    yDevM =[]
+    xTrainG = []
+    yTrainG = []
+    xDevG = []
+    yDevG=[]
+    random.seed(1)
+    random.shuffle(rows)
+    index =0
+    for row in rows:
+
+        if(index%100==0):
+            print("finished:",index , "rows")
+        index+=1
+        if(index > 200 ):
+            break
+        anamoly = Anamoly(JsonObj=row["value"])
+
+        if(len(anamoly.accelTime)<400):
+            continue
+
+        ######################## preprocessing ##########################
+        # if we want area of interest we will normalize
+        anamoly = preprossing(anamoly, smoothing=True , padding=True , areaOfInterest=areaOfInterest, normalizing=areaOfInterest)
+
+        ######### elemenate anamolies with missing accel Values #########
+        if(areaOfInterest):
+            expectedAccelSamples=151
+        else:
+            expectedAccelSamples=501
+        if(len(anamoly.accelValues)!= expectedAccelSamples):
+            continue
+        ######################  Training Set  ##########################
+
+        if anamoly.anamolyType == 0 and "Reviewed" in row['value']:
+            xTrainM.append(anamoly.accelValues)
+            yTrainM.append(1)
+
+        if(anamoly.anamolyType >0 and anamoly.anamolyType <4 and "test" not in anamoly.id):
+            xTrainG.append(anamoly.accelValues)
+            yTrainG.append(0)
+
+        ######################## Dev Set ################################
+
+        if anamoly.anamolyType == 0 and "test" in anamoly.id:
+            xDevM.append(anamoly.accelValues)
+            yDevM.append(1)
+
+        if (anamoly.anamolyType > 0 and anamoly.anamolyType < 4 and "test" in anamoly.id):
+            xDevG.append(anamoly.accelValues)
+            yDevG.append(0)
+
+
+    xTrainG = np.asarray(xTrainG)
+    xTrainM = np.asarray(xTrainM)
+    yTrainM = np.asarray(yTrainM)
+    yTrainG = np.asarray(yTrainG)
+    xDevG = np.asarray(xDevG)
+    yDevG = np.asarray(yDevG)
+    xDevM = np.asarray(xDevM)
+    yDevM = np.asarray(yDevM)
+
+    ######################## Balancing the Data ############################
+    # assuming that galat is always larger than matab
+    if(Balanced):
+        trainPerm = np.random.permutation(len(xTrainM))
+        devPerm = np.random.permutation(len(xDevM))
+        xTrainG = xTrainG[trainPerm ]
+        yTrainG = yTrainG[trainPerm  ]
+        xDevG = xDevG[devPerm  ]
+        yDevG= yDevG[devPerm  ]
+
+    xTrain,yTrain = compineData(xTrainM , yTrainM , xTrainG,  yTrainG)
+    xDev,yDev = compineData(xDevM , yDevM , xDevG,  yDevG)
+
+
+    return xTrain , yTrain , xDev, yDev
+
+
+
+rows = loadObjFromFile("AllJsonFilesLatest.txt")
+
+anamoly = Anamoly(rows[419]['value'])
+
+print(len(anamoly.accelValues))
+print(np.mean(anamoly.accelValues))
+
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelValues.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.accelValues)
+
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelTime.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.accelTime)
+
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedValues.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.speedValues)
+with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedTime.txt', 'w') as csvfile:
+    spamwriter = csv.writer(csvfile, delimiter=',')
+    spamwriter.writerow(anamoly.speedTime)
+
+            #
+# rows = loadObjFromFile("AllJsonFilesLatest.txt") ;
+#
 # for row in rows:
-#     anamoly= Anamoly(JsonObj=row)
-
-
-
+#     anamoly = Anamoly(row['value'])
+#     if(len(anamoly.speedValues) ==0 or len(anamoly.accelValues) == 0):
+#         continue
+#     print(len(anamoly.speedValues))
+#     for i in range(len(anamoly.speedValues)):
+#         if(anamoly.speedTime[i] > anamoly.accelTime[0] and anamoly.speedTime[i] < anamoly.accelTime[len(anamoly.accelTime)-1]):
+#             print("yes")
+#     convertToRelativeTime(anamoly)
+#     anamoly = sample(anamoly,50)
+#     areaOfInterest , _ , _ = getAreaOfInterest( anamoly , 3 )
+#     interestSpeed = getInterestSpeed(anamoly, 2 , 50)
+#     meanSpeed = np.mean(anamoly.speedValues)
+#     anamolyArray = [(anamoly , 'original, Mean: ' + str(meanSpeed)+ " Interest: " + str(interestSpeed)) ]
+#
+#     ploter.plotMultipleAnamolies(anamolyArray , 1)
+#     if(ploter.endPloting):
+#         break
+#
+# rows = loadObjFromFile("AllJsonFilesLatest.txt")
+# mAvgAbs=[]
+# gAvgAbs=[]
+# mNumberOfPeaks=[]
+# gNumberOfPeaks=[]
+# index = 0
+# for row in rows:
+#     anamoly = Anamoly(row['value'])
+#     if(len(anamoly.accelValues) < 400):
+#         continue
+#     if (index % 100 == 0):
+#         print("finished:", index, "rows")
+#     index += 1
+#     # if(index > 1000):
+#     #     break
+#     preProAnamoly = preprossing(anamoly, smoothing=True, areaOfInterest=True , interestPeriod=2)
+#     avgAbs = avgAbsRatio(anamoly,3)
+#     peakCount = getNumberOfPeaks( preProAnamoly )
+#     if(anamoly.anamolyType==0):
+#         mAvgAbs.append(avgAbs)
+#         mNumberOfPeaks.append(peakCount)
+#     elif(anamoly.anamolyType<4):
+#         gAvgAbs.append(avgAbs)
+#         gNumberOfPeaks.append(peakCount)
+#
+#
+# plt.subplot(221)
+# plt.boxplot(mAvgAbs, showfliers=False)
+# plt.title("Matab AVG ABS RAtio")
+# plt.subplot(222)
+# plt.boxplot(gAvgAbs,showfliers=False)
+# plt.title("Ghalat AVG ABS RAtio")
+#
+#
+#
+# plt.subplot(223)
+# plt.boxplot(mNumberOfPeaks, showfliers=False)
+# plt.title("Matab number Of Peaks")
+# plt.subplot(224)
+# plt.boxplot(gNumberOfPeaks , showfliers=False)
+# plt.title("Ghalat Number of peaks")
+#
+# plt.show()
 
 # ploter.reviewMode = False
 # fileName= 'AllJsonFiles.txt'
-# rows = FH.loadObjFromFile(fileName)
-# plotingIndex = 10
+# rows = loadObjFromFile(fileName)
+# plotingIndex = 90
 # samplingRate = 50
-#
-#
 # while plotingIndex<len(rows) and plotingIndex>=0:
 #     anamoly = Anamoly(rows[plotingIndex]['value'])
 #     convertToRelativeTime(anamoly)
 #     anamolyArray = [ ]
 #     if(ploter.isLookingFor(anamoly.anamolyType)):
+#         anamolyArray.append((anamoly,'original'))
 #         # augmentAuto(anamoly, 5 ,samplingRate, anamolyArray)
-#         anamoly= sample(anamoly , samplingRate)
-#         SmoothedAnamoly=ApplySmoothingFilter(anamoly , 5)
-#         speedMean= np.mean(anamoly.speedValues)
-#         speedVar = np.var(anamoly.speedValues)
-#         anamolyArray.append((SmoothedAnamoly , 'Avg Speed: '+ str(speedMean) + " Var: "+ str(speedVar)))
+#         anamoly=preprossing(anamoly , smoothing=True , padding=True , shifting=True , areaOfInterest=True,normalizing=True)
+#         anamolyArray.append((anamoly,'after preprocessing'))
 #         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
 #
 #     if(ploter.endPloting):
@@ -279,4 +479,4 @@ def shifting(anamoly , timeShift , samplingRate):
 #                                   (smoothedAnamoly, 'smoothed'),(newAnamoly, augmentedTitle)])
 #     if(ploter.endPloting):
 #         break
-visualizeSpectrogram()
+# visualizeSpectrogram()

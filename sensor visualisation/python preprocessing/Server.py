@@ -11,7 +11,7 @@ def getDataFromServer():
     r = requests.get(url, auth=('somishopperchousesingetc', '6be49dadc1332531c1f128d871d02e05a5469f71'))
     print("got response " + str(r.status_code))
     obj = json.loads(r.text)
-    FH.writeObjToFile("AllJsonFiles.txt" , obj['rows']) #store the rows comming from the server
+    FH.writeObjToFile("AllJsonFilesLatest.txt" , obj['rows']) #store the rows comming from the server
 
 #update a certain document in the server to have the value of JsonObj
 #to do that the _rev parameter must be the same for JsonObj and the object that will be updated in the server

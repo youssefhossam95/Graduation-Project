@@ -42,6 +42,7 @@ class Anamoly:
         if(JsonObj != 0 ):
             self.accelValues = np.array(JsonObj["accelValues"])
             self.accelTime = np.array(JsonObj["accelTime"])
+
             if("speedValues" in JsonObj):
                 self.speedValues=np.array(JsonObj["speedValues"])
             else:
@@ -50,14 +51,24 @@ class Anamoly:
             self.Comment = JsonObj["Comment"]
             self.id = JsonObj["_id"]
             self.rev = JsonObj["_rev"]
+            if("speedValues" in JsonObj):
+                self.speedValues=np.array(JsonObj["speedValues"])
+                self.speedTime = np.array(JsonObj["speedTime"])
+            else:
+                self.speedValues=np.array([])
+                self.speedTime=np.array([])
+            self.accelStartAbsTime =  JsonObj["accelTime"][0]
+
         elif(anamoly!=0):
             self.accelValues = dc(anamoly.accelValues)
             self.accelTime = dc(anamoly.accelTime)
             self.speedValues=dc(anamoly.speedValues)
+            self.speedTime =dc(anamoly.speedTime)
             self.anamolyType = anamoly.anamolyType
             self.Comment = anamoly.Comment
             self.id = anamoly.id
             self.rev = anamoly.rev
+            self.accelStartAbsTime = anamoly.accelStartAbsTime
 def partialSmoothingFilter (anamoly , fsize , startIndex,endIndex):
     anamoly1=Anamoly(anamoly=anamoly)
     anamoly2=Anamoly(anamoly=anamoly)
@@ -72,19 +83,34 @@ def partialSmoothingFilter (anamoly , fsize , startIndex,endIndex):
 #input: Anamoly , filter size
 #output: New anamoly after modification
 def ApplySmoothingFilter (anamoly , fsize ) :
-    absAvgBefore = np.mean(np.abs(anamoly.accelValues))
+    maxBefore = np.sum(np.abs(anamoly.accelValues))
     Filter = []
     for i in range(1, fsize):
         Filter.append(1 / fsize)
 
-    Filter=signal.gaussian(fsize,1)
+    # Filter=signal.gaussian(fsize,1)
     newValues = np.convolve(anamoly.accelValues, Filter, 'same')
-    absAvgAfter = np.mean(np.abs(newValues))
+
+    maxAfter = np.sum(np.abs(newValues)) ;
 
     anamoly2 = Anamoly(anamoly=anamoly)
     anamoly2.accelValues = newValues
-    anamoly2.accelValues = newValues*(absAvgBefore/absAvgAfter)
+    anamoly2.accelValues = newValues*(maxBefore/maxAfter)
     return anamoly2
+
+def getInterestSpeed (anamoly  , interestPeriod , samplingRate ):
+    startOfAccelTime = anamoly.accelStartAbsTime
+    _ ,startIndex , endIndex = getAreaOfInterest( anamoly , interestPeriod )
+    absStartTime = startIndex * 1/samplingRate* 10**9 + startOfAccelTime
+    absEndTime = endIndex * 1 / samplingRate * 10**9 + startOfAccelTime
+
+    for i in range (len(anamoly.speedTime)):
+        speedTime = anamoly.speedTime[i]
+        if(speedTime>absStartTime and speedTime<absEndTime):
+            return anamoly.speedValues[i]
+
+    return np.mean(anamoly.speedValues);
+
 
 #function to shift curve of accelerations to be around zero
 #input: anamoly
@@ -209,7 +235,6 @@ def getAreaOfInterest(anamoly , periodOfInterest):
             maxStart= startIndex
             maxEnd = endIndex
 
-    #print(maxStart , ' ' , maxEnd)
     newAnamoly = Anamoly(anamoly=anamoly)
     newAnamoly.accelTime= time[maxStart:maxEnd]-time[maxStart]
     newAnamoly.accelValues=accel[maxStart:maxEnd]
@@ -267,7 +292,58 @@ def loadDatasetFromFile(fileName):
     return xTrain , yTrain , xTest , yTest
 
 
-##### code starts from here ######
+def padAuto(anamoly , endOfTime , samplingRate):
+    _,startIndex, endIndex = getAreaOfInterest(anamoly , 3)
+    accelArray = np.append(anamoly.accelValues[:startIndex] , anamoly.accelValues[endIndex:])
+    if(len(accelArray > 2)):
+        mean = np.mean(accelArray)
+        var = np.var(accelArray)
+    else:
+        mean=0
+        var =0.5
+    # print(mean , var)
+    return paddding(anamoly,endOfTime,samplingRate,mean , var)
+def normalize(anamoly):
+    newAnamoly=Anamoly(anamoly=anamoly)
+    absAccels=[abs(number) for number in newAnamoly.accelValues]
+    maxx=max(absAccels)
+    newAnamoly.accelValues=[x /maxx  for x in newAnamoly.accelValues]
+    return newAnamoly
+def avgAbsRatio(anamoly , interestPeriod):
+    _,start,end = getAreaOfInterest(anamoly, interestPeriod)
+    avgAbsInterest = np.sum(np.abs(anamoly.accelValues[start:end]))/len(anamoly.accelValues[start:end])
+    avgAbsTotal = np.sum(np.abs(anamoly.accelValues))/len(anamoly.accelValues)
+    return avgAbsInterest/avgAbsTotal
+def getNumberOfPeaks(anamoly):
+    values = anamoly.accelValues
+    peakCount = 0
+    for i in range (1,len(values)-1):
+        if((values[i]<values[i-1] and values[i]< values[i+1]) or (values[i]>values[i-1] and values[i]> values[i+1]) ):
+            peakCount+=1
+    return peakCount
+def preprossing(anamoly, padding=False, shifting=False, smoothing=False, sFilterSize=5, areaOfInterest=False,
+                interestPeriod=3, normalizing=False, samplingRate=50):
+    newAnamoly = sample(anamoly, samplingRate)
+
+    if (padding and not areaOfInterest):
+        newAnamoly = padAuto(newAnamoly, endOfTime=10, samplingRate=samplingRate)
+
+    if (smoothing):
+        newAnamoly = ApplySmoothingFilter(newAnamoly, sFilterSize)
+
+    if (shifting):
+        _, start, end = getAreaOfInterest(newAnamoly, interestPeriod)
+        newAnamoly = shiftCurve(newAnamoly, start, end)
+
+    if (areaOfInterest):
+        newAnamoly, _, _ = getAreaOfInterest(newAnamoly, interestPeriod)
+
+    if (normalizing):
+        newAnamoly = normalize(newAnamoly)
+
+
+    return newAnamoly
+            ##### code starts from here ######
 
 #Server.getDataFromServer()
 # def DTWDistance(s1, s2,w):
