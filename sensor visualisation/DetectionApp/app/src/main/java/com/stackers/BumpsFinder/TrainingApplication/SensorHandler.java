@@ -33,6 +33,7 @@ import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -95,10 +96,8 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
     static final double GYROTHRESHOLD=0.5;
     private long lastSmallCosSimTime;
     TextToSpeech tts ;
-    double[][] layer1Weights;
-    double[][] layer2Weights;
-    double [][]layer1bias;
-    double[][]layer2bias;
+
+    boolean isStable=true;
 
 
     SensorHandler(AppCompatActivity activity, CircleMenu circMenu) {
@@ -107,6 +106,7 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         isStillProcessing=new AtomicBoolean(false);
         threshold = INITIAL_THRESHOLD;
         this.activity = activity;
+        MachineLearning.activity=activity;
         circleMenu = circMenu;
         mSensorManager = (SensorManager) activity.getSystemService(SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
@@ -130,7 +130,7 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         tts= new TextToSpeech(activity, this);
         tts.setLanguage(Locale.US);
         try {
-            loadNNParams();
+            MachineLearning.loadNNParams();
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -248,9 +248,9 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
                     }
                     if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 3 * Math.pow(10, 9))
                     {
-                        if(!isDeviceStable(4)){
-                            tts.speak("Rotation ignored", TextToSpeech.QUEUE_ADD, null, null);
-                            lastAnamolyTime=null;
+                        isStable=isDeviceStable(4);
+                        if(!isStable){
+                            tts.speak("Rotation", TextToSpeech.QUEUE_ADD, null, null);
                         }
                     }
 
@@ -412,69 +412,7 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
     public void onInit(int status) {
 
     }
-    public void loadNNParams() throws IOException{
-        InputStream is=null;
-        is = activity.getResources().openRawResource(R.raw.nnweights1);
-        BufferedReader input =  new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer1Weights=loadCsvToMatrix(input);
 
-        is=activity.getResources().openRawResource(R.raw.nnweights2);
-        input=new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer2Weights=loadCsvToMatrix(input);
-
-        is=activity.getResources().openRawResource(R.raw.nnbias1);
-        input=new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer1bias=loadCsvToMatrix(input);
-
-        is=activity.getResources().openRawResource(R.raw.nnbias2);
-        input=new BufferedReader(new InputStreamReader(is), 1024*8);
-        layer2bias=loadCsvToMatrix(input);
-
-
-    }
-
-
-    public double [][] loadCsvToMatrix(BufferedReader input) throws IOException {
-        String line = null;
-        ArrayList<String[]>stringVals=new ArrayList<String[]>();
-
-        while (( line = input.readLine()) != null)
-            stringVals.add(line.split(","));
-
-        double[][]weights=new double[stringVals.size()][stringVals.get(0).length];
-        for(int i=0;i<stringVals.size();i++){
-            for(int j=0;j<stringVals.get(i).length;j++)
-              weights[i][j]=Double.parseDouble(stringVals.get(i)[j]);
-        }
-        return weights;
-    }
-    public double forwardProp(double [] features){
-
-        Array2DRowRealMatrix featuresM=new Array2DRowRealMatrix(features);
-        Array2DRowRealMatrix layer1W=new Array2DRowRealMatrix(layer1Weights);
-        Array2DRowRealMatrix layer2W=new Array2DRowRealMatrix(layer2Weights);
-        Array2DRowRealMatrix layer1B=new Array2DRowRealMatrix(layer1bias);
-        Array2DRowRealMatrix layer2B=new Array2DRowRealMatrix(layer2bias);
-
-        layer1W=(Array2DRowRealMatrix)layer1W.transpose();
-        layer2W=(Array2DRowRealMatrix)layer2W.transpose();
-        //bias no transpose
-
-        Array2DRowRealMatrix z1=layer1W.multiply(featuresM);
-        z1=z1.add(layer1B);
-        double[][] a1Arr=z1.getData();
-
-        for (double[] arr : a1Arr) { //relu
-            for (double x : arr)
-                x = Math.max(x, 0);
-        }
-
-        Array2DRowRealMatrix z2=layer2W.multiply(new Array2DRowRealMatrix(a1Arr));
-        z2=z2.add(layer2B);
-        Sigmoid s=new Sigmoid();
-        return s.value(z2.getData()[0][0]); 
-
-    }
 
 
 
