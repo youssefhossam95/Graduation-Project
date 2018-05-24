@@ -5,7 +5,7 @@ import Server
 import json
 
 ploter= Ploter.Ploter()
-ploter.reviewMode = True
+ploter.reviewMode = False
 anamolyArray=[]
 fileName= 'AllJsonFilesLatest.txt'
 rows = FH.loadObjFromFile(fileName)
@@ -43,24 +43,13 @@ reviewLabledData = True
 reviewUnlabledData = True
 while plotingIndex<len(rows) and plotingIndex>=0:
     anamoly = Anamoly(rows[plotingIndex]['value'])
-    if plotingIndex==324:
-        anamoly.anamolyType=0
-
+    anamolyArray = []
+    anamolyArray.append((anamoly , 'Oiginal anomaly')) ;
     if(ploter.isLookingFor(anamoly.anamolyType) and wantToReview(reviewLabledData,rows[plotingIndex]['value'] )):
+        print(anamoly.accelTime[2])
         convertToRelativeTime(anamoly)
-        preProAnamoly = preprossing(anamoly, smoothing=True , areaOfInterest=False)
-        avgAbs = avgAbsRatio(preProAnamoly,3)
-        peakCount = getNumberOfPeaks( preProAnamoly )
-        anamolyArray = [(preProAnamoly,'numberOfPeaks:'+ str(peakCount))]
-        sampledAnamoly= sample(anamoly,50)
-        #sampledAnamoly,start,end=getAreaOfInterest(sampledAnamoly,periodOfInterest=3)
-        sampledAnamoly=ApplySmoothingFilter(sampledAnamoly,5)
-        #sampledAnamoly.accelValues=smoothFreq(sampledAnamoly.accelValues,0.2,50)
-        #sampledAnamoly=normalize(sampledAnamoly)
-        anamolyArray.append((sampledAnamoly,'sampled + smoothed 50'))
-        #smoothedFiveAnamoly = ApplySmoothingFilter(sampledAnamoly, 5)
-        #sampled25Anamoly = sample(smoothedFiveAnamoly, 25)
-        #anamolyArray.append((sampled25Anamoly,"sampled + smoothed 25"))
+        sampled = preprossing(anamoly , )
+        # anamolyArray.append((preProcessedAnamoly , 'Anomaly after preprocessing'))
         ploter.plotMultipleAnamolies(anamolyArray , numberOfCols=1 , index=plotingIndex )
         if (ploter.reviewButtonPressed):
             if(not reviewData(ploter.lastReview , fileName)):

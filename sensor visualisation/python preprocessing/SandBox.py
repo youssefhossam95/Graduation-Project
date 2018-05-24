@@ -91,7 +91,7 @@ def visualizeSpectrogram():
     samplingRate = 50
     xTrain, yTrain, _, _ = loadDatasetFromFile('DevDataSampledZero.txt')
     for i in range(xTrain.shape[0]):
-        f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=150)
+        f, t, Sxx = signal.spectrogram(xTrain[i][:], samplingRate, nperseg=30)
         ploter.dataVsSpectrogram(f, t, Sxx, samplingRate, xTrain[i][0:500], int(yTrain[i][0]))
 
 def augmentAnamoly (anamoly , accelFactor, timeFactor=1):
@@ -336,29 +336,29 @@ def extractDataSetDiffDist(fileName , areaOfInterest= False , Balanced = True):
     return xTrain , yTrain , xDev, yDev
 
 
-
-rows = loadObjFromFile("AllJsonFilesLatest.txt")
-
-anamoly = Anamoly(rows[419]['value'])
-
-print(len(anamoly.accelValues))
-print(np.mean(anamoly.accelValues))
-
-with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelValues.txt', 'w') as csvfile:
-    spamwriter = csv.writer(csvfile, delimiter=',')
-    spamwriter.writerow(anamoly.accelValues)
-
-with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelTime.txt', 'w') as csvfile:
-    spamwriter = csv.writer(csvfile, delimiter=',')
-    spamwriter.writerow(anamoly.accelTime)
-
-with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedValues.txt', 'w') as csvfile:
-    spamwriter = csv.writer(csvfile, delimiter=',')
-    spamwriter.writerow(anamoly.speedValues)
-with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedTime.txt', 'w') as csvfile:
-    spamwriter = csv.writer(csvfile, delimiter=',')
-    spamwriter.writerow(anamoly.speedTime)
-
+# analyzeSpeed()
+# rows = loadObjFromFile("AllJsonFilesLatest.txt")
+#
+# anamoly = Anamoly(rows[419]['value'])
+#
+# print(len(anamoly.accelValues))
+# print(np.mean(anamoly.accelValues))
+#
+# with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelValues.txt', 'w') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(anamoly.accelValues)
+#
+# with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\accelTime.txt', 'w') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(anamoly.accelTime)
+#
+# with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedValues.txt', 'w') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(anamoly.speedValues)
+# with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedTime.txt', 'w') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(anamoly.speedTime)
+#
             #
 # rows = loadObjFromFile("AllJsonFilesLatest.txt") ;
 #
@@ -381,49 +381,49 @@ with open('C:\\Users\\Waleed Mousa\\IdeaProjects\\PreProcessingFuctions\\speedTi
 #     if(ploter.endPloting):
 #         break
 #
-# rows = loadObjFromFile("AllJsonFilesLatest.txt")
-# mAvgAbs=[]
-# gAvgAbs=[]
-# mNumberOfPeaks=[]
-# gNumberOfPeaks=[]
-# index = 0
-# for row in rows:
-#     anamoly = Anamoly(row['value'])
-#     if(len(anamoly.accelValues) < 400):
-#         continue
-#     if (index % 100 == 0):
-#         print("finished:", index, "rows")
-#     index += 1
-#     # if(index > 1000):
-#     #     break
-#     preProAnamoly = preprossing(anamoly, smoothing=True, areaOfInterest=True , interestPeriod=2)
-#     avgAbs = avgAbsRatio(anamoly,3)
-#     peakCount = getNumberOfPeaks( preProAnamoly )
-#     if(anamoly.anamolyType==0):
-#         mAvgAbs.append(avgAbs)
-#         mNumberOfPeaks.append(peakCount)
-#     elif(anamoly.anamolyType<4):
-#         gAvgAbs.append(avgAbs)
-#         gNumberOfPeaks.append(peakCount)
-#
-#
-# plt.subplot(221)
-# plt.boxplot(mAvgAbs, showfliers=False)
-# plt.title("Matab AVG ABS RAtio")
-# plt.subplot(222)
-# plt.boxplot(gAvgAbs,showfliers=False)
-# plt.title("Ghalat AVG ABS RAtio")
-#
-#
-#
-# plt.subplot(223)
-# plt.boxplot(mNumberOfPeaks, showfliers=False)
-# plt.title("Matab number Of Peaks")
-# plt.subplot(224)
-# plt.boxplot(gNumberOfPeaks , showfliers=False)
-# plt.title("Ghalat Number of peaks")
-#
-# plt.show()
+rows = loadObjFromFile("AllJsonFilesLatest.txt")
+mAvgAbs=[]
+gAvgAbs=[]
+mNumberOfPeaks=[]
+gNumberOfPeaks=[]
+index = 0
+for row in rows:
+    anamoly = Anamoly(row['value'])
+    if(len(anamoly.accelValues) < 400):
+        continue
+    if (index % 100 == 0):
+        print("finished:", index, "rows")
+    index += 1
+    # if(index > 1000):
+    #     break
+    preProAnamoly = preprossing(anamoly, smoothing=True, areaOfInterest=True , interestPeriod=2)
+    avgAbs = avgAbsRatio(anamoly,3)
+    peakCount = getNumberOfPeaks( preProAnamoly )
+    if(anamoly.anamolyType==0):
+        mAvgAbs.append(avgAbs)
+        mNumberOfPeaks.append(peakCount)
+    elif(anamoly.anamolyType<4):
+        gAvgAbs.append(avgAbs)
+        gNumberOfPeaks.append(peakCount)
+
+
+plt.subplot(221)
+plt.boxplot(mAvgAbs, showfliers=False)
+plt.title("Matab AVG ABS RAtio")
+plt.subplot(222)
+plt.boxplot(gAvgAbs,showfliers=False)
+plt.title("Ghalat AVG ABS RAtio")
+
+
+
+plt.subplot(223)
+plt.boxplot(mNumberOfPeaks, showfliers=False)
+plt.title("Matab number Of Peaks")
+plt.subplot(224)
+plt.boxplot(gNumberOfPeaks , showfliers=False)
+plt.title("Ghalat Number of peaks")
+
+plt.show()
 
 # ploter.reviewMode = False
 # fileName= 'AllJsonFiles.txt'

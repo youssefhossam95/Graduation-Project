@@ -42,11 +42,6 @@ class Anamoly:
         if(JsonObj != 0 ):
             self.accelValues = np.array(JsonObj["accelValues"])
             self.accelTime = np.array(JsonObj["accelTime"])
-
-            if("speedValues" in JsonObj):
-                self.speedValues=np.array(JsonObj["speedValues"])
-            else:
-                self.speedValues=[]
             self.anamolyType = JsonObj["anamolyType"]
             self.Comment = JsonObj["Comment"]
             self.id = JsonObj["_id"]
