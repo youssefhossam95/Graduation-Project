@@ -34,8 +34,13 @@
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".popUpData" android:theme="@style/AppTheme.CustomTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.QUICK_VIEW"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
     </application>
