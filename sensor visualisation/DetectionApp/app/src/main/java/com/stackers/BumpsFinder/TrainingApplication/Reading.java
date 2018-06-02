@@ -8,7 +8,7 @@ public class Reading {
 
     public long time;
     public float value;
-
+    public double relativeTime ;
     public Reading() {}
 
     public Reading(long time,float val)
@@ -16,5 +16,6 @@ public class Reading {
         this.time=time;
         this.value=val;
     }
+
 }
 

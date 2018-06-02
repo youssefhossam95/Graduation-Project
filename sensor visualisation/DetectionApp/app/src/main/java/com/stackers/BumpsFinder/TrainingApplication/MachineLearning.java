@@ -104,6 +104,31 @@ public class MachineLearning {
 
     }
 
+    public static double [] loadCsvToArray( BufferedReader bufferedReader) throws IOException {
+        String line = bufferedReader.readLine() ;
+        String[] valuesStr = line.split(",");
+        double[] doubles = new double[valuesStr.length] ;
+        for(int i = 0 ; i < valuesStr.length ; i ++ )
+        {
+            float value = Float.parseFloat(valuesStr[i]) ;
+            doubles[i]= value;
+        }
+
+        return doubles ;
+    }
+
+    public static boolean setAnamolyPrediction(Anamoly anamoly){
+        return anamoly.MLpred=forwardProp(scaleFeatures(anamoly.getFeatureVector()))>0.5;
+    }
+
+    public static double[] scaleFeatures (double[] features){
+        double [] scaledFeatures = new double[features.length] ;
+        for( int i = 0 ;i  < features.length ; i ++ ) {
+            scaledFeatures[i] = (features[i]-mean[i])/Math.sqrt(var[i]) ;
+        }
+        return  scaledFeatures ;
+    }
+
 
 
 }

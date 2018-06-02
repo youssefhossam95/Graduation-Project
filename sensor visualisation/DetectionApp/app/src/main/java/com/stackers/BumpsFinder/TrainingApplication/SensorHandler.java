@@ -95,7 +95,8 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
     LinkedBlockingQueue<float[]> gyroHistory=new LinkedBlockingQueue<>();
     static final double GYROTHRESHOLD=0.5;
     private long lastSmallCosSimTime;
-    TextToSpeech tts ;
+    public TextToSpeech tts ;
+    boolean isSpeakDisabled=false;
 
     boolean isStable=true;
 
@@ -187,13 +188,14 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
         Reading[] tempAccelArray = new Reading[readingsQ.size()];
         Reading[] tempSpeedsArray = new Reading[speedsQ.size()];
         LinkedBlockingQueue<Reading> tempSpeedsQ = new LinkedBlockingQueue<Reading>(speedsQ);
+        LinkedBlockingQueue<Reading> tempAccelsQ=new LinkedBlockingQueue<Reading>(readingsQ);
 
         for (int i = 0; i < tempSpeedsArray.length; i++) {
             tempSpeedsArray[i] = tempSpeedsQ.poll();
         }
 
         for (int i = 0; i < tempAccelArray.length; i++) {
-            tempAccelArray[i] = readingsQ.poll();
+            tempAccelArray[i] = tempAccelsQ.poll();
         }
         lastAnamoly = new Anamoly(tempAccelArray, tempSpeedsArray, lastAnamolyLoc); //han7ot el array of speeds hena
     }
@@ -246,32 +248,24 @@ public class SensorHandler implements SensorEventListener,TextToSpeech.OnInitLis
 
 
                     }
-                    if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 3 * Math.pow(10, 9))
+                    if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 3 * Math.pow(10, 9) && !isSpeakDisabled)
                     {
                         isStable=isDeviceStable(4);
                         if(!isStable){
                             tts.speak("Rotation", TextToSpeech.QUEUE_ADD, null, null);
+                            isSpeakDisabled=true;
                         }
                     }
 
                     if (lastAnamolyTime != null && event.timestamp - lastAnamolyTime > 5 * Math.pow(10, 9)) {
-                        stopListening();
                         if (circleMenu.isOpened() && !isVoiceMode) {
                             circleMenu.closeMenu();
                             displayExceptionMessage("5 Seconds has passed! Anamoly will be ignored.");
                         }
-                        new Timer().schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if (isActivityAwake)
-                                    startListening();
-                                if (!isVoiceMode)
-                                    lastAnamoly = null;
-                            }
-                        }, 1500);
 
                         extractReadings(event.timestamp);
                         lastAnamolyTime = null;
+                        isSpeakDisabled=false;
                         isStillProcessing.set(false);
                     }
 

@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -139,7 +140,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
                                 try {
                                     mySensor.lastAnamoly.type = type;
                                     mySensor.lastAnamoly.comment = comment;
+                                    boolean mlPred=MachineLearning.setAnamolyPrediction(mySensor.lastAnamoly);
+                                    mySensor.lastAnamoly.cosSimPred=mySensor.isStable && mlPred;
                                     fileHandler.saveData(mySensor.lastAnamoly,userName);
+                                    String speakOut=mlPred?"Matab":"Galat";
+                                    mySensor.tts.speak(speakOut, TextToSpeech.QUEUE_ADD, null, null);
                                     saveDefectsValues();
                                     runOnUiThread(new Runnable() {
                                         @Override
@@ -176,6 +181,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         if (!isNetworkAvailable()) {
             toggleButton.setChecked(false);
             applicationModeText.setText("Buttons Mode");
+            Log.e("hello","");
             mySensor.isVoiceMode = false;
 
         } else {
@@ -464,11 +470,11 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         graphZValues.clear();
         double relativeTime = 10;
         int counter = -1;
-        for (Reading reading : mySensor.lastAnamoly.readings) {
+        for (Reading reading : mySensor.lastAnamoly.accels) {
             counter++;
             if (counter % 2 == 1)
                 continue;
-            relativeTime = (reading.time - mySensor.lastAnamoly.readings[0].time) / Math.pow(10, 9);
+            relativeTime = (reading.time - mySensor.lastAnamoly.accels[0].time) / Math.pow(10, 9);
             graphZValues.add(new DataPoint(relativeTime, reading.value));
 
         }

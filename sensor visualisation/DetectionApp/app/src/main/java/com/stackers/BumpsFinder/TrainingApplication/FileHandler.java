@@ -88,7 +88,7 @@ public class FileHandler implements Parcelable {
         int anamolyType=lastAnamoly.type;
         Location location=lastAnamoly.loc;
         String comment=lastAnamoly.comment;
-        Reading[] accelValues=lastAnamoly.readings;
+        Reading[] accelValues=lastAnamoly.accels;
         float[] accelValue=new float[accelValues.length];
         long [] accelTime=new long[accelValues.length];
         for(int i=0;i<accelValues.length;i++)
@@ -119,7 +119,8 @@ public class FileHandler implements Parcelable {
             jsonFile.put("Location",location.toString());
             jsonFile.put("Comment", comment);
             jsonFile.put("_id",userName+" "+String.valueOf(android.os.Build.MODEL)+ DateFormat.getDateTimeInstance().format(new Date()));
-            ;
+            jsonFile.put("MLpred",lastAnamoly.MLpred);
+            jsonFile.put("cosSimPred",lastAnamoly.cosSimPred);
         }
         catch(Exception e){
             Log.e("log_tag", "Error in  JsonFIle "+e.toString());
@@ -304,7 +305,9 @@ public class FileHandler implements Parcelable {
                     {
                     try
                     {   obj = new JSONObject(temp);
-                        allFiles[j]="File"+(i+1)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+"\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment");
+                        allFiles[j]="File"+(i+1)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+
+                                "\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment")
+                                +"\nMLpred: "+obj.get("MLpred")+"\ncosSimPred: "+obj.get("cosSimPred");
                         j++;
                     }
                     catch (Throwable t) {
