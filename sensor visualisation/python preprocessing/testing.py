@@ -45,12 +45,9 @@
 # print('speed' , anamoly.speedValues)
 # print('time' , anamoly.speedTime)
 
+from scipy import  signal
 
 
-import sys
-i = 0
-while( i < 100000000):
-    if(i % 10000000 == 0):
-        print('in iteration: ' , i)
-        # sys.stdout.flush()
-    i+=1
+f = signal.gaussian(5 , 1)
+print(f/sum(f))
+print (f)

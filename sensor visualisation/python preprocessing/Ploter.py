@@ -78,7 +78,7 @@ class Ploter:
                 plotNumber = plotNumberMod
 
             anamoly , title = anamolyArray[i]
-            PP.convertToRelativeTime(anamoly) #convert time to be in seconds
+            # PP.convertToRelativeTime(anamoly) #convert time to be in seconds
             plt.subplot(subPlotNumber)
             plt.xlabel("Time in seconds" ,  fontsize=18)
             plt.ylabel("acceleration in m/s2" ,  fontsize=18)
@@ -86,15 +86,16 @@ class Ploter:
 
             plt.title(title ,  fontsize=18)
             plt.grid()
-            # plt.xlim([0,10])
-            # plt.ylim([-10,10])
+            plt.xlim([0,10])
+            plt.ylim([-10,10])
 
 
         plt.tight_layout()
         figManager = plt.get_current_fig_manager()
         #figManager.window.state('zoomed')
         figManager.full_screen_toggle()
-        plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
+        #plt.suptitle(self.getTypeName(anamoly.anamolyType)+" "+ str(index) + " " + anamoly.id)
+        plt.suptitle("Anomaly NOT representing road bump" , fontsize = 20 )
         plt.show()
 
     def dataVsSpectrogram(self,f,t,Sxx , samplingRate , accelValues , type):
@@ -166,7 +167,7 @@ class Ploter:
                 plotNumber = plotNumberMod
 
             anamoly , title = anamolyArray[i]
-            PP.convertToRelativeTimeWithScales(anamoly,scales[i]) #convert time to be in seconds
+            # PP.convertToRelativeTimeWithScales(anamoly,scales[i]) #convert time to be in seconds
             plt.subplot(subPlotNumber)
 
             print(scales[i])

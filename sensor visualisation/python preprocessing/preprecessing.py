@@ -83,7 +83,8 @@ def ApplySmoothingFilter (anamoly , fsize ) :
     for i in range(1, fsize):
         Filter.append(1 / fsize)
 
-    # Filter=signal.gaussian(fsize,1)
+    # Filter=signal.(fsize,1)
+    print (Filter)
     newValues = np.convolve(anamoly.accelValues, Filter, 'same')
 
     maxAfter = np.sum(np.abs(newValues)) ;
@@ -91,6 +92,58 @@ def ApplySmoothingFilter (anamoly , fsize ) :
     anamoly2 = Anamoly(anamoly=anamoly)
     anamoly2.accelValues = newValues
     anamoly2.accelValues = newValues*(maxBefore/maxAfter)
+    return anamoly2
+
+
+def ApplySmoothingFilter2 (anamoly , fsize ) :
+    maxBefore = np.sum(np.abs(anamoly.accelValues))
+    Filter = []
+    for i in range(0, fsize):
+        Filter.append(1 / fsize)
+
+    # Filter=signal.(fsize,1)
+    print (Filter)
+    newValues = np.convolve(anamoly.accelValues, Filter, 'same')
+
+    maxAfter = np.sum(np.abs(newValues)) ;
+
+    anamoly2 = Anamoly(anamoly=anamoly)
+    anamoly2.accelValues = newValues
+    anamoly2.accelValues = newValues*(maxBefore/maxAfter)
+    return anamoly2
+
+def ApplyGaussianFilter (anamoly , fsize ) :
+    Filter=signal.gaussian(fsize , 1)
+    print (Filter)
+    Filter /=sum(Filter)
+    newValues = np.convolve(anamoly.accelValues, Filter, 'same')
+    anamoly2 = Anamoly(anamoly=anamoly)
+    anamoly2.accelValues = newValues
+    return anamoly2
+
+def ApplyGaussianFilter2 (anamoly , fsize ) :
+    maxBefore = np.sum(np.abs(anamoly.accelValues))
+
+    Filter=signal.gaussian(fsize,1)
+    print (Filter)
+    newValues = np.convolve(anamoly.accelValues, Filter, 'same')
+    maxAfter = np.sum(np.abs(newValues));
+
+    anamoly2 = Anamoly(anamoly=anamoly)
+    anamoly2.accelValues = newValues
+    anamoly2.accelValues = newValues * (maxBefore / maxAfter)
+
+    return anamoly2
+
+
+def ApplyAveragingFilter (anamoly , fsize ) :
+    Filter = []
+    for i in range(0, fsize):
+        Filter.append(1 / fsize)
+    print (Filter)
+    newValues = np.convolve(anamoly.accelValues, Filter, 'same')
+    anamoly2 = Anamoly(anamoly=anamoly)
+    anamoly2.accelValues = newValues
     return anamoly2
 
 def getInterestSpeed (anamoly  , interestPeriod , samplingRate ):
@@ -115,6 +168,7 @@ def shiftCurve(anamoly , startIndex , endIndex):
     numberOfSamples = len(newAnamoly.accelValues[:startIndex]) + len(newAnamoly.accelValues[endIndex:])
     mean = (sum(newAnamoly.accelValues[:startIndex]) + sum(newAnamoly.accelValues[endIndex:]))/numberOfSamples
     newAnamoly.accelValues -= mean;
+    print(mean)
     return newAnamoly
 
 ## perform integration on some sampled values
@@ -231,7 +285,7 @@ def getAreaOfInterest(anamoly , periodOfInterest):
             maxEnd = endIndex
 
     newAnamoly = Anamoly(anamoly=anamoly)
-    newAnamoly.accelTime= time[maxStart:maxEnd]-time[maxStart]
+    newAnamoly.accelTime= time[maxStart:maxEnd]
     newAnamoly.accelValues=accel[maxStart:maxEnd]
     return newAnamoly , maxStart , maxEnd
 
@@ -406,3 +460,11 @@ def normalize(anamoly):
   maxx=max(absAccels)
   newAnamoly.accelValues=[x /maxx  for x in newAnamoly.accelValues]
   return newAnamoly
+
+def zeroCrossings1D(x):
+  XCrossings=0
+  for j in range(1,len(x)):
+    if (x[j]*x[j-1])<0:
+      XCrossings+=1
+
+  return XCrossings
