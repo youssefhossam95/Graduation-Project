@@ -74,6 +74,22 @@
         android:src="@drawable/ic_stop"
         />
 
+    <TextView
+        android:id="@+id/currentLatText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/ic_gps"
+        android:layout_alignParentStart="true"
+        android:text="Current Lat = " />
+
+    <TextView
+        android:id="@+id/currentLongText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="130dp"
+        android:text="Current Long = " />
     <LinearLayout
         android:id="@+id/popUpLayoutWindow"
         android:layout_width="match_parent"
