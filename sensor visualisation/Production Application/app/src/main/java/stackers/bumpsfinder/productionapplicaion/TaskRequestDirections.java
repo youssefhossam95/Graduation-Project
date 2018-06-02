@@ -21,12 +21,12 @@ import java.util.ArrayList;
 public class TaskRequestDirections extends AsyncTask<String, Void, String> {
     private GoogleMap myMap;
     private Context myContext;
-    public ArrayList<LatLng>pathPoints;
-    public TaskRequestDirections(GoogleMap newMap,Context newContext)
+    MapsActivity myMapActivity;
+    public TaskRequestDirections(GoogleMap newMap,Context newContext,MapsActivity mapsActivity)
     {
-        myMap=newMap;
-        myContext=newContext;
-        pathPoints=new ArrayList<LatLng>();
+        myMap = newMap;
+        myContext = newContext;
+        myMapActivity = mapsActivity;
     }
     @Override
     protected String doInBackground(String... strings) {
@@ -43,7 +43,7 @@ public class TaskRequestDirections extends AsyncTask<String, Void, String> {
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
         //Parse json here
-        TaskParser taskParser = new TaskParser(myMap);
+        TaskParser taskParser = new TaskParser(myMap,myMapActivity);
         taskParser.execute(s);
     }
 

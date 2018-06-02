@@ -20,14 +20,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 
 
 public class FileHandler {
 
+    private static final String TAG = "FileHandler";
     private static FileHandler myFileHandler;
     private   FileHandler(){
 
@@ -40,9 +45,21 @@ public class FileHandler {
         return myFileHandler;
     }
     public void writeToFile(String FileName,String Data) {
+
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(ApplicationContextHolder.getContext().openFileOutput(FileName+".txt", Context.MODE_APPEND));
+            outputStreamWriter.write(Data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+
+    }
+    public void clearFile(String FileName){
         try {
             FileOutputStream fileOutputStream =  ApplicationContextHolder.getContext().openFileOutput(FileName+".txt", Context.MODE_PRIVATE);
-            fileOutputStream.write(Data.getBytes());
+            fileOutputStream.write("".getBytes());
             fileOutputStream.close();
         }
         catch (IOException e) {
@@ -50,34 +67,31 @@ public class FileHandler {
         }
 
     }
-    public String[] readFromFile(String FileName) {
-
-        String [] ret =new String[500];
-        int i=0;
+    public ArrayList<String> readFromFile(String FileName) {
+        Log.d(TAG,"readFromFile : reading data from file "+FileName);
+        ArrayList<String> result = new ArrayList<String>();
         try {
             InputStream inputStream = ApplicationContextHolder.getContext().openFileInput(FileName+".txt");
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String receiveString = "";
-                StringBuilder stringBuilder = new StringBuilder();
 
                 while ( (receiveString = bufferedReader.readLine()) != null ) {
-                    //  stringBuilder.append(receiveString);
-                    ret[i]=receiveString;
-                    i++;
+                    result.add(receiveString);
                 }
 
                 inputStream.close();
-                //  ret = stringBuilder.toString();
             }
         }
         catch (FileNotFoundException e) {
-            //  Log.e("File Handler Class :", "File not found Error: " + e.toString());
+              Log.e(TAG, "readFromFile FileNotFoundException : " + e.toString());
+              return null;
         } catch (IOException e) {
-            Log.e("File Handler Class :", "Can not read file: " + e.toString());
+            Log.e(TAG, "readFromFile IOException : " + e.toString());
+            return null;
         }
-        return ret;
+        return result;
     }
     public String readSingleFile(String FileName) {
 
