@@ -35,7 +35,7 @@ public class FileHandler implements Parcelable {
     private static boolean []AvailableFiles=new boolean[500];
     public static boolean isCurrentlyUploading=false;
     ContextHolder contextHolder;
- private   FileHandler(){
+    private   FileHandler(){
         for(int i=0;i<500;i++)
         {
             AvailableFiles[i]=false;
@@ -45,12 +45,12 @@ public class FileHandler implements Parcelable {
         if(Result[0]!=null)
         {
             int i=0;
-                while(i<500 && Result[i]!=null)
-                {
-                    AvailableFiles[Integer.valueOf(Result[i])]=true;
-                    NumberOfDefects++;
-                    i++;
-                }
+            while(i<500 && Result[i]!=null)
+            {
+                AvailableFiles[Integer.valueOf(Result[i])]=true;
+                NumberOfDefects++;
+                i++;
+            }
         }
 
     }
@@ -61,7 +61,7 @@ public class FileHandler implements Parcelable {
         if(myFile==null) {
             myFile = new FileHandler();
         }
-            return myFile;
+        return myFile;
     }
 
 
@@ -70,16 +70,16 @@ public class FileHandler implements Parcelable {
         int temp=0;
         for (int i=0;i<500;i++)
         {
-                String temp1=readSingleFile("File"+(i));
-                if(temp1!=null)
-                {
-                    AvailableFiles[i]=true;
-                    temp++;
-                }
-                else
-                {
-                    AvailableFiles[i]=false;
-                }
+            String temp1=readSingleFile("File"+(i));
+            if(temp1!=null)
+            {
+                AvailableFiles[i]=true;
+                temp++;
+            }
+            else
+            {
+                AvailableFiles[i]=false;
+            }
         }
         NumberOfDefects=temp;
         return NumberOfDefects;
@@ -149,14 +149,14 @@ public class FileHandler implements Parcelable {
             return false;
         isCurrentlyUploading=true;
         Thread t=new Thread(){
-          public void run(){
-              upload();
-              isCurrentlyUploading=false;
-              displayExceptionMessage("All Files Uploaded Successfully");
-          }
+            public void run(){
+                upload();
+                isCurrentlyUploading=false;
+                displayExceptionMessage("All Files Uploaded Successfully");
+            }
         };
         t.start();
-       return true;
+        return true;
     }
 
     public boolean upload() {
@@ -202,7 +202,7 @@ public class FileHandler implements Parcelable {
                     }
                     else
                     {
-                       displayExceptionMessage("File "+(i+1)+" Not Uploaded");
+                        displayExceptionMessage("File "+(i+1)+" Not Uploaded");
                     }
                 }
 
@@ -245,17 +245,17 @@ public class FileHandler implements Parcelable {
                 StringBuilder stringBuilder = new StringBuilder();
 
                 while ( (receiveString = bufferedReader.readLine()) != null ) {
-                  //  stringBuilder.append(receiveString);
+                    //  stringBuilder.append(receiveString);
                     ret[i]=receiveString;
                     i++;
                 }
 
                 inputStream.close();
-              //  ret = stringBuilder.toString();
+                //  ret = stringBuilder.toString();
             }
         }
         catch (FileNotFoundException e) {
-          //  Log.e("File Handler Class :", "File not found Error: " + e.toString());
+            //  Log.e("File Handler Class :", "File not found Error: " + e.toString());
         } catch (IOException e) {
             Log.e("File Handler Class :", "Can not read file: " + e.toString());
         }
@@ -273,16 +273,16 @@ public class FileHandler implements Parcelable {
                 StringBuilder stringBuilder = new StringBuilder();
 
                 while ( (receiveString = bufferedReader.readLine()) != null ) {
-                      stringBuilder.append(receiveString);
+                    stringBuilder.append(receiveString);
                 }
 
                 inputStream.close();
-                  ret = stringBuilder.toString();
+                ret = stringBuilder.toString();
 
             }
         }
         catch (FileNotFoundException e) {
-          //  Log.e("Filer Handler Class :", "File not found: " + e.toString());
+            //  Log.e("Filer Handler Class :", "File not found: " + e.toString());
             return null;
         } catch (IOException e) {
             Log.e("Filer Handler Class :", "Can not read file: " + e.toString());
@@ -303,16 +303,16 @@ public class FileHandler implements Parcelable {
                     String temp=readSingleFile("File"+(i));
                     if(temp!=null)
                     {
-                    try
-                    {   obj = new JSONObject(temp);
-                        allFiles[j]="File"+(i+1)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+
-                                "\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment")
-                                +"\nMLpred: "+obj.get("MLpred")+"\ncosSimPred: "+obj.get("cosSimPred");
-                        j++;
-                    }
-                    catch (Throwable t) {
-                        Log.e("My App", "Could not parse malformed JSON: \"" + temp + "\"");
-                    }
+                        try
+                        {   obj = new JSONObject(temp);
+                            allFiles[j]="File"+(i+1)+"\n"+"id : "+obj.getString("_id")+"\n"+"Location"+obj.getString("Location")+
+                                    "\n"+"anamoly Type : "+obj.getString("anamolyType")+"\n"+"Comment :"+obj.getString("Comment")
+                                    +"\nMLpred: "+obj.get("MLpred")+"\ncosSimPred: "+obj.get("cosSimPred");
+                            j++;
+                        }
+                        catch (Throwable t) {
+                            Log.e("My App", "Could not parse malformed JSON: \"" + temp + "\"");
+                        }
                     }
                     else
                     {
@@ -338,19 +338,19 @@ public class FileHandler implements Parcelable {
         {
             Log.e("Delete Func App Context",String.valueOf(contextHolder.getContext()));
             boolean fs=contextHolder.getContext().deleteFile(fileName);
-           if(fs)
-           {
-               String []temp=fileName.split("File");
-               String []val=temp[1].split(".txt");
-               AvailableFiles[Integer.valueOf(val[0])]=false;
-               NumberOfDefects--;
-               Log.e("filerHandler Context","after Deleting File Defects="+String.valueOf(NumberOfDefects));
-               return  true;
-           }
-           else
-           {
-               return false;
-           }
+            if(fs)
+            {
+                String []temp=fileName.split("File");
+                String []val=temp[1].split(".txt");
+                AvailableFiles[Integer.valueOf(val[0])]=false;
+                NumberOfDefects--;
+                Log.e("filerHandler Context","after Deleting File Defects="+String.valueOf(NumberOfDefects));
+                return  true;
+            }
+            else
+            {
+                return false;
+            }
 
         }
         else

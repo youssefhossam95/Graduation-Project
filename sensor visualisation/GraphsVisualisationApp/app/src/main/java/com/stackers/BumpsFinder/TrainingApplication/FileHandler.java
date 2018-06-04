@@ -81,7 +81,7 @@ public class FileHandler implements Parcelable {
                     AvailableFiles[i]=false;
                 }
         }
-        NumberOfDefects=temp;
+        NumberOfDefects = temp;
         return NumberOfDefects;
     }
     void saveData(Anamoly lastAnamoly,String userName) throws JSONException {

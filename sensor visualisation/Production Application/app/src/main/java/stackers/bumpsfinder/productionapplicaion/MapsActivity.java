@@ -21,13 +21,17 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 
 
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTabHost;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -103,14 +107,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Maps And Location Variables
     private GoogleMap mMap;
     private Boolean mLocationPermssionsGranted = false;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
     private Location currentLocation;
     private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(new LatLng(-40,-168),new LatLng(71,136)); //Creates a new bounds based on a southwest and a northeast corner
     private static final float DEFAULT_ZOOM = 15f;
-    private LocationCallback mLocationCallback;
-    private LocationRequest mLocationRequest; // To store parameters for requests to the fused location provider,
 
     //To Be Deleted For Testing
     private TextView currentLat;
@@ -126,20 +127,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static TextView bumpsInfoTextView;
     ArrayList<LatLng> currentPathList;
     MarkerOptions markerOptions;
-    Anamoly mAnamoly;
+    BumpAnamoly mBumpAnamoly;
     FileHandler myFileHandler;
     ApplicationContextHolder appContext;
     private  MediaPlayer mp ;
 
     //Simulation Variables
-    private Timer timer;
-    private int mIterator = 0;
     Marker marker =null;
-    int iteratorLoop=0;
     private boolean simulationBoolean = false;
 
     //Trip Variables
-    public Handler tripHandler = new Handler();
+    private Handler tripHandler = new Handler();
     private boolean newTrip = false;
 
     //Draw On Map Variables
@@ -159,6 +157,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int LOCATION_REQUEST = 500;
     HashMap<String,String> myAppPermissions = new HashMap<String,String>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
+    private LocationService myLocationService = null;
+    //Machine Learning Integration Variables
+    private SensorHandler mySensor;
+    private Handler sensorHandlerLoop = new Handler();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,26 +170,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Map Variable To Layout
         mSearchText = (AutoCompleteTextView)findViewById(R.id.inputSearch);
         mGPS = (ImageView)findViewById(R.id.ic_gps);
-        mPlaySimulation = (ImageView)findViewById(R.id.ic_startSimulation);
-        mStopSimulation = (ImageView)findViewById(R.id.ic_stopSimulate);
+/*        mPlaySimulation = (ImageView)findViewById(R.id.ic_startSimulation);
+        mStopSimulation = (ImageView)findViewById(R.id.ic_stopSimulate);*/
         mp = MediaPlayer.create(this, R.raw.matab);
         popUpWindow = (LinearLayout)findViewById(R.id.popUpLayoutWindow);
         bumpsInfoTextView = (TextView)findViewById(R.id.bumpsInfoTextView);
         hidePopUpWindow();
+        appContext.setContext(getApplicationContext());
         //Init data and check
         init();
         isServicesOK();
         getLocationPermission();
         initMap();
         currentPathList = new ArrayList<>();
-        sourceDestinationLocations = new ArrayList<>();
         myFileHandler = FileHandler.getFileHandler();
-        mAnamoly=Anamoly.getAnamolyHandler();
-        appContext.setContext(getApplicationContext());
+        mBumpAnamoly=BumpAnamoly.getAnamolyHandler();
+
 
         // To Be Commented for testing
         currentLat = (TextView)findViewById(R.id.currentLatText);
         currentLong = (TextView)findViewById(R.id.currentLongText);
+
+        // Testing Integration
+        mySensor = new SensorHandler(this);
+
+
+
     }
     /**
      * Manipulates the map once available.
@@ -204,34 +213,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setZoomControlsEnabled(true);
         if(mLocationPermssionsGranted)
         {
-            Task<Location> currentLocationTask = getDeviceLocation();
+            Task<Location> currentLocationTask = myLocationService.waitForLocationToInit();
             currentLocationTask.addOnCompleteListener(new OnCompleteListener<Location>() {
                 @Override
                 public void onComplete(@NonNull Task<Location> task) {
+                    currentLocation = myLocationService.getDeviceLocation();
                     moveCamera(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),DEFAULT_ZOOM,"My Location");
                     if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST);
                         return;
                     }
-                    mMap.setMyLocationEnabled(false);
+                    mMap.setMyLocationEnabled(true);
                     mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                    if (marker == null) {
-
-                        marker = mMap.addMarker(new MarkerOptions()
-                                .flat(true)
-                                .icon(BitmapDescriptorFactory
-                                        .fromResource(R.drawable.car))
-                                .anchor(0.5f, 0.5f)
-                                .position(
-                                        new LatLng(currentLocation.getLatitude(), currentLocation
-                                                .getLongitude())));
-                    }
-
-                    animateMarker(marker, currentLocation); // Helper method for smooth
-                    // animation
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation
-                            .getLatitude(), currentLocation.getLongitude())));
-
+                    sourceDestinationLocations = new ArrayList<>();
+                    sourceDestinationLocations.add(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
                 }
             });
         }
@@ -274,12 +269,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGPS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getDeviceLocation();
+                currentLocation = myLocationService.getDeviceLocation();
                 moveCamera(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),DEFAULT_ZOOM,"My Location");
             }
         });
         //Buttons Listeners
-        mPlaySimulation.setOnClickListener(new View.OnClickListener() {
+  /*      mPlaySimulation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                startSimulation();
@@ -290,27 +285,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 stopSimulation();
             }
-        });
+        });*/
 
-        //Location Request And Call Back
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(500);
-        mLocationRequest.setFastestInterval(500);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-
-                for (Location location : locationResult.getLocations()) {
-                    // Update UI with location data
-                    // ...
-                    currentLocation = location;
-                }
-            };
-        };
     }
     private void initMap() {
         Log.d(TAG,"initMap : Initilaizing Map");
@@ -347,6 +323,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(ContextCompat.checkSelfPermission(this,myAppPermissions.get("coarseLocation")) == PackageManager.PERMISSION_GRANTED)
             {
                 mLocationPermssionsGranted = true;
+                myLocationService = LocationService.getLocationServiceInstance();
                 Log.d(TAG,"getLocationPermission : All Permissions are granted (Y)");
             }
             else
@@ -358,44 +335,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             ActivityCompat.requestPermissions(this, new String[]{myAppPermissions.get("fineLocation"), myAppPermissions.get("coarseLocaion")},LOCATION_PERMISSION_REQUEST_CODE);
         }
-    }
-    private Task<Location> getDeviceLocation() {
-        Log.d(TAG,"getDeviceLocation : getting device current location");
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        Task location = null;
-        try
-        {
-            if(mLocationPermssionsGranted)
-            {
-                location = mFusedLocationProviderClient.getLastLocation();
-                location.addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if(task.isSuccessful() && task.getResult()!=null){
-                            Log.d(TAG,"onComplete : Found Location");
-                            currentLocation = (Location)task.getResult();
-                            sourceDestinationLocations.add(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude())); //current Path list
-
-                        }
-                        else
-                        {
-                            Log.d(TAG,"onComplete : current Location is null");
-                            Toast.makeText(getApplicationContext(),"Unable to get current location",Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            }
-        }
-        catch (SecurityException e)
-        {
-
-        }
-        return location;
-    }
-    private void getContinuousDeviceLocation() throws SecurityException{
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest,mLocationCallback,null);
     }
     private void geolocate(final geoLocatingType geotype){
         hideKeyboard();
@@ -411,7 +350,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Thread T =   new Thread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    getDeviceLocation();
+                                    myLocationService.waitForLocationToInit();
                                 }
                             });
                             T.start();
@@ -420,7 +359,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-
+                            currentLocation = myLocationService.getDeviceLocation();
+                            sourceDestinationLocations.add(0,new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
                             switch (geotype){
                                 case byString: {
                                     Log.d(TAG,"gelocate : gelocating by String");
@@ -448,7 +388,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     }
                                 }
                                 break;
-                                case byLocation:{
+                                case byLocation:{ // This for rerouting
                                     sourceDestinationLocations.add(0,new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
                                     requestDirectionsFromParser();
 
@@ -619,8 +559,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (greyPolyLine != null) {
             Log.d(TAG, "startSimulation : Started Simulating");
             final ArrayList<LatLng> tempbumpsLocationData = new ArrayList<LatLng>();
-            for (int i = 0; i < mAnamoly.bumpsLocationData.size(); i++) {
-                tempbumpsLocationData.add(mAnamoly.bumpsLocationData.get(i));
+            for (int i = 0; i < mBumpAnamoly.bumpsLocationData.size(); i++) {
+                tempbumpsLocationData.add(mBumpAnamoly.bumpsLocationData.get(i));
             }
             simulationBoolean = true;
             //Animator
@@ -682,7 +622,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             LatLng currentLatLng = new LatLng(currentPathList.get(index).latitude, currentPathList.get(index).longitude);
                             for (int i = 0; i < tempbumpsLocationData.size(); i++) {
 
-                                double dist = mAnamoly.calculateLatLongDistance(new LatLng(currentLatLng.latitude, currentLatLng.longitude), new LatLng(tempbumpsLocationData.get(i).latitude, tempbumpsLocationData.get(i).longitude));
+                                double dist = mBumpAnamoly.calculateLatLongDistance(new LatLng(currentLatLng.latitude, currentLatLng.longitude), new LatLng(tempbumpsLocationData.get(i).latitude, tempbumpsLocationData.get(i).longitude));
                                 if (dist <= 30) {
                                     if (!mp.isPlaying()) {
                                         mp.start();
@@ -723,8 +663,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void run() {
                 if(newTrip)
                 {
-                    getContinuousDeviceLocation();
-                    iteratorLoop++;
+                    currentLocation =  myLocationService.getDeviceLocation();
                     if (currentLocation != null)
                     {
                         if (marker == null) {
@@ -738,12 +677,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                             new LatLng(currentLocation.getLatitude(), currentLocation
                                                     .getLongitude())));
                         }
-
                         animateMarker(marker, currentLocation); // Helper method for smooth
                         // animation
-                        mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation
-                                .getLatitude(), currentLocation.getLongitude())));
-                        Log.d(TAG, "Location CallBack :" + iteratorLoop + " Current Location Lat =  " + currentLocation.getLatitude() + " Long = " + currentLocation.getLongitude());
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
                         currentLat.setText("Current Lat = "+currentLocation.getLatitude());
                         currentLong.setText("Current Long = "+currentLocation.getLongitude());
                     }
@@ -767,7 +703,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moveCamera(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),DEFAULT_ZOOM,"My Location");
     }
 
-
+    public void viewBumpsFiles(View V){
+        Intent myIntent;
+        myIntent = new Intent(getApplicationContext(), viewFiles.class);
+        myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(myIntent);
+    }
+    public void viewUploadData(View V){
+        Intent myIntent;
+        myIntent = new Intent(getApplicationContext(), UploadData.class);
+        myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(myIntent);
+    }
     private void reroutePath(){
         geolocate(geoLocatingType.byLocation);
     }

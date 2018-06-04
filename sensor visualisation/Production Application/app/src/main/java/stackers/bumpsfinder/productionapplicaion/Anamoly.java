@@ -1,251 +1,340 @@
+
+/**
+ * Created by Youssef Hossam on 09/02/2018.
+ */
 package stackers.bumpsfinder.productionapplicaion;
 
-import android.app.Activity;
-import android.app.Application;
 import android.location.Location;
-import android.util.Log;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.util.MathArrays;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Arrays;
 
-public class Anamoly extends Activity {
 
-    //Var Declarations
-    public ArrayList<LatLng> bumpsLocationData;  // This array contains all the bumps for the current path
-    private ArrayList<LatLng>  bumpsData; // This array contains all offline bumps
-    ApplicationContextHolder appContext;
-    private FileHandler myFileHandler;
-    private static final String TAG = "Anamoly";
-    private int onlineBumpsNumber = 0;
-    private int offlineBumpsNumber = 0;
-    private static Anamoly myAnamoly = null;
-    private CountDownLatch latch = new CountDownLatch(1);
-    private Anamoly(){
-    myFileHandler = FileHandler.getFileHandler();
-    bumpsLocationData = new ArrayList<LatLng>();
-    bumpsData = new ArrayList<LatLng>();
-    }
-    public static Anamoly getAnamolyHandler(){
-        if(myAnamoly==null){
-            myAnamoly = new Anamoly();
-        }
-        return myAnamoly;
-    }
-    public Thread getOnlineBumpsData() {
-      return  new Thread() {
-            public void run() {
-                runOnUiThread(new Thread(new Runnable()
-                        {
-                            public void run()
-                            {
-                                try
-                                {
-                                    if(android.os.Debug.isDebuggerConnected())
-                                        android.os.Debug.waitForDebugger();
-                                    Log.d(TAG,"getBumpsData : getting Bumps Data");
-                                    String newURL="https://ac89aed5-3fa3-48cf-b18d-dcda366b5b3f-bluemix.cloudant.com/simpledb/_design/GetAllJsons/_view/getLocation";
-                                    httpBackgroundConnection myConnection=new httpBackgroundConnection(appContext.getContext(),newURL,"GET");
-                                    String longLatData=myConnection.execute("nothing").get(5, TimeUnit.SECONDS);
-                                    JSONObject responseJson = new JSONObject(longLatData);
-                                    JSONArray rowsData=responseJson.getJSONArray("rows");
-                                    bumpsData= new ArrayList<LatLng>();
-                                    String[] currentLocation;
-                                    for(int i=0;i<rowsData.length();i++)
-                                    {
-                                        JSONObject currentRow=rowsData.getJSONObject(i);
-                                        currentLocation=currentRow.getString("value").split("fused")[1].split("acc")[0].split(",");
-                                        LatLng currentLatLng;
-                                        if(currentLocation[0].contains("*")==false)
-                                        {
-                                            currentLatLng=new LatLng(Double.parseDouble(currentLocation[0]),Double.parseDouble(currentLocation[1]));
-                                            bumpsData.add(currentLatLng);
-                                        }
-                                    }
-                                    Log.d(TAG," getBumpsData : Bumps Number = "+String.valueOf(bumpsData.size()));
-                                    latch.countDown();
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.e(TAG,"getBumpsData : Exception : "+e.toString());
-                                }
-                            }
-                        }
-                        )
-                );
-            }
-        };
 
-    }
-    private int clearRedundantData()
+public class Anamoly {
+
+    double [] accelValues ;
+    double [] accelTime ;
+    double [] speedValues ;
+
+    int interestStartIndex ;
+    int interestEndIndex;
+
+    public Reading[] accels;
+    public Reading[] speeds;
+    public Location loc;
+    public int type;
+    public String comment;
+    public boolean MLpred;
+    public boolean cosSimPred;
+
+//    Anamoly(Reading[]readings,Reading[] speeds,Location loc)
+//    {
+//        this.readings=readings;
+//        this.speeds=speeds;
+//        this.loc=loc;
+//    }
+
+    Anamoly(Reading[] accels, Reading[] speeds, Location loc)
     {
+        this.accels=accels;
+        this.speeds=speeds;
+        this.loc=loc;
+        accelValues = new double[accels.length];
+        accelTime = new double[accels.length];
+        speedValues = new double[speeds.length];
+        convertToRelativeTime();
+        for(int i = 0 ; i < accels.length ; i++) {
+            accelValues[i]= (double)accels[i].value;
+            accelTime[i]= (double)accels[i].relativeTime ;
+            // accelValues.add((double)accels[i].value) ;
+            //accelTime.add((double)accels[i].relativeTime) ;
+        }
+        for(int i =0 ; i < speeds.length ; i++) {
+            speedValues[i] = speeds[i].value ;
+        }
+    }
+    public void printAccelValues(){
+        System.out.print("AccelValues: [ ");
+        for(int i = 0 ; i < accelValues.length ; i ++){
+            System.out.print(accelValues[i]);
+            if(i != accelValues.length -1 )
+                System.out.print(" , " );
+        }
+        System.out.println("]");
+    }
+    public void printAccelTimes(){
+        System.out.print("AccelTimes: [ ");
+        for(int i = 0 ; i < accelTime.length ; i ++){
+            System.out.print(accelTime[i] );
+            if(i != accelTime.length -1 )
+                System.out.print(" , " );
+        }
+        System.out.println("]");
+    }
+    public void printSpeedValues(){
+        System.out.print("SpeedValues: [ ");
+        for(int i = 0 ; i < speeds.length ; i ++){
+            System.out.print(speeds[i].value );
+            if(i != speeds.length -1 )
+                System.out.print(" , " );
+        }
+        System.out.println("]");
+    }
+    public void printSpeedTimes(){
+        System.out.print("SpeedTimes: [ ");
+        for(int i = 0 ; i < speeds.length ; i ++){
+            System.out.print(speeds[i].time );
+            if(i != speeds.length -1 )
+                System.out.print(" , " );
+        }
+        System.out.println("]");
+    }
+    public  String getTypeName() {
+        String[ ]names ={"MATAB" , "HOFRA" ,"GALAT", "TAKSER" ,"UNKNWON"} ;
+        String miss = "" ;
+        int accessIndex = type ;
+        if(accessIndex > 4) {
+            miss = "miss labled";
+            accessIndex -= 5 ;
+        }
+        return  miss+names[accessIndex] ;
+    }
+    public void convertToRelativeTime () {
+        long ref = accels[0].time ;
+        if(ref == 0 )
+            return;
+        for(int i= 0 ;i < accels.length ; i++ ) {
+            accels[i].relativeTime = ((double)(accels[i].time - ref))/Math.pow(10,9) ;
+        }
+    }
+    double getMax(double[] array ){
+        if(array.length ==0 )
+            return -1 ;
+        double max = array[0];
+        for(int i = 0 ; i < array.length ; i++) {
+            if(array[i] > max){
+                max = array[i];
+            }
+        }
 
-        double distance=-1;
-        ArrayList<LatLng> tempBumpsData = bumpsData;
-        for(int i=0;i<tempBumpsData.size()-1;i++)
+        return max ;
+    }
+    double getAbsSum(double[] array ){
+        if(array.length ==0 )
+            return -1 ;
+        double sum = 0;
+        for(int i = 0 ; i < array.length ; i++) {
+            sum += Math.abs((array[i] )) ;
+        }
+
+        return sum ;
+    }
+    public void applySmoothingFilter (double fSize){
+        System.out.println("size before :" + accelValues.length);
+        double maxBefore = getAbsSum(accelValues);
+        double [] filter = new double[(int)fSize-1];
+        for(int i = 0 ; i < fSize-1 ; i++ )
+            filter[i]=  1.0/fSize ;
+        double [] newValues = MathArrays.convolve(accelValues , filter);
+        double maxAfter = getAbsSum(newValues) ;
+        for ( int i = 0 ; i < accelValues.length ; i++){
+            accelValues[i]= newValues[i+(int)Math.floor(fSize/2)]*maxBefore/maxAfter;
+        }
+        System.out.println("size after :" + accelValues.length);
+    }
+    /*
+        gets the start and end indicies and stores them in the class
+     */
+    public void getAreaOfInterest (double periodOfInterest){
+        int startIndex = 0 ;
+        double endTime =  periodOfInterest;
+        double [] accel = accelValues;
+        double[] time = accelTime ;
+
+        double maxSum = 0; //the maximum sum of abselutes
+        int maxStart = 0 ;//the index of the start of the max Sum window
+        int maxEnd = 0;
+        int index = 0 ;//index of the acceleration/time value
+        double tempTime = 0; //time start from 0
+
+        while ((tempTime < endTime) && ( index < time.length )) {
+            maxSum += Math.abs(accel[index]) ;
+            tempTime = time[index] ;
+            index += 1 ;
+        }
+        int endIndex = index ;// now start and end are start and end indices of the window
+        maxEnd= endIndex ;
+        double tempSum = maxSum ;// the summation of the current window abs
+
+        while(endIndex<time.length-1) {
+            endIndex += 1;
+            tempSum += Math.abs(accel[endIndex]);
+            tempSum -= Math.abs(accel[startIndex]);
+            startIndex += 1;
+            if (tempSum > maxSum) {
+                maxSum = tempSum;
+                maxStart = startIndex ;
+                maxEnd = endIndex ;
+            }
+        }
+        interestStartIndex = maxStart ;
+        interestEndIndex = maxEnd ;
+        System.out.println("Start of Interest: " + maxStart);
+        System.out.println("end of Interest: " + maxEnd);
+    }
+    /*
+    this function works on the stored start and end indicies
+     */
+    public double avgAbsRatio () {
+        double totalAbsSum = 0;
+        double interestAbsSum = 0;
+        for (int i = 0; i < accelValues.length; i++) {
+            totalAbsSum += Math.abs(accelValues[i]);
+            if (i >= interestStartIndex && i < interestEndIndex)
+                interestAbsSum += Math.abs(accelValues[i]);
+
+        }
+        double avgTotal = totalAbsSum/accelValues.length ;
+        double avgInterest = interestAbsSum/(interestEndIndex-interestStartIndex);
+        System.out.println("avg Abs Ratio: " +avgInterest/avgTotal );
+        return avgInterest/avgTotal ;
+    }
+    public int interestPeakCount(){
+        int peakCount  = 0 ;
+        for(int i = interestStartIndex +1 ; i<interestEndIndex-1 ; i++){
+            if((accelValues[i] < accelValues[i-1] && accelValues[i] < accelValues[i+1]) ||
+                    (accelValues[i] > accelValues[i-1] && accelValues[i] > accelValues[i+1]))
+                peakCount ++ ;
+        }
+        System.out.println("Peak count: " + peakCount);
+        return peakCount ;
+    }
+    public int interestZeroCrossings(){
+        int zeroCrossings = 0 ;
+        for(int i = interestStartIndex+1 ; i < interestEndIndex ; i++){
+            if(accelValues[i] * accelValues[i-1] < 0 )
+                zeroCrossings++ ;
+        }
+        System.out.println("Zero Crossings " +zeroCrossings);
+        return zeroCrossings;
+    }
+    public double getSpeedMean (){
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+
+    // Add the data from the array
+        for( int i = 0; i < speeds.length; i++) {
+            stats.addValue(speeds[i].value);
+        }
+
+// Compute some statistics
+        System.out.println("Mean : " + stats.getMean());
+        return  stats.getMean();
+    }
+    public double getSpeedStd (){
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+
+        // Add the data from the array
+        for( int i = 0; i < speeds.length; i++) {
+            stats.addValue(speeds[i].value);
+        }
+
+// Compute some statistics
+        System.out.println("Standard Div : "+stats.getStandardDeviation());
+        return  stats.getStandardDeviation();
+    }
+    /**
+     * uses linear interpolation and extrapolation to sample accelerometer readings for a given session length.
+     *
+     * @param samplingRate number of samples per second
+     * @param readings     array representing the  timeline in nanoseconds of accelerometer readings
+     * @param time         required session length in seconds
+     * @return array of sampled readings
+     */
+    double[] getSampledReadings(int samplingRate, ArrayList<Reading> readings, int time) {
+        double xFirst, yFirst, xSecond, ySecond, xInter, yInter;
+        double Ts = 1.0 /(double) samplingRate * Math.pow(10, 9); //in nanoseconds
+        int sampledReadingsCount = time * samplingRate + 1;
+        double[] sampledReadings = new double[sampledReadingsCount];
+        sampledReadings[0] = readings.get(0).value; //reading at t=0
+        int i = 1, j = 1;
+        double currentTime = Ts+readings.get(0).time;
+        while (true) {
+            while (i < readings.size() && currentTime > readings.get(i).time)
+                i++;
+
+            if (i == readings.size()) //recorded session is over
+                break;
+
+            xFirst = readings.get(i - 1).time;
+            yFirst = readings.get(i - 1).value;
+            xSecond = readings.get(i).time;
+            ySecond = readings.get(i).value;
+            xInter = currentTime;
+
+            yInter = yFirst + (xInter - xFirst) / (xSecond - xFirst) * (ySecond - yFirst); //linear Interpolation
+            sampledReadings[j] = yInter;
+            j++;
+            if (j == sampledReadingsCount) //sampling session  is over
+                break;
+            currentTime += Ts;
+        }
+
+        while (j < sampledReadingsCount) //assign last recorded reading to all the remaining samples (approximate extrapolation)
         {
-        for(int j=1;j<tempBumpsData.size()-1;j++)
-        {
-            distance=calculateLatLongDistance(new LatLng(tempBumpsData.get(i).latitude,tempBumpsData.get(i).longitude),new LatLng(tempBumpsData.get(j).latitude,tempBumpsData.get(j).longitude));
-            if(distance<=5)
-            {
-                tempBumpsData.remove(j);
-            }
+            sampledReadings[j] = readings.get(i - 1).value;
+            j++;
         }
 
+        accelValues = sampledReadings ;
+
+        double [] newTime = new double[time * samplingRate] ;
+        for(int k  = 0 ;  k <  time * samplingRate ; k++)
+            newTime[k]= (double)k / (double) samplingRate ;
+        accelTime = newTime ;
+        return sampledReadings;
+
+    }
+    public double getInterestSpeed(double samplingRate) {
+        long startOfAccelTime = accels[0].time;
+        double absStartTime = ( interestStartIndex * 1/samplingRate* Math.pow(10,9) + startOfAccelTime) ;
+        double absEndTime = interestEndIndex * 1 / samplingRate * Math.pow(10,9) + startOfAccelTime ;
+
+        for( int i = 0 ; i < speeds.length ; i++) {
+            double speedTime = speeds[i].time ;
+            if (speedTime > absStartTime && speedTime<absEndTime)
+                return speeds[i].value ;
         }
-        bumpsLocationData = tempBumpsData;
-       return bumpsLocationData.size();
+        return getSpeedMean();
     }
-    public void drawAnamoliesOnMap(final ArrayList<LatLng> currentPath,final GoogleMap mMap)
-    {
-        new Thread() {
-            public void run() {
-                runOnUiThread(new Thread(new Runnable()
-                        {
-                            public void run()
-                            {
-                                if(android.os.Debug.isDebuggerConnected())
-                                    android.os.Debug.waitForDebugger();
-                                ArrayList<LatLng>newBumps=new ArrayList<LatLng>();
-                                Location currentLocation=new Location("currentLocation");
-                                Location pathLocation=new Location("pathLocation");
-                                double distance=-1;
-                                try
-                                {
-                                for(int i=0;i<bumpsLocationData.size();i++) {
-                                    currentLocation.setLatitude(bumpsLocationData.get(i).latitude);
-                                    currentLocation.setLongitude(bumpsLocationData.get(i).longitude);
-                                    for(int j=0;j<currentPath.size();j++)
-                                    {
-                                        pathLocation.setLatitude(currentPath.get(j).latitude);
-                                        pathLocation.setLongitude(currentPath.get(j).longitude);
-                                        distance=currentLocation.distanceTo(pathLocation);
-                                        if(distance <= 8)
-                                        {
-                                            newBumps.add(bumpsLocationData.get(i));
-                                            break;
-                                        }
-                                    }
-                                }
-                                    bumpsLocationData=newBumps;
-                                    Log.d(TAG,"drawAnamoliesOnMap bumps avilable for road = "+String.valueOf(newBumps.size()));
-                                    for(int i=0;i<newBumps.size();i++)
-                                    {
-                                        MarkerOptions markerOptions = new MarkerOptions();
-                                        markerOptions.position(newBumps.get(i));
-                                        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                                        mMap.addMarker(markerOptions);
-                                    }
-
-                                }
-                                catch (Exception e)
-                                {
-
-                                }
-                            }
-                        }
-                        )
-                );
-            }
-        }.start();
+    public void printType(){
+        System.out.println("Type : " + getTypeName());
+    }
+    public void printData(){
+        printAccelValues();
+        printAccelTimes();
+        printSpeedValues();
+        printSpeedTimes();
+        printType();
 
     }
-    public int getOnlineBumpsNumber() throws InterruptedException, ExecutionException, TimeoutException {
-        Log.d(TAG,"getOnlineBumpsNumber : Loading Bumps Data");
+    public double [] getFeatureVector(){
+        getSampledReadings(50 , new ArrayList<Reading>(Arrays.asList(accels)) , 10) ;
+        printAccelValues();
+        applySmoothingFilter(5);
+        printAccelValues();
+        getAreaOfInterest(2);
+        double avgAbs = avgAbsRatio() ;
+        double peakCount = interestPeakCount() ;
+        double zeroCrossings = interestZeroCrossings() ;
+        double speedInterest = getInterestSpeed(50) ;
+        double speedMean = getSpeedMean() ;
 
-        try{
-           httpBackgroundConnection myConnection = new httpBackgroundConnection(ApplicationContextHolder.getContext(),"https://graduationprojectdbmanager.eu-de.mybluemix.net/bumpsNumber","GET");
-           String bumpsNumber = myConnection.execute("nothing").get(5, TimeUnit.SECONDS);
-           JSONObject responseJson = new JSONObject(bumpsNumber);
-           return responseJson.getInt("totalRows");
-       }
-       catch(Exception e)
-       {
-           Log.e(TAG,"getOnlineBumpsNumber Exception : "+e.toString());
-           return -1;
-       }
+        double []  features = {avgAbs , peakCount , zeroCrossings , speedInterest, speedMean } ;
+        return  features ;
+    }
 
-    }
-    public int getOfflineBumpsNumber(){
-        ArrayList<String> retrievedData = myFileHandler.readFromFile("offlineBump");
-        if(retrievedData == null || retrievedData.size()==0) return -1;
-        return Integer.parseInt(retrievedData.get(0));
-
-    }
-    private void readBumpsOfflineData() throws InterruptedException {
-        ArrayList<String> bumpsStringData = myFileHandler.readFromFile("bumpsData");
-        for(int i=0; i < bumpsStringData.size();i++){
-            bumpsData.add(convertStringToLatLng(bumpsStringData.get(i)));
-        }
-    }
-    private LatLng convertStringToLatLng(String currentBump){
-        String [] latLngString = currentBump.split("\\(");
-        String [] temp = latLngString[1].split(",");
-        double Lat = Double.parseDouble(temp[0]);
-        double Long = Double.parseDouble(temp[1].replace(")",""));
-        return new LatLng(Lat,Long);
-    }
-    public void loadBumpsData(final ArrayList<LatLng> currentPath,final GoogleMap mMap) throws InterruptedException, ExecutionException, TimeoutException {
-        Log.d(TAG,"loadBumpsData : Loading Bumps Data");
-        onlineBumpsNumber = getOnlineBumpsNumber();
-        offlineBumpsNumber = getOfflineBumpsNumber();
-        Log.d(TAG,"loadBumps Data : online Bumps Number = "+onlineBumpsNumber);
-        Log.d(TAG,"loadBumps Data : offline Bumps Number = "+offlineBumpsNumber);
-        if(onlineBumpsNumber != offlineBumpsNumber || (onlineBumpsNumber == -1 && offlineBumpsNumber == -1)){
-           myFileHandler.clearFile("offlineBump");
-           myFileHandler.writeToFile("offlineBump",String.valueOf(onlineBumpsNumber));
-           Thread T = getOnlineBumpsData();
-           T.start();
-           T.join();
-           latch.await();
-           // Clear Bumps Data
-           myFileHandler.clearFile("bumpsData");
-           for(int i = 0 ; i<bumpsData.size();i++)
-           {
-               myFileHandler.writeToFile("bumpsData",bumpsData.get(i).toString()+"\n");
-           }
-       }
-       else
-       {
-           readBumpsOfflineData(); // Should fill the bumpsData array
-       }
-       clearRedundantData();
-       drawAnamoliesOnMap(currentPath,mMap);
-       new Thread() {
-            public void run() {
-                try {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            MapsActivity.showPopUpWindow(bumpsLocationData.size());
-                        }
-                    });
-                }
-                catch (Exception e){
-
-                }
-            }
-        }.start();
-    }
-    public double calculateLatLongDistance(LatLng source,LatLng dest){
-        Location sourceLocation = new Location("sourceLocation");
-        sourceLocation.setLatitude(source.latitude);
-        sourceLocation.setLongitude(source.longitude);
-        Location destLocation = new Location("destLocation");
-        destLocation.setLatitude(dest.latitude);
-        destLocation.setLongitude(dest.longitude);
-        return sourceLocation.distanceTo(destLocation);
-    }
 }

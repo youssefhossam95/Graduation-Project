@@ -87,14 +87,14 @@ public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String
                 polylineList.add(new LatLng(lat,lon));
             }
 
-            final Anamoly  anaomly=Anamoly.getAnamolyHandler();
+            final BumpAnamoly bumpAnamoly = BumpAnamoly.getAnamolyHandler();
             try {
               new Thread(new Runnable() {
                     @Override
                     public void run() {
 
                         try {
-                            anaomly.loadBumpsData(polylineList,mMap);
+                            bumpAnamoly.loadBumpsData(polylineList,mMap);
                         }
                         catch (Exception e){
                         Log.e(TAG,"onPostExecute : Anamoly Thread Exception "+e.toString());

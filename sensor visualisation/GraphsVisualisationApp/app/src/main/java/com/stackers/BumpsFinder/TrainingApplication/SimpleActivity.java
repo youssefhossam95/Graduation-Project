@@ -420,7 +420,7 @@ public class SimpleActivity extends AppCompatActivity implements Serializable {
         switch (item.getItemId()) {
             case R.id.viewFileButton:
                 displayExceptionMessage("View Files Counts = " + fileHandler.NumberOfDefects);
-                 myIntent = new Intent(getApplicationContext(), viewFiles.class);
+                myIntent = new Intent(getApplicationContext(), viewFiles.class);
                 myIntent.putExtra("myFile", fileHandler);
                 myIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivityForResult(myIntent, 2);

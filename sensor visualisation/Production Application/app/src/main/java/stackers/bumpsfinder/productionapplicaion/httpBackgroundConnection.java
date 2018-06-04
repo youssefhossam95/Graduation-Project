@@ -6,6 +6,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -42,7 +43,7 @@ public class httpBackgroundConnection extends AsyncTask<String,Void,String>
         if(android.os.Debug.isDebuggerConnected())
             android.os.Debug.waitForDebugger();
 
-    //    JSONObject jsonFile=Data[0];
+
         try {
             URL url=new URL(urlSite);
             HttpURLConnection httpURLConnection=(HttpURLConnection)url.openConnection();
@@ -52,12 +53,20 @@ public class httpBackgroundConnection extends AsyncTask<String,Void,String>
             httpURLConnection.setRequestMethod(methodType);
             httpURLConnection.setRequestProperty("Content-Type", "application/json");
             httpURLConnection.setRequestProperty("Authorization",basicAuth);
-            httpURLConnection.setDoInput(true);
-   //         httpURLConnection.setDoOutput(true);
+            if(methodType == "GET")httpURLConnection.setDoInput(true);
+            else if(methodType == "POST")
+            {
+                JSONObject jsonFile=new JSONObject(Data[0]);
+                httpURLConnection.setDoOutput(true);
+                OutputStreamWriter wr = new OutputStreamWriter(httpURLConnection.getOutputStream());
+                wr.write(jsonFile.toString());
+                wr.close();
+            }
+
             httpURLConnection.connect();
 
             int Num=httpURLConnection.getResponseCode();
-            if(Num==200)
+            if( Num == 200)
             {
                 BufferedReader br = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                 StringBuilder sb = new StringBuilder();
@@ -73,6 +82,8 @@ public class httpBackgroundConnection extends AsyncTask<String,Void,String>
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return null;
