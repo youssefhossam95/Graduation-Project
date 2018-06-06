@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.stackers.BumpsFinder.TrainingApplication">
+
+    <supports-screens
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
+    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+ />
+
+    <uses-feature android:name="android.hardware.location.gps" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:label="DemoApp"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        tools:replace="android:label">
+        <activity
+            android:name="com.stackers.BumpsFinder.TrainingApplication.SimpleActivity"
+            android:keepScreenOn="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="com.example.youssefhossam.graphsvisualisationapp.Simple" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.stackers.BumpsFinder.TrainingApplication.MainActivity"
+            android:noHistory="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.stackers.BumpsFinder.TrainingApplication.viewFiles"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="com.example.youssefhossam.graphsvisualisationapp.View" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.editUserName" android:screenOrientation="portrait"/>
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.aboutUs" android:screenOrientation="portrait" />
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.help" android:screenOrientation="portrait" />
+        <activity android:name="com.stackers.BumpsFinder.TrainingApplication.helpJoe" android:screenOrientation="portrait"></activity>
+    </application>
+
+</manifest>

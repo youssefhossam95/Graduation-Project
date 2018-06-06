@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".aboutUs">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:text="Our graduation project is about detecting defects on the road like bumps and potholes. This application is the training app that will be used to collect the data required to train the program. If you have any concerns or questions, you can contact us through our facebook accounts by clicking on any of our pictures below."
+        android:textAlignment="center"
+        android:textColor="@android:color/black"
+        android:textSize="21dp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteY="157dp" />
+
+    <TextView
+        android:id="@+id/teamMembersTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/textView"
+        android:layout_marginTop="40dp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+    <at.markushi.ui.CircleButton
+        android:id="@+id/ahmedAdelFb"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignStart="@+id/waleedHazemFB"
+        android:layout_below="@+id/textView"
+        android:layout_marginTop="26dp"
+        android:src="@drawable/icon_aaz"
+        app:cb_color="@android:color/white" />
+
+    <TextView
+        android:id="@+id/ahmedAdelTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/ahmedAdelFb"
+        android:text="Ahmed Adel Zakaria"
+        android:textColor="@android:color/black"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/youssefHossamTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/youssefHossamFb"
+        android:layout_marginEnd="12dp"
+        android:text="Youssef Hossam"
+        android:textColor="@android:color/black"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <at.markushi.ui.CircleButton
+        android:id="@+id/youssefHossamFb"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignStart="@+id/youssefHossamTextView"
+        android:layout_alignTop="@+id/ahmedAdelFb"
+        android:layout_marginStart="14dp"
+        android:src="@drawable/icon_youhos"
+        app:cb_color="@android:color/white" />
+
+    <TextView
+        android:id="@+id/waleedHazemTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/waleedHazemFB"
+        android:layout_marginStart="14dp"
+        android:layout_toEndOf="@+id/teamMembersTextView"
+        android:text="Waleed Hazem"
+        android:textColor="@android:color/black"
+        android:textSize="14dp"
+        android:textStyle="bold" />
+
+    <at.markushi.ui.CircleButton
+        android:id="@+id/waleedHazemFB"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignEnd="@+id/waleedHazemTextView"
+        android:layout_below="@+id/ahmedAdelTextView"
+        android:src="@drawable/icon_walhaz"
+        app:cb_color="@android:color/white" />
+
+    <TextView
+        android:id="@+id/SamaIhabTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/waleedHazemTextView"
+        android:layout_alignBottom="@+id/waleedHazemTextView"
+        android:layout_alignEnd="@+id/samaIhabFB"
+        android:text="Sama Ihab"
+        android:textSize="14dp"
+        android:textColor="@android:color/black"
+        android:textStyle="bold" />
+
+    <at.markushi.ui.CircleButton
+        android:id="@+id/samaIhabFB"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignStart="@+id/youssefHossamFb"
+        android:layout_below="@+id/youssefHossamTextView"
+        android:src="@drawable/icon_samaihab"
+        app:cb_color="@android:color/white" />
+
+    <TextView
+        android:id="@+id/AppVersionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:text="App Version :"
+        android:textColor="#000000"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/appVersionString"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/AppVersionLabel"
+        android:text=""
+        android:textColor="#000000"
+        android:textStyle="bold" />
+</RelativeLayout>
